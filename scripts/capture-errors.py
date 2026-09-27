@@ -17,6 +17,9 @@ for i in range(3):
   if dialog:break
   time.sleep(.1)
  if not dialog:raise RuntimeError('Expected login error')
+ text=[];win32gui.EnumChildWindows(dialog,lambda child,a:text.append(win32gui.GetWindowText(child)),None)
+ if i==2 and not any('заблокированы' in t for t in text):raise RuntimeError('Expected lock text: '+str(text))
  time.sleep(.25);ImageGrab.grab(bbox=win32gui.GetWindowRect(h)).save(str(out/('locked.png' if i==2 else 'login-error.png')))
- win32gui.PostMessage(dialog,win32con.WM_COMMAND,1,0);time.sleep(.3)
+ win32gui.PostMessage(dialog,win32con.WM_CLOSE,0,0);time.sleep(.4)
 print(stack,'real wrong-password and persistent lock captured')
+
