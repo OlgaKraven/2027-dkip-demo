@@ -1,0 +1,10 @@
+{
+  "mysql": {
+    "originalRecords": 6,
+    "allSixFieldsUnchanged": true
+  },
+  "postgresql": {
+    "originalRecords": 6,
+    "allSixFieldsUnchanged": true
+  }
+}

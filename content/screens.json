@@ -1,0 +1,390 @@
+{
+  "mysql": {
+    "kim": {
+      "file": "materials/screenshots/common/kim.png",
+      "caption": "КИМ 09.02.07-5-2027, страница 30: начало заданий ГИА БУ. Изображение оригинальной страницы PDF."
+    },
+    "project": {
+      "file": "materials/screenshots/mysql/project.png",
+      "caption": "Исходный файл интерфейса в Visual Studio. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "order-source": {
+      "file": "materials/screenshots/mysql/order-source.png",
+      "caption": "Заказ покупателя из приложения открыт в Excel. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "spec-source": {
+      "file": "materials/screenshots/mysql/spec-source.png",
+      "caption": "Спецификация: материалы, количества и нормы технологических операций в Excel. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "json-source": {
+      "file": "materials/screenshots/mysql/json-source.png",
+      "caption": "Исходный Заказчики.json открыт в редакторе без изменения значений. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "decisions": {
+      "file": "materials/screenshots/mysql/decisions.png",
+      "caption": "Записанные допущения по неоднозначным данным исходных документов. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "er": {
+      "file": "materials/screenshots/mysql/er.png",
+      "caption": "Поэтапный разбор ER: отдельное поле, исходный документ и объяснение справа. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "db-start": {
+      "file": "materials/screenshots/mysql/db-start.png",
+      "caption": "XAMPP Control Panel: запущены Apache и MySQL (MariaDB). Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "db-create": {
+      "file": "materials/screenshots/mysql/db-create.png",
+      "caption": "Поля создания отдельной учебной базы данных. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "db-schema": {
+      "file": "materials/screenshots/mysql/db-schema.png",
+      "caption": "SQL создания таблиц и ограничений в редакторе. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "db-tables": {
+      "file": "materials/screenshots/mysql/db-tables.png",
+      "caption": "Созданные таблицы учебной базы в редакторе СУБД. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "db-keys": {
+      "file": "materials/screenshots/mysql/db-keys.png",
+      "caption": "Внешние ключи учебной базы данных. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "connection": {
+      "file": "materials/screenshots/mysql/connection.png",
+      "caption": "Выбор провайдера и чтение локальных переменных подключения в Database.cs. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "import": {
+      "file": "materials/screenshots/mysql/import.png",
+      "caption": "Код загрузки исходного JSON и демонстрационных данных. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "db-import": {
+      "file": "materials/screenshots/mysql/db-import.png",
+      "caption": "Импортированные исходные контрагенты и две явно обозначенные записи из документов. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "db-export": {
+      "file": "materials/screenshots/mysql/db-export.png",
+      "caption": "Настройка SQL-выгрузки в редакторе СУБД. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "db-restore": {
+      "file": "materials/screenshots/mysql/db-restore.png",
+      "caption": "Запрос к отдельной восстановленной базе dkip2027_restore. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "cost-lines": {
+      "file": "materials/screenshots/mysql/cost-lines.png",
+      "caption": "Проверка двух строк материалов через SQL: 6500 и 14,28. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "cost-query": {
+      "file": "materials/screenshots/mysql/cost-query.png",
+      "caption": "Выполнение запроса к представлению order_cost. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "cost-result": {
+      "file": "materials/screenshots/mysql/cost-result.png",
+      "caption": "Результат расчёта в СУБД: 14 374,28. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "login": {
+      "file": "materials/screenshots/mysql/login.png",
+      "caption": "Настоящее окно авторизации приложения. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "puzzle": {
+      "file": "materials/screenshots/mysql/puzzle.png",
+      "caption": "Исходное изображение и четыре переставляемых фрагмента в работающем приложении. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "login-error": {
+      "file": "materials/screenshots/mysql/login-error.png",
+      "caption": "Сообщение работающего приложения при неверном вводе. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "locked": {
+      "file": "materials/screenshots/mysql/locked.png",
+      "caption": "Работающее приложение сообщает о блокировке после трёх неудачных попыток. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "main": {
+      "file": "materials/screenshots/mysql/main.png",
+      "caption": "Рабочая форма заказа и результат расчёта себестоимости. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "users": {
+      "file": "materials/screenshots/mysql/users.png",
+      "caption": "Рабочее место администратора с записями пользователей. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "unlock": {
+      "file": "materials/screenshots/mysql/unlock.png",
+      "caption": "Выбор пользователя и отметка снятия блокировки в работающем приложении. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "notes-table": {
+      "file": "materials/screenshots/mysql/notes-table.png",
+      "caption": "Пять исходных записей notes в редакторе СУБД. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "notes-code": {
+      "file": "materials/screenshots/mysql/notes-code.png",
+      "caption": "Код JOIN и преобразования полей ответа в Notes.cs. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "api-code": {
+      "file": "materials/screenshots/mysql/api-code.png",
+      "caption": "Код HTTP-маршрутов и обработки ошибок в Program.cs. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "api-400": {
+      "file": "materials/screenshots/mysql/api-400.png",
+      "caption": "Настоящий JSON-ответ на user_id=abc. Статус 400 отдельно подтверждён HTTP-тестами. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "api-empty": {
+      "file": "materials/screenshots/mysql/swagger-empty.png",
+      "caption": "Swagger UI: настоящий ответ 200 с пустым массивом []. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "api-start": {
+      "file": "materials/screenshots/mysql/api-start.png",
+      "caption": "Консоль запущенного локального API с адресом прослушивания. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "postman-import": {
+      "file": "materials/screenshots/mysql/postman-import.png",
+      "caption": "Файл коллекции Postman: адреса base_url и error_url перед импортом. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "postman-tests": {
+      "file": "materials/screenshots/mysql/postman-tests.png",
+      "caption": "Postman: выполненные проверки HTTP 200, JSON и преобразованных полей. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "api-500": {
+      "file": "materials/screenshots/mysql/api-500.png",
+      "caption": "Swagger UI отдельного тестового процесса: настоящий ответ 500 при отказе подключения к БД. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "postman": {
+      "file": "materials/screenshots/mysql/postman.png",
+      "caption": "Postman Lightweight: настоящий ответ локального API. Коллекция отдельно проверена Newman. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "doc-template": {
+      "file": "materials/screenshots/mysql/doc-template.png",
+      "caption": "Исходный шаблон Приложения 3 открыт в Microsoft Word. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "openapi": {
+      "file": "materials/screenshots/mysql/openapi.png",
+      "caption": "Файл OpenAPI JSON, полученный с работающего сервера. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "swagger": {
+      "file": "materials/screenshots/mysql/swagger.png",
+      "caption": "Swagger UI запущенного API: два доступных GET-пути. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "swagger-expanded": {
+      "file": "materials/screenshots/mysql/swagger-expanded.png",
+      "caption": "Раскрытое описание GET /notes в Swagger UI. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "swagger-parameter": {
+      "file": "materials/screenshots/mysql/swagger-parameter.png",
+      "caption": "Try it out: необязательный параметр user_id в Swagger UI. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "swagger-200": {
+      "file": "materials/screenshots/mysql/swagger-200.png",
+      "caption": "Swagger UI: фактический HTTP 200 и список обработанных заметок. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "swagger-filter": {
+      "file": "materials/screenshots/mysql/swagger-filter.png",
+      "caption": "Swagger UI: запрос user_id=2 и заметки выбранного автора. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "swagger-empty": {
+      "file": "materials/screenshots/mysql/swagger-empty.png",
+      "caption": "Swagger UI: отсутствующий автор, HTTP 200 и []. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "openapi-paths": {
+      "file": "materials/screenshots/mysql/openapi-paths.png",
+      "caption": "Раздел paths в OpenAPI: путь, GET и параметры запроса. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "openapi-schemas": {
+      "file": "materials/screenshots/mysql/openapi-schemas.png",
+      "caption": "Раздел components.schemas: обязательные поля Note и схема ошибки. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "doc-filled": {
+      "file": "materials/screenshots/mysql/doc-filled.png",
+      "caption": "Заполненный исходный шаблон документации API в Microsoft Word. Маршрут: Windows Forms / XAMPP MySQL."
+    }
+  },
+  "postgresql": {
+    "kim": {
+      "file": "materials/screenshots/common/kim.png",
+      "caption": "КИМ 09.02.07-5-2027, страница 30: начало заданий ГИА БУ. Изображение оригинальной страницы PDF."
+    },
+    "project": {
+      "file": "materials/screenshots/postgresql/project.png",
+      "caption": "Исходный файл интерфейса в Visual Studio. Маршрут: WPF / PostgreSQL."
+    },
+    "order-source": {
+      "file": "materials/screenshots/postgresql/order-source.png",
+      "caption": "Заказ покупателя из приложения открыт в Excel. Маршрут: WPF / PostgreSQL."
+    },
+    "spec-source": {
+      "file": "materials/screenshots/postgresql/spec-source.png",
+      "caption": "Спецификация: материалы, количества и нормы технологических операций в Excel. Маршрут: WPF / PostgreSQL."
+    },
+    "json-source": {
+      "file": "materials/screenshots/postgresql/json-source.png",
+      "caption": "Исходный Заказчики.json открыт в редакторе без изменения значений. Маршрут: WPF / PostgreSQL."
+    },
+    "decisions": {
+      "file": "materials/screenshots/postgresql/decisions.png",
+      "caption": "Записанные допущения по неоднозначным данным исходных документов. Маршрут: WPF / PostgreSQL."
+    },
+    "er": {
+      "file": "materials/screenshots/postgresql/er.png",
+      "caption": "Поэтапный разбор ER: отдельное поле, исходный документ и объяснение справа. Маршрут: WPF / PostgreSQL."
+    },
+    "db-start": {
+      "file": "materials/screenshots/postgresql/db-start.png",
+      "caption": "XAMPP Control Panel: запущены Apache и MySQL (MariaDB). Маршрут: WPF / PostgreSQL."
+    },
+    "db-create": {
+      "file": "materials/screenshots/postgresql/db-create.png",
+      "caption": "Поля создания отдельной учебной базы данных. Маршрут: WPF / PostgreSQL."
+    },
+    "db-schema": {
+      "file": "materials/screenshots/postgresql/db-schema.png",
+      "caption": "SQL создания таблиц и ограничений в редакторе. Маршрут: WPF / PostgreSQL."
+    },
+    "db-tables": {
+      "file": "materials/screenshots/postgresql/db-tables.png",
+      "caption": "Созданные таблицы учебной базы в редакторе СУБД. Маршрут: WPF / PostgreSQL."
+    },
+    "db-keys": {
+      "file": "materials/screenshots/postgresql/db-keys.png",
+      "caption": "Внешние ключи учебной базы данных. Маршрут: WPF / PostgreSQL."
+    },
+    "connection": {
+      "file": "materials/screenshots/postgresql/connection.png",
+      "caption": "Выбор провайдера и чтение локальных переменных подключения в Database.cs. Маршрут: WPF / PostgreSQL."
+    },
+    "import": {
+      "file": "materials/screenshots/postgresql/import.png",
+      "caption": "Код загрузки исходного JSON и демонстрационных данных. Маршрут: WPF / PostgreSQL."
+    },
+    "db-import": {
+      "file": "materials/screenshots/postgresql/db-import.png",
+      "caption": "Импортированные исходные контрагенты и две явно обозначенные записи из документов. Маршрут: WPF / PostgreSQL."
+    },
+    "db-export": {
+      "file": "materials/screenshots/postgresql/db-export.png",
+      "caption": "Настройка SQL-выгрузки в редакторе СУБД. Маршрут: WPF / PostgreSQL."
+    },
+    "db-restore": {
+      "file": "materials/screenshots/postgresql/db-restore.png",
+      "caption": "Запрос к отдельной восстановленной базе dkip2027_restore. Маршрут: WPF / PostgreSQL."
+    },
+    "cost-lines": {
+      "file": "materials/screenshots/postgresql/cost-lines.png",
+      "caption": "Проверка двух строк материалов через SQL: 6500 и 14,28. Маршрут: WPF / PostgreSQL."
+    },
+    "cost-query": {
+      "file": "materials/screenshots/postgresql/cost-query.png",
+      "caption": "Выполнение запроса к представлению order_cost. Маршрут: WPF / PostgreSQL."
+    },
+    "cost-result": {
+      "file": "materials/screenshots/postgresql/cost-result.png",
+      "caption": "Результат расчёта в СУБД: 14 374,28. Маршрут: WPF / PostgreSQL."
+    },
+    "login": {
+      "file": "materials/screenshots/postgresql/login.png",
+      "caption": "Настоящее окно авторизации приложения. Маршрут: WPF / PostgreSQL."
+    },
+    "puzzle": {
+      "file": "materials/screenshots/postgresql/puzzle.png",
+      "caption": "Исходное изображение и четыре переставляемых фрагмента в работающем приложении. Маршрут: WPF / PostgreSQL."
+    },
+    "login-error": {
+      "file": "materials/screenshots/postgresql/login-error.png",
+      "caption": "Сообщение работающего приложения при неверном вводе. Маршрут: WPF / PostgreSQL."
+    },
+    "locked": {
+      "file": "materials/screenshots/postgresql/locked.png",
+      "caption": "Работающее приложение сообщает о блокировке после трёх неудачных попыток. Маршрут: WPF / PostgreSQL."
+    },
+    "main": {
+      "file": "materials/screenshots/postgresql/main.png",
+      "caption": "Рабочая форма заказа и результат расчёта себестоимости. Маршрут: WPF / PostgreSQL."
+    },
+    "users": {
+      "file": "materials/screenshots/postgresql/users.png",
+      "caption": "Рабочее место администратора с записями пользователей. Маршрут: WPF / PostgreSQL."
+    },
+    "unlock": {
+      "file": "materials/screenshots/postgresql/unlock.png",
+      "caption": "Выбор пользователя и отметка снятия блокировки в работающем приложении. Маршрут: WPF / PostgreSQL."
+    },
+    "notes-table": {
+      "file": "materials/screenshots/postgresql/notes-table.png",
+      "caption": "Пять исходных записей notes в редакторе СУБД. Маршрут: WPF / PostgreSQL."
+    },
+    "notes-code": {
+      "file": "materials/screenshots/postgresql/notes-code.png",
+      "caption": "Код JOIN и преобразования полей ответа в Notes.cs. Маршрут: WPF / PostgreSQL."
+    },
+    "api-code": {
+      "file": "materials/screenshots/postgresql/api-code.png",
+      "caption": "Код HTTP-маршрутов и обработки ошибок в Program.cs. Маршрут: WPF / PostgreSQL."
+    },
+    "api-400": {
+      "file": "materials/screenshots/postgresql/api-400.png",
+      "caption": "Настоящий JSON-ответ на user_id=abc. Статус 400 отдельно подтверждён HTTP-тестами. Маршрут: WPF / PostgreSQL."
+    },
+    "api-empty": {
+      "file": "materials/screenshots/postgresql/swagger-empty.png",
+      "caption": "Swagger UI: настоящий ответ 200 с пустым массивом []. Маршрут: WPF / PostgreSQL."
+    },
+    "api-start": {
+      "file": "materials/screenshots/postgresql/api-start.png",
+      "caption": "Консоль запущенного локального API с адресом прослушивания. Маршрут: WPF / PostgreSQL."
+    },
+    "postman-import": {
+      "file": "materials/screenshots/postgresql/postman-import.png",
+      "caption": "Файл коллекции Postman: адреса base_url и error_url перед импортом. Маршрут: WPF / PostgreSQL."
+    },
+    "postman-tests": {
+      "file": "materials/screenshots/postgresql/postman-tests.png",
+      "caption": "Postman: выполненные проверки HTTP 200, JSON и преобразованных полей. Маршрут: WPF / PostgreSQL."
+    },
+    "api-500": {
+      "file": "materials/screenshots/postgresql/api-500.png",
+      "caption": "Swagger UI отдельного тестового процесса: настоящий ответ 500 при отказе подключения к БД. Маршрут: WPF / PostgreSQL."
+    },
+    "postman": {
+      "file": "materials/screenshots/postgresql/postman.png",
+      "caption": "Postman Lightweight: настоящий ответ локального API. Коллекция отдельно проверена Newman. Маршрут: WPF / PostgreSQL."
+    },
+    "doc-template": {
+      "file": "materials/screenshots/postgresql/doc-template.png",
+      "caption": "Исходный шаблон Приложения 3 открыт в Microsoft Word. Маршрут: WPF / PostgreSQL."
+    },
+    "openapi": {
+      "file": "materials/screenshots/postgresql/openapi.png",
+      "caption": "Файл OpenAPI JSON, полученный с работающего сервера. Маршрут: WPF / PostgreSQL."
+    },
+    "swagger": {
+      "file": "materials/screenshots/postgresql/swagger.png",
+      "caption": "Swagger UI запущенного API: два доступных GET-пути. Маршрут: WPF / PostgreSQL."
+    },
+    "swagger-expanded": {
+      "file": "materials/screenshots/postgresql/swagger-expanded.png",
+      "caption": "Раскрытое описание GET /notes в Swagger UI. Маршрут: WPF / PostgreSQL."
+    },
+    "swagger-parameter": {
+      "file": "materials/screenshots/postgresql/swagger-parameter.png",
+      "caption": "Try it out: необязательный параметр user_id в Swagger UI. Маршрут: WPF / PostgreSQL."
+    },
+    "swagger-200": {
+      "file": "materials/screenshots/postgresql/swagger-200.png",
+      "caption": "Swagger UI: фактический HTTP 200 и список обработанных заметок. Маршрут: WPF / PostgreSQL."
+    },
+    "swagger-filter": {
+      "file": "materials/screenshots/postgresql/swagger-filter.png",
+      "caption": "Swagger UI: запрос user_id=2 и заметки выбранного автора. Маршрут: WPF / PostgreSQL."
+    },
+    "swagger-empty": {
+      "file": "materials/screenshots/postgresql/swagger-empty.png",
+      "caption": "Swagger UI: отсутствующий автор, HTTP 200 и []. Маршрут: WPF / PostgreSQL."
+    },
+    "openapi-paths": {
+      "file": "materials/screenshots/postgresql/openapi-paths.png",
+      "caption": "Раздел paths в OpenAPI: путь, GET и параметры запроса. Маршрут: WPF / PostgreSQL."
+    },
+    "openapi-schemas": {
+      "file": "materials/screenshots/postgresql/openapi-schemas.png",
+      "caption": "Раздел components.schemas: обязательные поля Note и схема ошибки. Маршрут: WPF / PostgreSQL."
+    },
+    "doc-filled": {
+      "file": "materials/screenshots/postgresql/doc-filled.png",
+      "caption": "Заполненный исходный шаблон документации API в Microsoft Word. Маршрут: WPF / PostgreSQL."
+    }
+  }
+}

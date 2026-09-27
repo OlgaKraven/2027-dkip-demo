@@ -1,0 +1,4 @@
+{
+  "mysql": "notes_count\r\n5\r\norder_id\ttotal_cost\r\n1\t14374.28\r\n",
+  "postgresql": " notes_count \r\n-------------\r\n           5\r\n(1 row)\r\n\r\n order_id | total_cost \r\n----------+------------\r\n        1 |   14374.28\r\n(1 row)\r\n\r\n"
+}

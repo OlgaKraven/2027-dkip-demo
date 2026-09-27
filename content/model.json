@@ -1,0 +1,2023 @@
+{
+  "order": [
+    "counterparty",
+    "item",
+    "price",
+    "specification",
+    "specification_component",
+    "customer_order",
+    "customer_order_line",
+    "production_order",
+    "production_product",
+    "production_resource",
+    "users",
+    "notes"
+  ],
+  "stacks": {
+    "mysql": {
+      "tables": [
+        {
+          "id": "counterparty",
+          "title": "Контрагенты",
+          "why": "Контакты и тип организации хранятся один раз, независимо от числа заказов.",
+          "fields": [
+            {
+              "id": "id",
+              "type": "VARCHAR(32)",
+              "title": "Код контрагента",
+              "pk": true,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "JSON: id; сохраняем ведущие нули. DOC-CUSTOMER и DOC-MAKER — отдельные дополнения по документам.",
+              "file": "Заказчики.json",
+              "location": "JSON: id; сохраняем ведущие нули. DOC-CUSTOMER и DOC-MAKER — отдельные дополнения по документам.",
+              "value": "Код контрагента"
+            },
+            {
+              "id": "name",
+              "type": "VARCHAR(255)",
+              "title": "Наименование",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "JSON: name; наименование организации.",
+              "file": "Заказчики.json",
+              "location": "JSON: name; наименование организации.",
+              "value": "Наименование"
+            },
+            {
+              "id": "inn",
+              "type": "VARCHAR(20)",
+              "title": "ИНН",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "JSON: inn; текст, пустое значение сохраняется.",
+              "file": "Заказчики.json",
+              "location": "JSON: inn; текст, пустое значение сохраняется.",
+              "value": "ИНН"
+            },
+            {
+              "id": "address",
+              "type": "VARCHAR(500)",
+              "title": "Адрес",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "JSON: addres → address; исходное написание значения сохраняется.",
+              "file": "Заказчики.json",
+              "location": "JSON: addres → address; исходное написание значения сохраняется.",
+              "value": "Адрес"
+            },
+            {
+              "id": "phone",
+              "type": "VARCHAR(64)",
+              "title": "Телефон",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "JSON: phone; знак + не теряется.",
+              "file": "Заказчики.json",
+              "location": "JSON: phone; знак + не теряется.",
+              "value": "Телефон"
+            },
+            {
+              "id": "party_type",
+              "type": "VARCHAR(24)",
+              "title": "Тип контрагента",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "JSON: type; Покупатель или Поставщик. Для изготовителя — дополнительное значение Производитель.",
+              "file": "Заказчики.json",
+              "location": "JSON: type; Покупатель или Поставщик. Для изготовителя — дополнительное значение Производитель.",
+              "value": "Тип контрагента"
+            }
+          ]
+        },
+        {
+          "id": "item",
+          "title": "Номенклатура",
+          "why": "Продукт, материал и операция имеют название, единицу и цену. Вид отличает их назначение.",
+          "fields": [
+            {
+              "id": "id",
+              "type": "IDENTITY",
+              "title": "Код записи",
+              "pk": true,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Решение модели",
+              "why": "Техническое: внутренний числовой ключ не зависит от кода в документе.",
+              "file": null,
+              "location": "Техническое: внутренний числовой ключ не зависит от кода в документе.",
+              "value": "Код записи"
+            },
+            {
+              "id": "code",
+              "type": "VARCHAR(64) UNIQUE",
+              "title": "Код номенклатуры",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": true,
+              "kind": "Источник",
+              "why": "S11, S17:S21, S27:S29: коды изделия, материалов и операций.",
+              "file": "Заказ на производство.xlsx",
+              "location": "S11, S17:S21, S27:S29: коды изделия, материалов и операций.",
+              "value": "Код номенклатуры"
+            },
+            {
+              "id": "name",
+              "type": "VARCHAR(255)",
+              "title": "Наименование",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "D11, D17:D21, D27:D29: названия из строк документа.",
+              "file": "Заказ на производство.xlsx",
+              "location": "D11, D17:D21, D27:D29: названия из строк документа.",
+              "value": "Наименование"
+            },
+            {
+              "id": "kind",
+              "type": "VARCHAR(16)",
+              "title": "Вид",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "Разделы B7, B13, B23 → product, material, operation; коды значений выбраны разработчиком.",
+              "file": "Заказ на производство.xlsx",
+              "location": "Разделы B7, B13, B23 → product, material, operation; коды значений выбраны разработчиком.",
+              "value": "Вид"
+            },
+            {
+              "id": "unit",
+              "type": "VARCHAR(16)",
+              "title": "Единица измерения",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "AD11, AD17:AD29; расхождения для евровинта и опоры согласованы со Спецификацией, см. допущения.",
+              "file": "Заказ на производство.xlsx",
+              "location": "AD11, AD17:AD29; расхождения для евровинта и опоры согласованы со Спецификацией, см. допущения.",
+              "value": "Единица измерения"
+            }
+          ]
+        },
+        {
+          "id": "price",
+          "title": "Цены",
+          "why": "Стоимость ресурса отделена от количества и нормы расхода.",
+          "fields": [
+            {
+              "id": "item_id",
+              "type": "INT REF item",
+              "title": "Номенклатура",
+              "pk": true,
+              "fk": true,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "A2:A9: находим ресурс по наименованию и сохраняем FK → item.id.",
+              "file": "Цены.xlsx",
+              "location": "A2:A9: находим ресурс по наименованию и сохраняем FK → item.id.",
+              "value": "Номенклатура"
+            },
+            {
+              "id": "valid_from",
+              "type": "DATE",
+              "title": "Действует с",
+              "pk": true,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Решение модели",
+              "why": "Техническое: даты цены в файле нет; дата 2026-04-01 — учебное допущение. Составной PK с item_id.",
+              "file": null,
+              "location": "Техническое: даты цены в файле нет; дата 2026-04-01 — учебное допущение. Составной PK с item_id.",
+              "value": "Действует с"
+            },
+            {
+              "id": "amount",
+              "type": "DECIMAL(14,2)",
+              "title": "Цена",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "D2:D9: 595; 95; 140; 245; 450; 1400; 3250; 950. Для операций тариф принят за час.",
+              "file": "Цены.xlsx",
+              "location": "D2:D9: 595; 95; 140; 245; 450; 1400; 3250; 950. Для операций тариф принят за час.",
+              "value": "Цена"
+            }
+          ]
+        },
+        {
+          "id": "specification",
+          "title": "Спецификации",
+          "why": "Одна действующая спецификация описывает состав одной единицы продукта.",
+          "fields": [
+            {
+              "id": "id",
+              "type": "IDENTITY",
+              "title": "Код записи",
+              "pk": true,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Решение модели",
+              "why": "Техническое: первичный ключ спецификации.",
+              "file": null,
+              "location": "Техническое: первичный ключ спецификации.",
+              "value": "Код записи"
+            },
+            {
+              "id": "product_id",
+              "type": "INT UNIQUE REF item",
+              "title": "Продукция",
+              "pk": false,
+              "fk": true,
+              "nullable": false,
+              "unique": true,
+              "kind": "Источник",
+              "why": "D4: Стол кухонный Самобранка → item.id; UNIQUE — одна спецификация в учебной модели.",
+              "file": "Спецификация.xlsx",
+              "location": "D4: Стол кухонный Самобранка → item.id; UNIQUE — одна спецификация в учебной модели.",
+              "value": "Продукция"
+            },
+            {
+              "id": "name",
+              "type": "VARCHAR(255)",
+              "title": "Название",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "B2: название спецификации.",
+              "file": "Спецификация.xlsx",
+              "location": "B2: название спецификации.",
+              "value": "Название"
+            },
+            {
+              "id": "output_qty",
+              "type": "DECIMAL(14,3)",
+              "title": "Выход продукции",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Решение модели",
+              "why": "Техническое: принимаем нормы на одну единицу изделия, output_qty=1.",
+              "file": null,
+              "location": "Техническое: принимаем нормы на одну единицу изделия, output_qty=1.",
+              "value": "Выход продукции"
+            },
+            {
+              "id": "manufacturer_id",
+              "type": "VARCHAR(32) REF counterparty",
+              "title": "Изготовитель",
+              "pk": false,
+              "fk": true,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "D6: ООО ТД Вершина; отдельная запись DOC-MAKER, поскольку в JSON её нет.",
+              "file": "Спецификация.xlsx",
+              "location": "D6: ООО ТД Вершина; отдельная запись DOC-MAKER, поскольку в JSON её нет.",
+              "value": "Изготовитель"
+            }
+          ]
+        },
+        {
+          "id": "specification_component",
+          "title": "Состав спецификации",
+          "why": "Связующая таблица хранит нормы материалов и операций без повторения их цен.",
+          "fields": [
+            {
+              "id": "specification_id",
+              "type": "INT REF specification",
+              "title": "Спецификация",
+              "pk": true,
+              "fk": true,
+              "nullable": false,
+              "unique": false,
+              "kind": "Решение модели",
+              "why": "Техническое: FK на шапку; вместе с item_id образует составной первичный ключ.",
+              "file": null,
+              "location": "Техническое: FK на шапку; вместе с item_id образует составной первичный ключ.",
+              "value": "Спецификация"
+            },
+            {
+              "id": "item_id",
+              "type": "INT REF item",
+              "title": "Материал / операция",
+              "pk": true,
+              "fk": true,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "B10:B14, B19:B21: ссылка на номенклатуру из строки состава.",
+              "file": "Спецификация.xlsx",
+              "location": "B10:B14, B19:B21: ссылка на номенклатуру из строки состава.",
+              "value": "Материал / операция"
+            },
+            {
+              "id": "qty",
+              "type": "DECIMAL(14,3)",
+              "title": "Количество",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "L10:L14 и L19:L21: норма количества на единицу выпуска.",
+              "file": "Спецификация.xlsx",
+              "location": "L10:L14 и L19:L21: норма количества на единицу выпуска.",
+              "value": "Количество"
+            },
+            {
+              "id": "time_norm",
+              "type": "DECIMAL(14,3)",
+              "title": "Норма времени",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "J19:J21: 0,75; 1,5; 0,5. Для материалов множитель 1 — техническая нейтральная величина.",
+              "file": "Спецификация.xlsx",
+              "location": "J19:J21: 0,75; 1,5; 0,5. Для материалов множитель 1 — техническая нейтральная величина.",
+              "value": "Норма времени"
+            }
+          ]
+        },
+        {
+          "id": "customer_order",
+          "title": "Заказы покупателей",
+          "why": "Реквизиты шапки относятся ко всему заказу, строки хранятся отдельно.",
+          "fields": [
+            {
+              "id": "id",
+              "type": "IDENTITY",
+              "title": "Код записи",
+              "pk": true,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Решение модели",
+              "why": "Техническое: внутренний идентификатор заказа.",
+              "file": null,
+              "location": "Техническое: внутренний идентификатор заказа.",
+              "value": "Код записи"
+            },
+            {
+              "id": "doc_no",
+              "type": "VARCHAR(64) UNIQUE",
+              "title": "Номер",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": true,
+              "kind": "Источник",
+              "why": "B3: номер 1 из заголовка документа.",
+              "file": "Заказ покупателя.xlsx",
+              "location": "B3: номер 1 из заголовка документа.",
+              "value": "Номер"
+            },
+            {
+              "id": "doc_date",
+              "type": "DATE",
+              "title": "Дата",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "B3: 22.04.2026; это исходная дата в комплекте 2027.",
+              "file": "Заказ покупателя.xlsx",
+              "location": "B3: 22.04.2026; это исходная дата в комплекте 2027.",
+              "value": "Дата"
+            },
+            {
+              "id": "customer_id",
+              "type": "VARCHAR(32) REF counterparty",
+              "title": "Заказчик",
+              "pk": false,
+              "fk": true,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "F7: ИП Томилин Александр Сергеевич; запись DOC-CUSTOMER дополняет JSON.",
+              "file": "Заказ покупателя.xlsx",
+              "location": "F7: ИП Томилин Александр Сергеевич; запись DOC-CUSTOMER дополняет JSON.",
+              "value": "Заказчик"
+            },
+            {
+              "id": "executor_id",
+              "type": "VARCHAR(32) REF counterparty",
+              "title": "Исполнитель",
+              "pk": false,
+              "fk": true,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "F5: ООО ТД Вершина → контрагент DOC-MAKER.",
+              "file": "Заказ покупателя.xlsx",
+              "location": "F5: ООО ТД Вершина → контрагент DOC-MAKER.",
+              "value": "Исполнитель"
+            }
+          ]
+        },
+        {
+          "id": "customer_order_line",
+          "title": "Строки заказа",
+          "why": "Повторяющиеся позиции документа становятся отдельными записями, без списков в одной ячейке.",
+          "fields": [
+            {
+              "id": "id",
+              "type": "IDENTITY",
+              "title": "Код строки",
+              "pk": true,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Решение модели",
+              "why": "Техническое: уникальный идентификатор строки.",
+              "file": null,
+              "location": "Техническое: уникальный идентификатор строки.",
+              "value": "Код строки"
+            },
+            {
+              "id": "order_id",
+              "type": "INT REF customer_order",
+              "title": "Заказ",
+              "pk": false,
+              "fk": true,
+              "nullable": false,
+              "unique": false,
+              "kind": "Решение модели",
+              "why": "Техническое: FK связывает строку со шапкой документа.",
+              "file": null,
+              "location": "Техническое: FK связывает строку со шапкой документа.",
+              "value": "Заказ"
+            },
+            {
+              "id": "product_id",
+              "type": "INT REF item",
+              "title": "Продукция",
+              "pk": false,
+              "fk": true,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "D11: Стол кухонный Самобранка → item.id; согласование двух кодов объяснено в допущениях.",
+              "file": "Заказ покупателя.xlsx",
+              "location": "D11: Стол кухонный Самобранка → item.id; согласование двух кодов объяснено в допущениях.",
+              "value": "Продукция"
+            },
+            {
+              "id": "source_code",
+              "type": "VARCHAR(64)",
+              "title": "Код в заказе",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "P11: ФР-00000034; сохраняем код именно этого документа.",
+              "file": "Заказ покупателя.xlsx",
+              "location": "P11: ФР-00000034; сохраняем код именно этого документа.",
+              "value": "Код в заказе"
+            },
+            {
+              "id": "qty",
+              "type": "DECIMAL(14,3)",
+              "title": "Количество",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "S11: 2 единицы продукции.",
+              "file": "Заказ покупателя.xlsx",
+              "location": "S11: 2 единицы продукции.",
+              "value": "Количество"
+            },
+            {
+              "id": "sale_price",
+              "type": "DECIMAL(14,2)",
+              "title": "Цена продажи",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "X11: 14120; это продажная цена, а не себестоимость.",
+              "file": "Заказ покупателя.xlsx",
+              "location": "X11: 14120; это продажная цена, а не себестоимость.",
+              "value": "Цена продажи"
+            },
+            {
+              "id": "discount",
+              "type": "DECIMAL(14,2)",
+              "title": "Скидка строки",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "AA11: 1412; в примере скидка на всю строку: 2×14120−1412=26828.",
+              "file": "Заказ покупателя.xlsx",
+              "location": "AA11: 1412; в примере скидка на всю строку: 2×14120−1412=26828.",
+              "value": "Скидка строки"
+            }
+          ]
+        },
+        {
+          "id": "production_order",
+          "title": "Заказы на производство",
+          "why": "Документ фиксирует план производства; не выдаём план за фактический выпуск.",
+          "fields": [
+            {
+              "id": "id",
+              "type": "IDENTITY",
+              "title": "Код записи",
+              "pk": true,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Решение модели",
+              "why": "Техническое: ключ заказа на производство.",
+              "file": null,
+              "location": "Техническое: ключ заказа на производство.",
+              "value": "Код записи"
+            },
+            {
+              "id": "doc_no",
+              "type": "VARCHAR(64) UNIQUE",
+              "title": "Номер",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": true,
+              "kind": "Источник",
+              "why": "B3: номер 1.",
+              "file": "Заказ на производство.xlsx",
+              "location": "B3: номер 1.",
+              "value": "Номер"
+            },
+            {
+              "id": "doc_date",
+              "type": "DATE",
+              "title": "Дата документа",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "B3: 23.04.2026.",
+              "file": "Заказ на производство.xlsx",
+              "location": "B3: 23.04.2026.",
+              "value": "Дата документа"
+            },
+            {
+              "id": "launch_date",
+              "type": "DATE",
+              "title": "Дата запуска",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "G5: 23.04.2026.",
+              "file": "Заказ на производство.xlsx",
+              "location": "G5: 23.04.2026.",
+              "value": "Дата запуска"
+            },
+            {
+              "id": "department",
+              "type": "VARCHAR(255)",
+              "title": "Подразделение",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "W5: Основное подразделение; других атрибутов подразделения источник не содержит.",
+              "file": "Заказ на производство.xlsx",
+              "location": "W5: Основное подразделение; других атрибутов подразделения источник не содержит.",
+              "value": "Подразделение"
+            }
+          ]
+        },
+        {
+          "id": "production_product",
+          "title": "Продукция к выпуску",
+          "why": "План выпуска связывает документ с продуктами и количеством.",
+          "fields": [
+            {
+              "id": "production_id",
+              "type": "INT REF production_order",
+              "title": "Заказ на производство",
+              "pk": true,
+              "fk": true,
+              "nullable": false,
+              "unique": false,
+              "kind": "Решение модели",
+              "why": "Техническое: FK на шапку; часть составного PK.",
+              "file": null,
+              "location": "Техническое: FK на шапку; часть составного PK.",
+              "value": "Заказ на производство"
+            },
+            {
+              "id": "product_id",
+              "type": "INT REF item",
+              "title": "Продукт",
+              "pk": true,
+              "fk": true,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "D11 и S11: Самобранка, НФ-00000006 → item.id.",
+              "file": "Заказ на производство.xlsx",
+              "location": "D11 и S11: Самобранка, НФ-00000006 → item.id.",
+              "value": "Продукт"
+            },
+            {
+              "id": "qty",
+              "type": "DECIMAL(14,3)",
+              "title": "Количество",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "X11: 2; плановый выпуск.",
+              "file": "Заказ на производство.xlsx",
+              "location": "X11: 2; плановый выпуск.",
+              "value": "Количество"
+            }
+          ]
+        },
+        {
+          "id": "production_resource",
+          "title": "План ресурсов",
+          "why": "Сохраняем строки плана, включая исходные единицы, отдельно от нормативного расчёта.",
+          "fields": [
+            {
+              "id": "production_id",
+              "type": "INT REF production_order",
+              "title": "Заказ на производство",
+              "pk": true,
+              "fk": true,
+              "nullable": false,
+              "unique": false,
+              "kind": "Решение модели",
+              "why": "Техническое: FK на шапку плана.",
+              "file": null,
+              "location": "Техническое: FK на шапку плана.",
+              "value": "Заказ на производство"
+            },
+            {
+              "id": "item_id",
+              "type": "INT REF item",
+              "title": "Ресурс",
+              "pk": true,
+              "fk": true,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "S17:S21, S27:S29: материал или операция из справочника.",
+              "file": "Заказ на производство.xlsx",
+              "location": "S17:S21, S27:S29: материал или операция из справочника.",
+              "value": "Ресурс"
+            },
+            {
+              "id": "qty",
+              "type": "DECIMAL(14,3)",
+              "title": "Количество по документу",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "X17:X21, X27:X29: плановое количество, не подмена норм спецификации.",
+              "file": "Заказ на производство.xlsx",
+              "location": "X17:X21, X27:X29: плановое количество, не подмена норм спецификации.",
+              "value": "Количество по документу"
+            },
+            {
+              "id": "source_unit",
+              "type": "VARCHAR(16)",
+              "title": "Единица в документе",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "AD17:AD21, AD27:AD29: сохраняем исходные единицы даже при расхождении со спецификацией.",
+              "file": "Заказ на производство.xlsx",
+              "location": "AD17:AD21, AD27:AD29: сохраняем исходные единицы даже при расхождении со спецификацией.",
+              "value": "Единица в документе"
+            }
+          ]
+        },
+        {
+          "id": "users",
+          "title": "Пользователи",
+          "why": "Учётные записи и блокировки из задания 4 не являются заказчиками производства.",
+          "fields": [
+            {
+              "id": "id",
+              "type": "IDENTITY",
+              "title": "Код пользователя",
+              "pk": true,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Решение модели",
+              "why": "Техническое: стабильный первичный ключ учётной записи.",
+              "file": null,
+              "location": "Техническое: стабильный первичный ключ учётной записи.",
+              "value": "Код пользователя"
+            },
+            {
+              "id": "login",
+              "type": "VARCHAR(64) UNIQUE",
+              "title": "Логин",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": true,
+              "kind": "Источник",
+              "why": "Задание 4: логин обязателен, дубликаты запрещены.",
+              "file": "Приложение 1.pdf",
+              "location": "Задание 4: логин обязателен, дубликаты запрещены.",
+              "value": "Логин"
+            },
+            {
+              "id": "password_hash",
+              "type": "VARCHAR(255)",
+              "title": "Хеш пароля",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Решение модели",
+              "why": "Техническое: PBKDF2 с солью вместо открытого пароля.",
+              "file": null,
+              "location": "Техническое: PBKDF2 с солью вместо открытого пароля.",
+              "value": "Хеш пароля"
+            },
+            {
+              "id": "role",
+              "type": "VARCHAR(16)",
+              "title": "Роль",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "Задание 4: Администратор и Пользователь → admin/user.",
+              "file": "Приложение 1.pdf",
+              "location": "Задание 4: Администратор и Пользователь → admin/user.",
+              "value": "Роль"
+            },
+            {
+              "id": "failed_attempts",
+              "type": "INT",
+              "title": "Неудачные попытки",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "Задание 4: три неверных пароля или пазла подряд вызывают блокировку.",
+              "file": "Приложение 1.pdf",
+              "location": "Задание 4: три неверных пароля или пазла подряд вызывают блокировку.",
+              "value": "Неудачные попытки"
+            },
+            {
+              "id": "is_locked",
+              "type": "BOOLEAN",
+              "title": "Блокировка",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "Задание 4: блокировку снимает администратор.",
+              "file": "Приложение 1.pdf",
+              "location": "Задание 4: блокировку снимает администратор.",
+              "value": "Блокировка"
+            }
+          ]
+        },
+        {
+          "id": "notes",
+          "title": "Заметки",
+          "why": "Задание 5: каждая заметка относится к пользователю; API получает логин через JOIN.",
+          "fields": [
+            {
+              "id": "id",
+              "type": "IDENTITY",
+              "title": "Код заметки",
+              "pk": true,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "Приложение 2, стр. 1: Id — первичный ключ.",
+              "file": "Прил_5_ОЗ_КИМ_09.02.07-5-2027.pdf",
+              "location": "Приложение 2, стр. 1: Id — первичный ключ.",
+              "value": "Код заметки"
+            },
+            {
+              "id": "title",
+              "type": "VARCHAR(255)",
+              "title": "Заголовок",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "Приложение 2: Title; title_user вычисляется только в ответе API.",
+              "file": "Прил_5_ОЗ_КИМ_09.02.07-5-2027.pdf",
+              "location": "Приложение 2: Title; title_user вычисляется только в ответе API.",
+              "value": "Заголовок"
+            },
+            {
+              "id": "content",
+              "type": "TEXT",
+              "title": "Содержание",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "Приложение 2: Content передаётся без изменений.",
+              "file": "Прил_5_ОЗ_КИМ_09.02.07-5-2027.pdf",
+              "location": "Приложение 2: Content передаётся без изменений.",
+              "value": "Содержание"
+            },
+            {
+              "id": "id_user",
+              "type": "INT REF users",
+              "title": "Автор",
+              "pk": false,
+              "fk": true,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "Приложение 2: Id_user — внешний ключ на users.id.",
+              "file": "Прил_5_ОЗ_КИМ_09.02.07-5-2027.pdf",
+              "location": "Приложение 2: Id_user — внешний ключ на users.id.",
+              "value": "Автор"
+            },
+            {
+              "id": "created_at",
+              "type": "DATE",
+              "title": "Дата создания",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "Приложение 2: created_at; формат ДД.ММ.ГГГГ создаётся при выдаче JSON.",
+              "file": "Прил_5_ОЗ_КИМ_09.02.07-5-2027.pdf",
+              "location": "Приложение 2: created_at; формат ДД.ММ.ГГГГ создаётся при выдаче JSON.",
+              "value": "Дата создания"
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "from": "price",
+          "field": "item_id",
+          "to": "item",
+          "target": "id",
+          "cardinality": "1 : N"
+        },
+        {
+          "from": "specification",
+          "field": "product_id",
+          "to": "item",
+          "target": "id",
+          "cardinality": "1 : 0..1"
+        },
+        {
+          "from": "specification",
+          "field": "manufacturer_id",
+          "to": "counterparty",
+          "target": "id",
+          "cardinality": "1 : N"
+        },
+        {
+          "from": "specification_component",
+          "field": "specification_id",
+          "to": "specification",
+          "target": "id",
+          "cardinality": "1 : N"
+        },
+        {
+          "from": "specification_component",
+          "field": "item_id",
+          "to": "item",
+          "target": "id",
+          "cardinality": "1 : N"
+        },
+        {
+          "from": "customer_order",
+          "field": "customer_id",
+          "to": "counterparty",
+          "target": "id",
+          "cardinality": "1 : N"
+        },
+        {
+          "from": "customer_order",
+          "field": "executor_id",
+          "to": "counterparty",
+          "target": "id",
+          "cardinality": "1 : N"
+        },
+        {
+          "from": "customer_order_line",
+          "field": "order_id",
+          "to": "customer_order",
+          "target": "id",
+          "cardinality": "1 : N"
+        },
+        {
+          "from": "customer_order_line",
+          "field": "product_id",
+          "to": "item",
+          "target": "id",
+          "cardinality": "1 : N"
+        },
+        {
+          "from": "production_product",
+          "field": "production_id",
+          "to": "production_order",
+          "target": "id",
+          "cardinality": "1 : N"
+        },
+        {
+          "from": "production_product",
+          "field": "product_id",
+          "to": "item",
+          "target": "id",
+          "cardinality": "1 : N"
+        },
+        {
+          "from": "production_resource",
+          "field": "production_id",
+          "to": "production_order",
+          "target": "id",
+          "cardinality": "1 : N"
+        },
+        {
+          "from": "production_resource",
+          "field": "item_id",
+          "to": "item",
+          "target": "id",
+          "cardinality": "1 : N"
+        },
+        {
+          "from": "notes",
+          "field": "id_user",
+          "to": "users",
+          "target": "id",
+          "cardinality": "1 : N"
+        }
+      ]
+    },
+    "postgresql": {
+      "tables": [
+        {
+          "id": "counterparty",
+          "title": "Контрагенты",
+          "why": "Контакты и тип организации хранятся один раз, независимо от числа заказов.",
+          "fields": [
+            {
+              "id": "id",
+              "type": "VARCHAR(32)",
+              "title": "Код контрагента",
+              "pk": true,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "JSON: id; сохраняем ведущие нули. DOC-CUSTOMER и DOC-MAKER — отдельные дополнения по документам.",
+              "file": "Заказчики.json",
+              "location": "JSON: id; сохраняем ведущие нули. DOC-CUSTOMER и DOC-MAKER — отдельные дополнения по документам.",
+              "value": "Код контрагента"
+            },
+            {
+              "id": "name",
+              "type": "VARCHAR(255)",
+              "title": "Наименование",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "JSON: name; наименование организации.",
+              "file": "Заказчики.json",
+              "location": "JSON: name; наименование организации.",
+              "value": "Наименование"
+            },
+            {
+              "id": "inn",
+              "type": "VARCHAR(20)",
+              "title": "ИНН",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "JSON: inn; текст, пустое значение сохраняется.",
+              "file": "Заказчики.json",
+              "location": "JSON: inn; текст, пустое значение сохраняется.",
+              "value": "ИНН"
+            },
+            {
+              "id": "address",
+              "type": "VARCHAR(500)",
+              "title": "Адрес",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "JSON: addres → address; исходное написание значения сохраняется.",
+              "file": "Заказчики.json",
+              "location": "JSON: addres → address; исходное написание значения сохраняется.",
+              "value": "Адрес"
+            },
+            {
+              "id": "phone",
+              "type": "VARCHAR(64)",
+              "title": "Телефон",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "JSON: phone; знак + не теряется.",
+              "file": "Заказчики.json",
+              "location": "JSON: phone; знак + не теряется.",
+              "value": "Телефон"
+            },
+            {
+              "id": "party_type",
+              "type": "VARCHAR(24)",
+              "title": "Тип контрагента",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "JSON: type; Покупатель или Поставщик. Для изготовителя — дополнительное значение Производитель.",
+              "file": "Заказчики.json",
+              "location": "JSON: type; Покупатель или Поставщик. Для изготовителя — дополнительное значение Производитель.",
+              "value": "Тип контрагента"
+            }
+          ]
+        },
+        {
+          "id": "item",
+          "title": "Номенклатура",
+          "why": "Продукт, материал и операция имеют название, единицу и цену. Вид отличает их назначение.",
+          "fields": [
+            {
+              "id": "id",
+              "type": "IDENTITY",
+              "title": "Код записи",
+              "pk": true,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Решение модели",
+              "why": "Техническое: внутренний числовой ключ не зависит от кода в документе.",
+              "file": null,
+              "location": "Техническое: внутренний числовой ключ не зависит от кода в документе.",
+              "value": "Код записи"
+            },
+            {
+              "id": "code",
+              "type": "VARCHAR(64) UNIQUE",
+              "title": "Код номенклатуры",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": true,
+              "kind": "Источник",
+              "why": "S11, S17:S21, S27:S29: коды изделия, материалов и операций.",
+              "file": "Заказ на производство.xlsx",
+              "location": "S11, S17:S21, S27:S29: коды изделия, материалов и операций.",
+              "value": "Код номенклатуры"
+            },
+            {
+              "id": "name",
+              "type": "VARCHAR(255)",
+              "title": "Наименование",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "D11, D17:D21, D27:D29: названия из строк документа.",
+              "file": "Заказ на производство.xlsx",
+              "location": "D11, D17:D21, D27:D29: названия из строк документа.",
+              "value": "Наименование"
+            },
+            {
+              "id": "kind",
+              "type": "VARCHAR(16)",
+              "title": "Вид",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "Разделы B7, B13, B23 → product, material, operation; коды значений выбраны разработчиком.",
+              "file": "Заказ на производство.xlsx",
+              "location": "Разделы B7, B13, B23 → product, material, operation; коды значений выбраны разработчиком.",
+              "value": "Вид"
+            },
+            {
+              "id": "unit",
+              "type": "VARCHAR(16)",
+              "title": "Единица измерения",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "AD11, AD17:AD29; расхождения для евровинта и опоры согласованы со Спецификацией, см. допущения.",
+              "file": "Заказ на производство.xlsx",
+              "location": "AD11, AD17:AD29; расхождения для евровинта и опоры согласованы со Спецификацией, см. допущения.",
+              "value": "Единица измерения"
+            }
+          ]
+        },
+        {
+          "id": "price",
+          "title": "Цены",
+          "why": "Стоимость ресурса отделена от количества и нормы расхода.",
+          "fields": [
+            {
+              "id": "item_id",
+              "type": "INT REF item",
+              "title": "Номенклатура",
+              "pk": true,
+              "fk": true,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "A2:A9: находим ресурс по наименованию и сохраняем FK → item.id.",
+              "file": "Цены.xlsx",
+              "location": "A2:A9: находим ресурс по наименованию и сохраняем FK → item.id.",
+              "value": "Номенклатура"
+            },
+            {
+              "id": "valid_from",
+              "type": "DATE",
+              "title": "Действует с",
+              "pk": true,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Решение модели",
+              "why": "Техническое: даты цены в файле нет; дата 2026-04-01 — учебное допущение. Составной PK с item_id.",
+              "file": null,
+              "location": "Техническое: даты цены в файле нет; дата 2026-04-01 — учебное допущение. Составной PK с item_id.",
+              "value": "Действует с"
+            },
+            {
+              "id": "amount",
+              "type": "DECIMAL(14,2)",
+              "title": "Цена",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "D2:D9: 595; 95; 140; 245; 450; 1400; 3250; 950. Для операций тариф принят за час.",
+              "file": "Цены.xlsx",
+              "location": "D2:D9: 595; 95; 140; 245; 450; 1400; 3250; 950. Для операций тариф принят за час.",
+              "value": "Цена"
+            }
+          ]
+        },
+        {
+          "id": "specification",
+          "title": "Спецификации",
+          "why": "Одна действующая спецификация описывает состав одной единицы продукта.",
+          "fields": [
+            {
+              "id": "id",
+              "type": "IDENTITY",
+              "title": "Код записи",
+              "pk": true,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Решение модели",
+              "why": "Техническое: первичный ключ спецификации.",
+              "file": null,
+              "location": "Техническое: первичный ключ спецификации.",
+              "value": "Код записи"
+            },
+            {
+              "id": "product_id",
+              "type": "INT UNIQUE REF item",
+              "title": "Продукция",
+              "pk": false,
+              "fk": true,
+              "nullable": false,
+              "unique": true,
+              "kind": "Источник",
+              "why": "D4: Стол кухонный Самобранка → item.id; UNIQUE — одна спецификация в учебной модели.",
+              "file": "Спецификация.xlsx",
+              "location": "D4: Стол кухонный Самобранка → item.id; UNIQUE — одна спецификация в учебной модели.",
+              "value": "Продукция"
+            },
+            {
+              "id": "name",
+              "type": "VARCHAR(255)",
+              "title": "Название",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "B2: название спецификации.",
+              "file": "Спецификация.xlsx",
+              "location": "B2: название спецификации.",
+              "value": "Название"
+            },
+            {
+              "id": "output_qty",
+              "type": "DECIMAL(14,3)",
+              "title": "Выход продукции",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Решение модели",
+              "why": "Техническое: принимаем нормы на одну единицу изделия, output_qty=1.",
+              "file": null,
+              "location": "Техническое: принимаем нормы на одну единицу изделия, output_qty=1.",
+              "value": "Выход продукции"
+            },
+            {
+              "id": "manufacturer_id",
+              "type": "VARCHAR(32) REF counterparty",
+              "title": "Изготовитель",
+              "pk": false,
+              "fk": true,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "D6: ООО ТД Вершина; отдельная запись DOC-MAKER, поскольку в JSON её нет.",
+              "file": "Спецификация.xlsx",
+              "location": "D6: ООО ТД Вершина; отдельная запись DOC-MAKER, поскольку в JSON её нет.",
+              "value": "Изготовитель"
+            }
+          ]
+        },
+        {
+          "id": "specification_component",
+          "title": "Состав спецификации",
+          "why": "Связующая таблица хранит нормы материалов и операций без повторения их цен.",
+          "fields": [
+            {
+              "id": "specification_id",
+              "type": "INT REF specification",
+              "title": "Спецификация",
+              "pk": true,
+              "fk": true,
+              "nullable": false,
+              "unique": false,
+              "kind": "Решение модели",
+              "why": "Техническое: FK на шапку; вместе с item_id образует составной первичный ключ.",
+              "file": null,
+              "location": "Техническое: FK на шапку; вместе с item_id образует составной первичный ключ.",
+              "value": "Спецификация"
+            },
+            {
+              "id": "item_id",
+              "type": "INT REF item",
+              "title": "Материал / операция",
+              "pk": true,
+              "fk": true,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "B10:B14, B19:B21: ссылка на номенклатуру из строки состава.",
+              "file": "Спецификация.xlsx",
+              "location": "B10:B14, B19:B21: ссылка на номенклатуру из строки состава.",
+              "value": "Материал / операция"
+            },
+            {
+              "id": "qty",
+              "type": "DECIMAL(14,3)",
+              "title": "Количество",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "L10:L14 и L19:L21: норма количества на единицу выпуска.",
+              "file": "Спецификация.xlsx",
+              "location": "L10:L14 и L19:L21: норма количества на единицу выпуска.",
+              "value": "Количество"
+            },
+            {
+              "id": "time_norm",
+              "type": "DECIMAL(14,3)",
+              "title": "Норма времени",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "J19:J21: 0,75; 1,5; 0,5. Для материалов множитель 1 — техническая нейтральная величина.",
+              "file": "Спецификация.xlsx",
+              "location": "J19:J21: 0,75; 1,5; 0,5. Для материалов множитель 1 — техническая нейтральная величина.",
+              "value": "Норма времени"
+            }
+          ]
+        },
+        {
+          "id": "customer_order",
+          "title": "Заказы покупателей",
+          "why": "Реквизиты шапки относятся ко всему заказу, строки хранятся отдельно.",
+          "fields": [
+            {
+              "id": "id",
+              "type": "IDENTITY",
+              "title": "Код записи",
+              "pk": true,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Решение модели",
+              "why": "Техническое: внутренний идентификатор заказа.",
+              "file": null,
+              "location": "Техническое: внутренний идентификатор заказа.",
+              "value": "Код записи"
+            },
+            {
+              "id": "doc_no",
+              "type": "VARCHAR(64) UNIQUE",
+              "title": "Номер",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": true,
+              "kind": "Источник",
+              "why": "B3: номер 1 из заголовка документа.",
+              "file": "Заказ покупателя.xlsx",
+              "location": "B3: номер 1 из заголовка документа.",
+              "value": "Номер"
+            },
+            {
+              "id": "doc_date",
+              "type": "DATE",
+              "title": "Дата",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "B3: 22.04.2026; это исходная дата в комплекте 2027.",
+              "file": "Заказ покупателя.xlsx",
+              "location": "B3: 22.04.2026; это исходная дата в комплекте 2027.",
+              "value": "Дата"
+            },
+            {
+              "id": "customer_id",
+              "type": "VARCHAR(32) REF counterparty",
+              "title": "Заказчик",
+              "pk": false,
+              "fk": true,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "F7: ИП Томилин Александр Сергеевич; запись DOC-CUSTOMER дополняет JSON.",
+              "file": "Заказ покупателя.xlsx",
+              "location": "F7: ИП Томилин Александр Сергеевич; запись DOC-CUSTOMER дополняет JSON.",
+              "value": "Заказчик"
+            },
+            {
+              "id": "executor_id",
+              "type": "VARCHAR(32) REF counterparty",
+              "title": "Исполнитель",
+              "pk": false,
+              "fk": true,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "F5: ООО ТД Вершина → контрагент DOC-MAKER.",
+              "file": "Заказ покупателя.xlsx",
+              "location": "F5: ООО ТД Вершина → контрагент DOC-MAKER.",
+              "value": "Исполнитель"
+            }
+          ]
+        },
+        {
+          "id": "customer_order_line",
+          "title": "Строки заказа",
+          "why": "Повторяющиеся позиции документа становятся отдельными записями, без списков в одной ячейке.",
+          "fields": [
+            {
+              "id": "id",
+              "type": "IDENTITY",
+              "title": "Код строки",
+              "pk": true,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Решение модели",
+              "why": "Техническое: уникальный идентификатор строки.",
+              "file": null,
+              "location": "Техническое: уникальный идентификатор строки.",
+              "value": "Код строки"
+            },
+            {
+              "id": "order_id",
+              "type": "INT REF customer_order",
+              "title": "Заказ",
+              "pk": false,
+              "fk": true,
+              "nullable": false,
+              "unique": false,
+              "kind": "Решение модели",
+              "why": "Техническое: FK связывает строку со шапкой документа.",
+              "file": null,
+              "location": "Техническое: FK связывает строку со шапкой документа.",
+              "value": "Заказ"
+            },
+            {
+              "id": "product_id",
+              "type": "INT REF item",
+              "title": "Продукция",
+              "pk": false,
+              "fk": true,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "D11: Стол кухонный Самобранка → item.id; согласование двух кодов объяснено в допущениях.",
+              "file": "Заказ покупателя.xlsx",
+              "location": "D11: Стол кухонный Самобранка → item.id; согласование двух кодов объяснено в допущениях.",
+              "value": "Продукция"
+            },
+            {
+              "id": "source_code",
+              "type": "VARCHAR(64)",
+              "title": "Код в заказе",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "P11: ФР-00000034; сохраняем код именно этого документа.",
+              "file": "Заказ покупателя.xlsx",
+              "location": "P11: ФР-00000034; сохраняем код именно этого документа.",
+              "value": "Код в заказе"
+            },
+            {
+              "id": "qty",
+              "type": "DECIMAL(14,3)",
+              "title": "Количество",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "S11: 2 единицы продукции.",
+              "file": "Заказ покупателя.xlsx",
+              "location": "S11: 2 единицы продукции.",
+              "value": "Количество"
+            },
+            {
+              "id": "sale_price",
+              "type": "DECIMAL(14,2)",
+              "title": "Цена продажи",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "X11: 14120; это продажная цена, а не себестоимость.",
+              "file": "Заказ покупателя.xlsx",
+              "location": "X11: 14120; это продажная цена, а не себестоимость.",
+              "value": "Цена продажи"
+            },
+            {
+              "id": "discount",
+              "type": "DECIMAL(14,2)",
+              "title": "Скидка строки",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "AA11: 1412; в примере скидка на всю строку: 2×14120−1412=26828.",
+              "file": "Заказ покупателя.xlsx",
+              "location": "AA11: 1412; в примере скидка на всю строку: 2×14120−1412=26828.",
+              "value": "Скидка строки"
+            }
+          ]
+        },
+        {
+          "id": "production_order",
+          "title": "Заказы на производство",
+          "why": "Документ фиксирует план производства; не выдаём план за фактический выпуск.",
+          "fields": [
+            {
+              "id": "id",
+              "type": "IDENTITY",
+              "title": "Код записи",
+              "pk": true,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Решение модели",
+              "why": "Техническое: ключ заказа на производство.",
+              "file": null,
+              "location": "Техническое: ключ заказа на производство.",
+              "value": "Код записи"
+            },
+            {
+              "id": "doc_no",
+              "type": "VARCHAR(64) UNIQUE",
+              "title": "Номер",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": true,
+              "kind": "Источник",
+              "why": "B3: номер 1.",
+              "file": "Заказ на производство.xlsx",
+              "location": "B3: номер 1.",
+              "value": "Номер"
+            },
+            {
+              "id": "doc_date",
+              "type": "DATE",
+              "title": "Дата документа",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "B3: 23.04.2026.",
+              "file": "Заказ на производство.xlsx",
+              "location": "B3: 23.04.2026.",
+              "value": "Дата документа"
+            },
+            {
+              "id": "launch_date",
+              "type": "DATE",
+              "title": "Дата запуска",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "G5: 23.04.2026.",
+              "file": "Заказ на производство.xlsx",
+              "location": "G5: 23.04.2026.",
+              "value": "Дата запуска"
+            },
+            {
+              "id": "department",
+              "type": "VARCHAR(255)",
+              "title": "Подразделение",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "W5: Основное подразделение; других атрибутов подразделения источник не содержит.",
+              "file": "Заказ на производство.xlsx",
+              "location": "W5: Основное подразделение; других атрибутов подразделения источник не содержит.",
+              "value": "Подразделение"
+            }
+          ]
+        },
+        {
+          "id": "production_product",
+          "title": "Продукция к выпуску",
+          "why": "План выпуска связывает документ с продуктами и количеством.",
+          "fields": [
+            {
+              "id": "production_id",
+              "type": "INT REF production_order",
+              "title": "Заказ на производство",
+              "pk": true,
+              "fk": true,
+              "nullable": false,
+              "unique": false,
+              "kind": "Решение модели",
+              "why": "Техническое: FK на шапку; часть составного PK.",
+              "file": null,
+              "location": "Техническое: FK на шапку; часть составного PK.",
+              "value": "Заказ на производство"
+            },
+            {
+              "id": "product_id",
+              "type": "INT REF item",
+              "title": "Продукт",
+              "pk": true,
+              "fk": true,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "D11 и S11: Самобранка, НФ-00000006 → item.id.",
+              "file": "Заказ на производство.xlsx",
+              "location": "D11 и S11: Самобранка, НФ-00000006 → item.id.",
+              "value": "Продукт"
+            },
+            {
+              "id": "qty",
+              "type": "DECIMAL(14,3)",
+              "title": "Количество",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "X11: 2; плановый выпуск.",
+              "file": "Заказ на производство.xlsx",
+              "location": "X11: 2; плановый выпуск.",
+              "value": "Количество"
+            }
+          ]
+        },
+        {
+          "id": "production_resource",
+          "title": "План ресурсов",
+          "why": "Сохраняем строки плана, включая исходные единицы, отдельно от нормативного расчёта.",
+          "fields": [
+            {
+              "id": "production_id",
+              "type": "INT REF production_order",
+              "title": "Заказ на производство",
+              "pk": true,
+              "fk": true,
+              "nullable": false,
+              "unique": false,
+              "kind": "Решение модели",
+              "why": "Техническое: FK на шапку плана.",
+              "file": null,
+              "location": "Техническое: FK на шапку плана.",
+              "value": "Заказ на производство"
+            },
+            {
+              "id": "item_id",
+              "type": "INT REF item",
+              "title": "Ресурс",
+              "pk": true,
+              "fk": true,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "S17:S21, S27:S29: материал или операция из справочника.",
+              "file": "Заказ на производство.xlsx",
+              "location": "S17:S21, S27:S29: материал или операция из справочника.",
+              "value": "Ресурс"
+            },
+            {
+              "id": "qty",
+              "type": "DECIMAL(14,3)",
+              "title": "Количество по документу",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "X17:X21, X27:X29: плановое количество, не подмена норм спецификации.",
+              "file": "Заказ на производство.xlsx",
+              "location": "X17:X21, X27:X29: плановое количество, не подмена норм спецификации.",
+              "value": "Количество по документу"
+            },
+            {
+              "id": "source_unit",
+              "type": "VARCHAR(16)",
+              "title": "Единица в документе",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "AD17:AD21, AD27:AD29: сохраняем исходные единицы даже при расхождении со спецификацией.",
+              "file": "Заказ на производство.xlsx",
+              "location": "AD17:AD21, AD27:AD29: сохраняем исходные единицы даже при расхождении со спецификацией.",
+              "value": "Единица в документе"
+            }
+          ]
+        },
+        {
+          "id": "users",
+          "title": "Пользователи",
+          "why": "Учётные записи и блокировки из задания 4 не являются заказчиками производства.",
+          "fields": [
+            {
+              "id": "id",
+              "type": "IDENTITY",
+              "title": "Код пользователя",
+              "pk": true,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Решение модели",
+              "why": "Техническое: стабильный первичный ключ учётной записи.",
+              "file": null,
+              "location": "Техническое: стабильный первичный ключ учётной записи.",
+              "value": "Код пользователя"
+            },
+            {
+              "id": "login",
+              "type": "VARCHAR(64) UNIQUE",
+              "title": "Логин",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": true,
+              "kind": "Источник",
+              "why": "Задание 4: логин обязателен, дубликаты запрещены.",
+              "file": "Приложение 1.pdf",
+              "location": "Задание 4: логин обязателен, дубликаты запрещены.",
+              "value": "Логин"
+            },
+            {
+              "id": "password_hash",
+              "type": "VARCHAR(255)",
+              "title": "Хеш пароля",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Решение модели",
+              "why": "Техническое: PBKDF2 с солью вместо открытого пароля.",
+              "file": null,
+              "location": "Техническое: PBKDF2 с солью вместо открытого пароля.",
+              "value": "Хеш пароля"
+            },
+            {
+              "id": "role",
+              "type": "VARCHAR(16)",
+              "title": "Роль",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "Задание 4: Администратор и Пользователь → admin/user.",
+              "file": "Приложение 1.pdf",
+              "location": "Задание 4: Администратор и Пользователь → admin/user.",
+              "value": "Роль"
+            },
+            {
+              "id": "failed_attempts",
+              "type": "INT",
+              "title": "Неудачные попытки",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "Задание 4: три неверных пароля или пазла подряд вызывают блокировку.",
+              "file": "Приложение 1.pdf",
+              "location": "Задание 4: три неверных пароля или пазла подряд вызывают блокировку.",
+              "value": "Неудачные попытки"
+            },
+            {
+              "id": "is_locked",
+              "type": "BOOLEAN",
+              "title": "Блокировка",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "Задание 4: блокировку снимает администратор.",
+              "file": "Приложение 1.pdf",
+              "location": "Задание 4: блокировку снимает администратор.",
+              "value": "Блокировка"
+            }
+          ]
+        },
+        {
+          "id": "notes",
+          "title": "Заметки",
+          "why": "Задание 5: каждая заметка относится к пользователю; API получает логин через JOIN.",
+          "fields": [
+            {
+              "id": "id",
+              "type": "IDENTITY",
+              "title": "Код заметки",
+              "pk": true,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "Приложение 2, стр. 1: Id — первичный ключ.",
+              "file": "Прил_5_ОЗ_КИМ_09.02.07-5-2027.pdf",
+              "location": "Приложение 2, стр. 1: Id — первичный ключ.",
+              "value": "Код заметки"
+            },
+            {
+              "id": "title",
+              "type": "VARCHAR(255)",
+              "title": "Заголовок",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "Приложение 2: Title; title_user вычисляется только в ответе API.",
+              "file": "Прил_5_ОЗ_КИМ_09.02.07-5-2027.pdf",
+              "location": "Приложение 2: Title; title_user вычисляется только в ответе API.",
+              "value": "Заголовок"
+            },
+            {
+              "id": "content",
+              "type": "TEXT",
+              "title": "Содержание",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "Приложение 2: Content передаётся без изменений.",
+              "file": "Прил_5_ОЗ_КИМ_09.02.07-5-2027.pdf",
+              "location": "Приложение 2: Content передаётся без изменений.",
+              "value": "Содержание"
+            },
+            {
+              "id": "id_user",
+              "type": "INT REF users",
+              "title": "Автор",
+              "pk": false,
+              "fk": true,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "Приложение 2: Id_user — внешний ключ на users.id.",
+              "file": "Прил_5_ОЗ_КИМ_09.02.07-5-2027.pdf",
+              "location": "Приложение 2: Id_user — внешний ключ на users.id.",
+              "value": "Автор"
+            },
+            {
+              "id": "created_at",
+              "type": "DATE",
+              "title": "Дата создания",
+              "pk": false,
+              "fk": false,
+              "nullable": false,
+              "unique": false,
+              "kind": "Источник",
+              "why": "Приложение 2: created_at; формат ДД.ММ.ГГГГ создаётся при выдаче JSON.",
+              "file": "Прил_5_ОЗ_КИМ_09.02.07-5-2027.pdf",
+              "location": "Приложение 2: created_at; формат ДД.ММ.ГГГГ создаётся при выдаче JSON.",
+              "value": "Дата создания"
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "from": "price",
+          "field": "item_id",
+          "to": "item",
+          "target": "id",
+          "cardinality": "1 : N"
+        },
+        {
+          "from": "specification",
+          "field": "product_id",
+          "to": "item",
+          "target": "id",
+          "cardinality": "1 : 0..1"
+        },
+        {
+          "from": "specification",
+          "field": "manufacturer_id",
+          "to": "counterparty",
+          "target": "id",
+          "cardinality": "1 : N"
+        },
+        {
+          "from": "specification_component",
+          "field": "specification_id",
+          "to": "specification",
+          "target": "id",
+          "cardinality": "1 : N"
+        },
+        {
+          "from": "specification_component",
+          "field": "item_id",
+          "to": "item",
+          "target": "id",
+          "cardinality": "1 : N"
+        },
+        {
+          "from": "customer_order",
+          "field": "customer_id",
+          "to": "counterparty",
+          "target": "id",
+          "cardinality": "1 : N"
+        },
+        {
+          "from": "customer_order",
+          "field": "executor_id",
+          "to": "counterparty",
+          "target": "id",
+          "cardinality": "1 : N"
+        },
+        {
+          "from": "customer_order_line",
+          "field": "order_id",
+          "to": "customer_order",
+          "target": "id",
+          "cardinality": "1 : N"
+        },
+        {
+          "from": "customer_order_line",
+          "field": "product_id",
+          "to": "item",
+          "target": "id",
+          "cardinality": "1 : N"
+        },
+        {
+          "from": "production_product",
+          "field": "production_id",
+          "to": "production_order",
+          "target": "id",
+          "cardinality": "1 : N"
+        },
+        {
+          "from": "production_product",
+          "field": "product_id",
+          "to": "item",
+          "target": "id",
+          "cardinality": "1 : N"
+        },
+        {
+          "from": "production_resource",
+          "field": "production_id",
+          "to": "production_order",
+          "target": "id",
+          "cardinality": "1 : N"
+        },
+        {
+          "from": "production_resource",
+          "field": "item_id",
+          "to": "item",
+          "target": "id",
+          "cardinality": "1 : N"
+        },
+        {
+          "from": "notes",
+          "field": "id_user",
+          "to": "users",
+          "target": "id",
+          "cardinality": "1 : N"
+        }
+      ]
+    }
+  },
+  "report": {
+    "why": "Итог вычисляется по нормам, действующим ценам и количеству. Файл расчёта содержит расхождения; см. допущения. Нормативный итог двух столов в примере — 14 374,28.",
+    "file": "Расчет стоимости.xlsx",
+    "location": "D13; сравнить со Спецификацией и Ценами"
+  }
+}

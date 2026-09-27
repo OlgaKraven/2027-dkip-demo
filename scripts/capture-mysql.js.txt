@@ -1,0 +1,13 @@
+async page => {
+ const out='C:/Users/gvadoskr/Desktop/hub/2027-dkip-demo/materials/screenshots/mysql/';
+ const base='http://localhost/phpmyadmin/index.php?';
+ await page.setViewportSize({width:1360,height:900});
+ for(const [route,name] of [['route=/database/structure&db=dkip2027_course','db-tables'],['route=/sql&db=dkip2027_course&table=counterparty&pos=0','db-import'],['route=/sql&db=dkip2027_course&table=notes&pos=0','notes-table'],['route=/table/structure&db=dkip2027_course&table=notes','db-keys'],['route=/database/export&db=dkip2027_course','db-export'],['route=/server/databases','db-create']]){
+  await page.goto(base+route);await page.locator('#page_content').waitFor();await page.screenshot({path:out+name+'.png'});
+ }
+ for(const [query,name] of [['SELECT 2*1*3250 AS tabletops, 2*0.012*595 AS screws;','cost-lines'],['SELECT * FROM order_cost WHERE order_id=1;','cost-result']]){
+  await page.goto(base+'route=/database/sql&db=dkip2027_course');await page.locator('.CodeMirror').waitFor();
+  await page.locator('.CodeMirror').evaluate((el,sql)=>el.CodeMirror.setValue(sql),query);
+  await page.screenshot({path:out+'cost-query.png'});await page.getByRole('button',{name:'Вперёд',exact:true}).click();await page.getByText(query,{exact:false}).first().waitFor();await page.screenshot({path:out+name+'.png'});
+ }
+}

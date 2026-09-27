@@ -1,0 +1,167 @@
+{
+  "info": {
+    "name": "ДЭ 2027 · mysql · заметки",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:5271"
+    },
+    {
+      "key": "error_url",
+      "value": "http://127.0.0.1:5281"
+    }
+  ],
+  "item": [
+    {
+      "name": "Список заметок",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base_url}}/notes"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Валидный JSON\", function () { pm.expect(pm.response.json()).to.be.an(\"array\"); });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Обработанные поля\", function () { const rows=pm.response.json(); pm.expect(rows.length).to.be.at.least(3); rows.forEach(n=>{pm.expect(n).to.have.all.keys(\"id\",\"title_user\",\"content\",\"formatted_date\");pm.expect(n.title_user).to.include(\" - \");pm.expect(n.formatted_date).to.match(/^\\d{2}\\.\\d{2}\\.\\d{4}$/);}); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Другой путь",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base_url}}/api/notes"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Валидный JSON\", function () { pm.expect(pm.response.json()).to.be.an(\"array\"); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Неверный параметр",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base_url}}/notes?user_id=abc"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", function () { pm.response.to.have.status(400); });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Валидный JSON\", function () { pm.expect(pm.response.json()).to.have.property(\"error\"); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Нет заметок автора",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base_url}}/notes?user_id=2147483647"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Валидный JSON\", function () { pm.expect(pm.response.json()).to.eql([]); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ошибка подключения",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{error_url}}/notes"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 500\", function () { pm.response.to.have.status(500); });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Валидный JSON\", function () { pm.expect(pm.response.json()).to.have.property(\"error\"); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

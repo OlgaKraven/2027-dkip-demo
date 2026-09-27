@@ -1,0 +1,56 @@
+async page => {
+ const base='http://127.0.0.1:4198/';const results=[];const errors=[];
+ const onError=e=>errors.push(e.message);page.on('pageerror',onError);
+ const check=(ok,name)=>{if(!ok)throw Error(name);results.push({name,passed:true});};
+ await page.setViewportSize({width:1360,height:900});
+ for(const stack of ['mysql','postgresql']){
+  for(const stage of ['documents','M1','M2','M3','M4','M5','M6']){
+   await page.goto(base+'?mode=learn&module='+stage+'&stack='+stack);
+   const count=await page.locator('#step-select option').count();
+   for(let i=0;i<count;i++){
+    await page.selectOption('#step-select',String(i));
+    const img=page.locator('.study-step .microshot img');await img.scrollIntoViewIfNeeded();
+    await img.evaluate(el=>el.complete?Promise.resolve():new Promise((resolve,reject)=>{el.onload=resolve;el.onerror=reject;}));
+    check(await img.evaluate(el=>el.naturalWidth>0),stack+' '+stage+' step '+(i+1)+' image');
+   }
+  }
+  await page.goto(base+'?mode=learn&module=M1&stack='+stack);
+  await page.locator('#er-launch').click();await page.selectOption('#er-jump','3');
+  check((await page.locator('.er-field').count())===2,stack+' ER builds one field at a time');
+  check((await page.locator('.er-source-preview').innerText()).includes('Заказчики'),stack+' ER field has source');
+  await page.getByRole('button',{name:'Готовая схема',exact:true}).click();
+  check(await page.locator('.er-fullscreen .er-table').count()===12,stack+' ER 12 tables');
+  await page.locator('.er-fullscreen .er-wire').nth(13).waitFor({state:'attached'});check(await page.locator('.er-fullscreen .er-wire').count()===14,stack+' ER 14 arrows');
+  await page.locator('.er-fullscreen #er-f-notes-id_user').click();
+  check((await page.locator('.er-fullscreen .er-explanation').innerText()).includes('notes.id_user'),stack+' FK explanation');
+  await page.getByRole('button',{name:'Закрыть схему',exact:true}).click();await page.getByRole('button',{name:'Закрыть',exact:true}).click();
+  for(const mode of ['training','mock','examples','criteria','teacher']){
+   await page.goto(base+'?mode='+mode+'&stack='+stack);
+   check(await page.locator('main h1').count()>0,stack+' '+mode+' renders');
+   check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),stack+' '+mode+' desktop width');
+  }
+  await page.locator('#deck-open').click();check(await page.locator('#slide-select option').count()===73,stack+' presentation 73 slides');
+  await page.selectOption('#slide-select','72');check((await page.locator('.deck-slide').innerText()).includes('сохраните результат'),stack+' presentation includes final module step');
+  await page.keyboard.press('ArrowLeft');check(await page.locator('#slide-select').inputValue()==='71',stack+' presentation arrow');await page.keyboard.press('Escape');
+ }
+ await page.goto(base+'?mode=training&stack=mysql');
+ await page.evaluate(()=>{for(const k of Object.keys(localStorage))if(k.startsWith('dkip2027-basic-v1:timer:'))localStorage.removeItem(k);});await page.reload();
+ await page.locator('[data-timer="start"]').click();await page.locator('[data-timer="pause"]').click();await page.reload();
+ check((await page.locator('#timer-status').innerText())==='На паузе','Training pause survives reload');
+ await page.goto(base+'?mode=mock&stack=mysql');check(await page.locator('#variant option').count()===30,'30 independent exam variants');check(await page.locator('[data-timer="pause"]').count()===0,'Exam has no pause');
+ await page.goto(base+'?mode=learn&module=M6&stack=mysql');await page.locator('#materials-open').click();
+ await page.getByRole('button',{name:'Документы',exact:true}).click();check(await page.locator('#material-file option').count()>=8,'Original documents available');await page.keyboard.press('Escape');
+ for(const stack of ['mysql','postgresql'])for(const mode of ['learn','training','mock','examples','criteria','teacher']){
+  await page.setViewportSize({width:390,height:844});await page.goto(base+'?mode='+mode+'&module=M6&stack='+stack);
+  check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),stack+' '+mode+' mobile width');
+ }
+ await page.goto(base+'?mode=learn&module=M6&stack=mysql');await page.screenshot({path:'C:/Users/gvadoskr/Desktop/hub/2027-dkip-demo/output/site-mobile.png'});
+ await page.setViewportSize({width:1360,height:900});
+ await page.locator('#theme').click();check(await page.locator('body').evaluate(e=>e.classList.contains('dark')),'Dark theme works');await page.locator('#theme').click();
+ for(const url of ['materials/er.pdf','docs/api-mysql.docx','docs/api-postgresql.docx','downloads/dkip2027-mysql.zip','downloads/dkip2027-postgresql.zip','downloads/exam-V30.zip','code/examples/mysql/Sql/01-schema.sql']){const r=await page.request.get(base+url);check(r.ok(),'Download '+url);}
+ check(errors.length===0,'No browser JavaScript errors');page.off('pageerror',onError);
+ await page.evaluate(()=>{for(const k of Object.keys(localStorage))if(k.startsWith('dkip2027-basic-v1:'))localStorage.removeItem(k);});await page.goto(base+'?mode=learn&module=M6&stack=mysql');
+ return {date:'2026-09-28',results,errors};
+}
+
+

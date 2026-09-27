@@ -1,0 +1,15 @@
+async page => {
+ const out='C:/Users/gvadoskr/Desktop/hub/2027-dkip-demo/materials/screenshots/postgresql/';
+ await page.setViewportSize({width:1360,height:900});
+ const frame=page.frames()[1];
+ const queries=[['db-tables',"SELECT table_name FROM information_schema.tables WHERE table_schema='public' ORDER BY table_name;"],['db-import','SELECT * FROM counterparty ORDER BY id;'],['notes-table','SELECT * FROM notes ORDER BY id;'],['db-keys',"SELECT table_name,constraint_name,constraint_type FROM information_schema.table_constraints WHERE table_schema='public' AND constraint_type='FOREIGN KEY' ORDER BY table_name;"],['cost-lines','SELECT 2*1*3250 AS tabletops,2*0.012*595 AS screws;'],['cost-result','SELECT * FROM order_cost WHERE order_id=1;']];
+ for(const [name,sql] of queries){
+  await frame.getByRole('textbox',{exact:true}).first().fill(sql);
+  if(name==='cost-result')await page.screenshot({path:out+'cost-query.png'});
+  await frame.getByRole('button',{name:/^Execute script/}).click();
+  await frame.getByText('Query complete',{exact:false}).waitFor();
+  for(const f of page.frames()){await f.getByRole('button',{name:'Close Message',exact:true}).evaluateAll(es=>es.forEach(e=>e.click()));} await page.screenshot({path:out+name+'.png'});
+ }
+ return 'Captured pgAdmin SQL results';
+}
+

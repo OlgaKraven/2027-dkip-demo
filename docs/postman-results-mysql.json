@@ -1,0 +1,2633 @@
+{
+  "collection": {
+    "item": [
+      {
+        "id": "2b6f0259-daa6-4837-bccd-01d97d803b3d",
+        "name": "Список заметок",
+        "request": {
+          "url": {
+            "path": [
+              "notes"
+            ],
+            "host": [
+              "{{base_url}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "d29dcabd-4594-4f06-8acc-bcc3eed7e850",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });"
+              ],
+              "_lastExecutionId": "6d525177-23b5-4485-950e-bcb7ad623102"
+            }
+          },
+          {
+            "listen": "test",
+            "script": {
+              "id": "a29d959c-3adc-4d8c-a943-b31005b55501",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Валидный JSON\", function () { pm.expect(pm.response.json()).to.be.an(\"array\"); });"
+              ],
+              "_lastExecutionId": "c440e83d-a638-4df7-88ed-2045951bc071"
+            }
+          },
+          {
+            "listen": "test",
+            "script": {
+              "id": "99f8381e-169d-4c57-b477-42a2b20f244d",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Обработанные поля\", function () { const rows=pm.response.json(); pm.expect(rows.length).to.be.at.least(3); rows.forEach(n=>{pm.expect(n).to.have.all.keys(\"id\",\"title_user\",\"content\",\"formatted_date\");pm.expect(n.title_user).to.include(\" - \");pm.expect(n.formatted_date).to.match(/^\\d{2}\\.\\d{2}\\.\\d{4}$/);}); });"
+              ],
+              "_lastExecutionId": "2fef4492-c886-4d53-a15c-448b23dba1ed"
+            }
+          }
+        ]
+      },
+      {
+        "id": "68afa9f5-c1eb-4f19-878c-bd425e21fcbd",
+        "name": "Другой путь",
+        "request": {
+          "url": {
+            "path": [
+              "api",
+              "notes"
+            ],
+            "host": [
+              "{{base_url}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "d8f4a5f9-64da-40fb-9906-c528710e7c8e",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });"
+              ],
+              "_lastExecutionId": "2f864b17-1a79-4ecf-8a22-8992abb0a967"
+            }
+          },
+          {
+            "listen": "test",
+            "script": {
+              "id": "b9cdf274-cc80-4632-b809-c8ac2131d7cf",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Валидный JSON\", function () { pm.expect(pm.response.json()).to.be.an(\"array\"); });"
+              ],
+              "_lastExecutionId": "ef66ef7c-3cc1-4cad-81a9-d1812bef2dac"
+            }
+          }
+        ]
+      },
+      {
+        "id": "8c9ffc13-9293-4dc9-be11-514131fe79da",
+        "name": "Неверный параметр",
+        "request": {
+          "url": {
+            "path": [
+              "notes"
+            ],
+            "host": [
+              "{{base_url}}"
+            ],
+            "query": [
+              {
+                "key": "user_id",
+                "value": "abc"
+              }
+            ],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "f3ffe7d5-48b5-4b46-958d-cb35624819bf",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"HTTP 400\", function () { pm.response.to.have.status(400); });"
+              ],
+              "_lastExecutionId": "544e1e68-a5ce-44e8-8279-91563f00ba46"
+            }
+          },
+          {
+            "listen": "test",
+            "script": {
+              "id": "3f0d1721-4ccc-43a3-be7b-6f1505187060",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Валидный JSON\", function () { pm.expect(pm.response.json()).to.have.property(\"error\"); });"
+              ],
+              "_lastExecutionId": "89ceced7-0b90-4697-959a-8a10e46bb012"
+            }
+          }
+        ]
+      },
+      {
+        "id": "809d2481-70b9-4b7f-a848-19e19d54a535",
+        "name": "Нет заметок автора",
+        "request": {
+          "url": {
+            "path": [
+              "notes"
+            ],
+            "host": [
+              "{{base_url}}"
+            ],
+            "query": [
+              {
+                "key": "user_id",
+                "value": "2147483647"
+              }
+            ],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "d31d49a3-b462-44ec-8e44-f23d20fd87b9",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });"
+              ],
+              "_lastExecutionId": "dd3621c2-357f-4656-93f9-9fe938df586a"
+            }
+          },
+          {
+            "listen": "test",
+            "script": {
+              "id": "2f83d889-140b-4601-b58d-f97660a73e9e",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Валидный JSON\", function () { pm.expect(pm.response.json()).to.eql([]); });"
+              ],
+              "_lastExecutionId": "b6a7e1da-52bf-48c9-92c0-fa4e3b0edf37"
+            }
+          }
+        ]
+      },
+      {
+        "id": "0f672b03-1871-4168-bce6-9fd95727c674",
+        "name": "Ошибка подключения",
+        "request": {
+          "url": {
+            "path": [
+              "notes"
+            ],
+            "host": [
+              "{{error_url}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "67a05412-b6eb-4859-9b4c-7286e3c0699d",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"HTTP 500\", function () { pm.response.to.have.status(500); });"
+              ],
+              "_lastExecutionId": "3622d4c6-13d3-40c1-a1f3-7632889f6e07"
+            }
+          },
+          {
+            "listen": "test",
+            "script": {
+              "id": "c4d03efd-2cbc-4201-8c73-accdaa96e76f",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Валидный JSON\", function () { pm.expect(pm.response.json()).to.have.property(\"error\"); });"
+              ],
+              "_lastExecutionId": "def3c93f-e68b-44c5-8227-fcfe6b8ee339"
+            }
+          }
+        ]
+      }
+    ],
+    "event": [],
+    "variable": [
+      {
+        "type": "any",
+        "value": "http://127.0.0.1:5271",
+        "key": "base_url"
+      },
+      {
+        "type": "any",
+        "value": "http://127.0.0.1:5281",
+        "key": "error_url"
+      }
+    ],
+    "info": {
+      "_postman_id": "9d89cec8-7970-4f54-b0bf-febaaff71248",
+      "name": "ДЭ 2027 · mysql · заметки",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    }
+  },
+  "environment": {
+    "id": "92298614-8cdc-4a84-af8f-75ef3bac6e25",
+    "values": []
+  },
+  "globals": {
+    "id": "190e2c9e-6c0c-4787-b780-fe9b77ba2823",
+    "values": []
+  },
+  "run": {
+    "stats": {
+      "iterations": {
+        "total": 1,
+        "pending": 0,
+        "failed": 0
+      },
+      "items": {
+        "total": 5,
+        "pending": 0,
+        "failed": 0
+      },
+      "scripts": {
+        "total": 11,
+        "pending": 0,
+        "failed": 0
+      },
+      "prerequests": {
+        "total": 5,
+        "pending": 0,
+        "failed": 0
+      },
+      "requests": {
+        "total": 5,
+        "pending": 0,
+        "failed": 0
+      },
+      "tests": {
+        "total": 5,
+        "pending": 0,
+        "failed": 0
+      },
+      "assertions": {
+        "total": 11,
+        "pending": 0,
+        "failed": 0
+      },
+      "testScripts": {
+        "total": 11,
+        "pending": 0,
+        "failed": 0
+      },
+      "prerequestScripts": {
+        "total": 0,
+        "pending": 0,
+        "failed": 0
+      }
+    },
+    "timings": {
+      "responseAverage": 211.6,
+      "responseMin": 4,
+      "responseMax": 1025,
+      "responseSd": 406.72624700159196,
+      "dnsAverage": 0,
+      "dnsMin": 0,
+      "dnsMax": 0,
+      "dnsSd": 0,
+      "firstByteAverage": 0,
+      "firstByteMin": 0,
+      "firstByteMax": 0,
+      "firstByteSd": 0,
+      "started": 1790547624459,
+      "completed": 1790547625891
+    },
+    "executions": [
+      {
+        "cursor": {
+          "position": 0,
+          "iteration": 0,
+          "length": 5,
+          "cycles": 1,
+          "empty": false,
+          "eof": false,
+          "bof": true,
+          "cr": false,
+          "ref": "ae372b7f-2718-42e3-9b18-69905272e238",
+          "httpRequestId": "ff20c951-3194-4bd4-a078-d283fbd7828c"
+        },
+        "item": {
+          "id": "2b6f0259-daa6-4837-bccd-01d97d803b3d",
+          "name": "Список заметок",
+          "request": {
+            "url": {
+              "path": [
+                "notes"
+              ],
+              "host": [
+                "{{base_url}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "d29dcabd-4594-4f06-8acc-bcc3eed7e850",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });"
+                ],
+                "_lastExecutionId": "6d525177-23b5-4485-950e-bcb7ad623102"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "id": "a29d959c-3adc-4d8c-a943-b31005b55501",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Валидный JSON\", function () { pm.expect(pm.response.json()).to.be.an(\"array\"); });"
+                ],
+                "_lastExecutionId": "c440e83d-a638-4df7-88ed-2045951bc071"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "id": "99f8381e-169d-4c57-b477-42a2b20f244d",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Обработанные поля\", function () { const rows=pm.response.json(); pm.expect(rows.length).to.be.at.least(3); rows.forEach(n=>{pm.expect(n).to.have.all.keys(\"id\",\"title_user\",\"content\",\"formatted_date\");pm.expect(n.title_user).to.include(\" - \");pm.expect(n.formatted_date).to.match(/^\\d{2}\\.\\d{2}\\.\\d{4}$/);}); });"
+                ],
+                "_lastExecutionId": "2fef4492-c886-4d53-a15c-448b23dba1ed"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "5271",
+            "path": [
+              "notes"
+            ],
+            "host": [
+              "127",
+              "0",
+              "0",
+              "1"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "94d1c7f6-ed58-474a-9ef9-264db5ea751a",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "127.0.0.1:5271",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "9d758b9c-834d-47ce-af96-fd94839e214f",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Sun, 27 Sep 2026 22:20:23 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "Kestrel"
+            },
+            {
+              "key": "Transfer-Encoding",
+              "value": "chunked"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              91,
+              123,
+              34,
+              105,
+              100,
+              34,
+              58,
+              49,
+              44,
+              34,
+              116,
+              105,
+              116,
+              108,
+              101,
+              95,
+              117,
+              115,
+              101,
+              114,
+              34,
+              58,
+              34,
+              208,
+              151,
+              208,
+              176,
+              208,
+              188,
+              208,
+              181,
+              209,
+              130,
+              208,
+              186,
+              208,
+              176,
+              32,
+              49,
+              32,
+              45,
+              32,
+              115,
+              116,
+              117,
+              100,
+              101,
+              110,
+              116,
+              34,
+              44,
+              34,
+              99,
+              111,
+              110,
+              116,
+              101,
+              110,
+              116,
+              34,
+              58,
+              34,
+              208,
+              161,
+              208,
+              190,
+              208,
+              180,
+              208,
+              181,
+              209,
+              128,
+              208,
+              182,
+              208,
+              176,
+              208,
+              189,
+              208,
+              184,
+              208,
+              181,
+              32,
+              208,
+              183,
+              208,
+              176,
+              208,
+              188,
+              208,
+              181,
+              209,
+              130,
+              208,
+              186,
+              208,
+              184,
+              32,
+              49,
+              34,
+              44,
+              34,
+              102,
+              111,
+              114,
+              109,
+              97,
+              116,
+              116,
+              101,
+              100,
+              95,
+              100,
+              97,
+              116,
+              101,
+              34,
+              58,
+              34,
+              49,
+              53,
+              46,
+              48,
+              51,
+              46,
+              50,
+              48,
+              50,
+              55,
+              34,
+              125,
+              44,
+              123,
+              34,
+              105,
+              100,
+              34,
+              58,
+              50,
+              44,
+              34,
+              116,
+              105,
+              116,
+              108,
+              101,
+              95,
+              117,
+              115,
+              101,
+              114,
+              34,
+              58,
+              34,
+              208,
+              151,
+              208,
+              176,
+              208,
+              188,
+              208,
+              181,
+              209,
+              130,
+              208,
+              186,
+              208,
+              176,
+              32,
+              50,
+              32,
+              45,
+              32,
+              97,
+              100,
+              109,
+              105,
+              110,
+              34,
+              44,
+              34,
+              99,
+              111,
+              110,
+              116,
+              101,
+              110,
+              116,
+              34,
+              58,
+              34,
+              208,
+              161,
+              208,
+              190,
+              208,
+              180,
+              208,
+              181,
+              209,
+              128,
+              208,
+              182,
+              208,
+              176,
+              208,
+              189,
+              208,
+              184,
+              208,
+              181,
+              32,
+              208,
+              183,
+              208,
+              176,
+              208,
+              188,
+              208,
+              181,
+              209,
+              130,
+              208,
+              186,
+              208,
+              184,
+              32,
+              50,
+              34,
+              44,
+              34,
+              102,
+              111,
+              114,
+              109,
+              97,
+              116,
+              116,
+              101,
+              100,
+              95,
+              100,
+              97,
+              116,
+              101,
+              34,
+              58,
+              34,
+              49,
+              54,
+              46,
+              48,
+              51,
+              46,
+              50,
+              48,
+              50,
+              55,
+              34,
+              125,
+              44,
+              123,
+              34,
+              105,
+              100,
+              34,
+              58,
+              51,
+              44,
+              34,
+              116,
+              105,
+              116,
+              108,
+              101,
+              95,
+              117,
+              115,
+              101,
+              114,
+              34,
+              58,
+              34,
+              208,
+              151,
+              208,
+              176,
+              208,
+              188,
+              208,
+              181,
+              209,
+              130,
+              208,
+              186,
+              208,
+              176,
+              32,
+              51,
+              32,
+              45,
+              32,
+              115,
+              116,
+              117,
+              100,
+              101,
+              110,
+              116,
+              34,
+              44,
+              34,
+              99,
+              111,
+              110,
+              116,
+              101,
+              110,
+              116,
+              34,
+              58,
+              34,
+              208,
+              161,
+              208,
+              190,
+              208,
+              180,
+              208,
+              181,
+              209,
+              128,
+              208,
+              182,
+              208,
+              176,
+              208,
+              189,
+              208,
+              184,
+              208,
+              181,
+              32,
+              208,
+              183,
+              208,
+              176,
+              208,
+              188,
+              208,
+              181,
+              209,
+              130,
+              208,
+              186,
+              208,
+              184,
+              32,
+              51,
+              34,
+              44,
+              34,
+              102,
+              111,
+              114,
+              109,
+              97,
+              116,
+              116,
+              101,
+              100,
+              95,
+              100,
+              97,
+              116,
+              101,
+              34,
+              58,
+              34,
+              49,
+              55,
+              46,
+              48,
+              51,
+              46,
+              50,
+              48,
+              50,
+              55,
+              34,
+              125,
+              44,
+              123,
+              34,
+              105,
+              100,
+              34,
+              58,
+              52,
+              44,
+              34,
+              116,
+              105,
+              116,
+              108,
+              101,
+              95,
+              117,
+              115,
+              101,
+              114,
+              34,
+              58,
+              34,
+              208,
+              151,
+              208,
+              176,
+              208,
+              188,
+              208,
+              181,
+              209,
+              130,
+              208,
+              186,
+              208,
+              176,
+              32,
+              52,
+              32,
+              45,
+              32,
+              97,
+              100,
+              109,
+              105,
+              110,
+              34,
+              44,
+              34,
+              99,
+              111,
+              110,
+              116,
+              101,
+              110,
+              116,
+              34,
+              58,
+              34,
+              208,
+              161,
+              208,
+              190,
+              208,
+              180,
+              208,
+              181,
+              209,
+              128,
+              208,
+              182,
+              208,
+              176,
+              208,
+              189,
+              208,
+              184,
+              208,
+              181,
+              32,
+              208,
+              183,
+              208,
+              176,
+              208,
+              188,
+              208,
+              181,
+              209,
+              130,
+              208,
+              186,
+              208,
+              184,
+              32,
+              52,
+              34,
+              44,
+              34,
+              102,
+              111,
+              114,
+              109,
+              97,
+              116,
+              116,
+              101,
+              100,
+              95,
+              100,
+              97,
+              116,
+              101,
+              34,
+              58,
+              34,
+              49,
+              56,
+              46,
+              48,
+              51,
+              46,
+              50,
+              48,
+              50,
+              55,
+              34,
+              125,
+              44,
+              123,
+              34,
+              105,
+              100,
+              34,
+              58,
+              53,
+              44,
+              34,
+              116,
+              105,
+              116,
+              108,
+              101,
+              95,
+              117,
+              115,
+              101,
+              114,
+              34,
+              58,
+              34,
+              208,
+              151,
+              208,
+              176,
+              208,
+              188,
+              208,
+              181,
+              209,
+              130,
+              208,
+              186,
+              208,
+              176,
+              32,
+              53,
+              32,
+              45,
+              32,
+              115,
+              116,
+              117,
+              100,
+              101,
+              110,
+              116,
+              34,
+              44,
+              34,
+              99,
+              111,
+              110,
+              116,
+              101,
+              110,
+              116,
+              34,
+              58,
+              34,
+              208,
+              161,
+              208,
+              190,
+              208,
+              180,
+              208,
+              181,
+              209,
+              128,
+              208,
+              182,
+              208,
+              176,
+              208,
+              189,
+              208,
+              184,
+              208,
+              181,
+              32,
+              208,
+              183,
+              208,
+              176,
+              208,
+              188,
+              208,
+              181,
+              209,
+              130,
+              208,
+              186,
+              208,
+              184,
+              32,
+              53,
+              34,
+              44,
+              34,
+              102,
+              111,
+              114,
+              109,
+              97,
+              116,
+              116,
+              101,
+              100,
+              95,
+              100,
+              97,
+              116,
+              101,
+              34,
+              58,
+              34,
+              49,
+              57,
+              46,
+              48,
+              51,
+              46,
+              50,
+              48,
+              50,
+              55,
+              34,
+              125,
+              93
+            ]
+          },
+          "cookie": [],
+          "responseTime": 17,
+          "responseSize": 652
+        },
+        "id": "2b6f0259-daa6-4837-bccd-01d97d803b3d",
+        "assertions": [
+          {
+            "assertion": "HTTP 200",
+            "skipped": false
+          },
+          {
+            "assertion": "Валидный JSON",
+            "skipped": false
+          },
+          {
+            "assertion": "Обработанные поля",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "d06cd0a8-da98-4ea3-acf8-f14a0a50330d",
+          "length": 5,
+          "cycles": 1,
+          "position": 1,
+          "iteration": 0,
+          "httpRequestId": "f21831bf-3813-4f4d-8ca9-c17bd99b5041"
+        },
+        "item": {
+          "id": "68afa9f5-c1eb-4f19-878c-bd425e21fcbd",
+          "name": "Другой путь",
+          "request": {
+            "url": {
+              "path": [
+                "api",
+                "notes"
+              ],
+              "host": [
+                "{{base_url}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "d8f4a5f9-64da-40fb-9906-c528710e7c8e",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });"
+                ],
+                "_lastExecutionId": "2f864b17-1a79-4ecf-8a22-8992abb0a967"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "id": "b9cdf274-cc80-4632-b809-c8ac2131d7cf",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Валидный JSON\", function () { pm.expect(pm.response.json()).to.be.an(\"array\"); });"
+                ],
+                "_lastExecutionId": "ef66ef7c-3cc1-4cad-81a9-d1812bef2dac"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "5271",
+            "path": [
+              "api",
+              "notes"
+            ],
+            "host": [
+              "127",
+              "0",
+              "0",
+              "1"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "c3ad25c3-ceda-4484-a7c3-00841656860c",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "127.0.0.1:5271",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "06ac725f-0a6f-4cdf-972e-9dad62b5321e",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Sun, 27 Sep 2026 22:20:23 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "Kestrel"
+            },
+            {
+              "key": "Transfer-Encoding",
+              "value": "chunked"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              91,
+              123,
+              34,
+              105,
+              100,
+              34,
+              58,
+              49,
+              44,
+              34,
+              116,
+              105,
+              116,
+              108,
+              101,
+              95,
+              117,
+              115,
+              101,
+              114,
+              34,
+              58,
+              34,
+              208,
+              151,
+              208,
+              176,
+              208,
+              188,
+              208,
+              181,
+              209,
+              130,
+              208,
+              186,
+              208,
+              176,
+              32,
+              49,
+              32,
+              45,
+              32,
+              115,
+              116,
+              117,
+              100,
+              101,
+              110,
+              116,
+              34,
+              44,
+              34,
+              99,
+              111,
+              110,
+              116,
+              101,
+              110,
+              116,
+              34,
+              58,
+              34,
+              208,
+              161,
+              208,
+              190,
+              208,
+              180,
+              208,
+              181,
+              209,
+              128,
+              208,
+              182,
+              208,
+              176,
+              208,
+              189,
+              208,
+              184,
+              208,
+              181,
+              32,
+              208,
+              183,
+              208,
+              176,
+              208,
+              188,
+              208,
+              181,
+              209,
+              130,
+              208,
+              186,
+              208,
+              184,
+              32,
+              49,
+              34,
+              44,
+              34,
+              102,
+              111,
+              114,
+              109,
+              97,
+              116,
+              116,
+              101,
+              100,
+              95,
+              100,
+              97,
+              116,
+              101,
+              34,
+              58,
+              34,
+              49,
+              53,
+              46,
+              48,
+              51,
+              46,
+              50,
+              48,
+              50,
+              55,
+              34,
+              125,
+              44,
+              123,
+              34,
+              105,
+              100,
+              34,
+              58,
+              50,
+              44,
+              34,
+              116,
+              105,
+              116,
+              108,
+              101,
+              95,
+              117,
+              115,
+              101,
+              114,
+              34,
+              58,
+              34,
+              208,
+              151,
+              208,
+              176,
+              208,
+              188,
+              208,
+              181,
+              209,
+              130,
+              208,
+              186,
+              208,
+              176,
+              32,
+              50,
+              32,
+              45,
+              32,
+              97,
+              100,
+              109,
+              105,
+              110,
+              34,
+              44,
+              34,
+              99,
+              111,
+              110,
+              116,
+              101,
+              110,
+              116,
+              34,
+              58,
+              34,
+              208,
+              161,
+              208,
+              190,
+              208,
+              180,
+              208,
+              181,
+              209,
+              128,
+              208,
+              182,
+              208,
+              176,
+              208,
+              189,
+              208,
+              184,
+              208,
+              181,
+              32,
+              208,
+              183,
+              208,
+              176,
+              208,
+              188,
+              208,
+              181,
+              209,
+              130,
+              208,
+              186,
+              208,
+              184,
+              32,
+              50,
+              34,
+              44,
+              34,
+              102,
+              111,
+              114,
+              109,
+              97,
+              116,
+              116,
+              101,
+              100,
+              95,
+              100,
+              97,
+              116,
+              101,
+              34,
+              58,
+              34,
+              49,
+              54,
+              46,
+              48,
+              51,
+              46,
+              50,
+              48,
+              50,
+              55,
+              34,
+              125,
+              44,
+              123,
+              34,
+              105,
+              100,
+              34,
+              58,
+              51,
+              44,
+              34,
+              116,
+              105,
+              116,
+              108,
+              101,
+              95,
+              117,
+              115,
+              101,
+              114,
+              34,
+              58,
+              34,
+              208,
+              151,
+              208,
+              176,
+              208,
+              188,
+              208,
+              181,
+              209,
+              130,
+              208,
+              186,
+              208,
+              176,
+              32,
+              51,
+              32,
+              45,
+              32,
+              115,
+              116,
+              117,
+              100,
+              101,
+              110,
+              116,
+              34,
+              44,
+              34,
+              99,
+              111,
+              110,
+              116,
+              101,
+              110,
+              116,
+              34,
+              58,
+              34,
+              208,
+              161,
+              208,
+              190,
+              208,
+              180,
+              208,
+              181,
+              209,
+              128,
+              208,
+              182,
+              208,
+              176,
+              208,
+              189,
+              208,
+              184,
+              208,
+              181,
+              32,
+              208,
+              183,
+              208,
+              176,
+              208,
+              188,
+              208,
+              181,
+              209,
+              130,
+              208,
+              186,
+              208,
+              184,
+              32,
+              51,
+              34,
+              44,
+              34,
+              102,
+              111,
+              114,
+              109,
+              97,
+              116,
+              116,
+              101,
+              100,
+              95,
+              100,
+              97,
+              116,
+              101,
+              34,
+              58,
+              34,
+              49,
+              55,
+              46,
+              48,
+              51,
+              46,
+              50,
+              48,
+              50,
+              55,
+              34,
+              125,
+              44,
+              123,
+              34,
+              105,
+              100,
+              34,
+              58,
+              52,
+              44,
+              34,
+              116,
+              105,
+              116,
+              108,
+              101,
+              95,
+              117,
+              115,
+              101,
+              114,
+              34,
+              58,
+              34,
+              208,
+              151,
+              208,
+              176,
+              208,
+              188,
+              208,
+              181,
+              209,
+              130,
+              208,
+              186,
+              208,
+              176,
+              32,
+              52,
+              32,
+              45,
+              32,
+              97,
+              100,
+              109,
+              105,
+              110,
+              34,
+              44,
+              34,
+              99,
+              111,
+              110,
+              116,
+              101,
+              110,
+              116,
+              34,
+              58,
+              34,
+              208,
+              161,
+              208,
+              190,
+              208,
+              180,
+              208,
+              181,
+              209,
+              128,
+              208,
+              182,
+              208,
+              176,
+              208,
+              189,
+              208,
+              184,
+              208,
+              181,
+              32,
+              208,
+              183,
+              208,
+              176,
+              208,
+              188,
+              208,
+              181,
+              209,
+              130,
+              208,
+              186,
+              208,
+              184,
+              32,
+              52,
+              34,
+              44,
+              34,
+              102,
+              111,
+              114,
+              109,
+              97,
+              116,
+              116,
+              101,
+              100,
+              95,
+              100,
+              97,
+              116,
+              101,
+              34,
+              58,
+              34,
+              49,
+              56,
+              46,
+              48,
+              51,
+              46,
+              50,
+              48,
+              50,
+              55,
+              34,
+              125,
+              44,
+              123,
+              34,
+              105,
+              100,
+              34,
+              58,
+              53,
+              44,
+              34,
+              116,
+              105,
+              116,
+              108,
+              101,
+              95,
+              117,
+              115,
+              101,
+              114,
+              34,
+              58,
+              34,
+              208,
+              151,
+              208,
+              176,
+              208,
+              188,
+              208,
+              181,
+              209,
+              130,
+              208,
+              186,
+              208,
+              176,
+              32,
+              53,
+              32,
+              45,
+              32,
+              115,
+              116,
+              117,
+              100,
+              101,
+              110,
+              116,
+              34,
+              44,
+              34,
+              99,
+              111,
+              110,
+              116,
+              101,
+              110,
+              116,
+              34,
+              58,
+              34,
+              208,
+              161,
+              208,
+              190,
+              208,
+              180,
+              208,
+              181,
+              209,
+              128,
+              208,
+              182,
+              208,
+              176,
+              208,
+              189,
+              208,
+              184,
+              208,
+              181,
+              32,
+              208,
+              183,
+              208,
+              176,
+              208,
+              188,
+              208,
+              181,
+              209,
+              130,
+              208,
+              186,
+              208,
+              184,
+              32,
+              53,
+              34,
+              44,
+              34,
+              102,
+              111,
+              114,
+              109,
+              97,
+              116,
+              116,
+              101,
+              100,
+              95,
+              100,
+              97,
+              116,
+              101,
+              34,
+              58,
+              34,
+              49,
+              57,
+              46,
+              48,
+              51,
+              46,
+              50,
+              48,
+              50,
+              55,
+              34,
+              125,
+              93
+            ]
+          },
+          "cookie": [],
+          "responseTime": 7,
+          "responseSize": 652
+        },
+        "id": "68afa9f5-c1eb-4f19-878c-bd425e21fcbd",
+        "assertions": [
+          {
+            "assertion": "HTTP 200",
+            "skipped": false
+          },
+          {
+            "assertion": "Валидный JSON",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "b754bc00-c66c-4946-92eb-d7cf12b339c7",
+          "length": 5,
+          "cycles": 1,
+          "position": 2,
+          "iteration": 0,
+          "httpRequestId": "cf43257b-e409-4843-a1bd-cc52391e29e6"
+        },
+        "item": {
+          "id": "8c9ffc13-9293-4dc9-be11-514131fe79da",
+          "name": "Неверный параметр",
+          "request": {
+            "url": {
+              "path": [
+                "notes"
+              ],
+              "host": [
+                "{{base_url}}"
+              ],
+              "query": [
+                {
+                  "key": "user_id",
+                  "value": "abc"
+                }
+              ],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "f3ffe7d5-48b5-4b46-958d-cb35624819bf",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", function () { pm.response.to.have.status(400); });"
+                ],
+                "_lastExecutionId": "544e1e68-a5ce-44e8-8279-91563f00ba46"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "id": "3f0d1721-4ccc-43a3-be7b-6f1505187060",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Валидный JSON\", function () { pm.expect(pm.response.json()).to.have.property(\"error\"); });"
+                ],
+                "_lastExecutionId": "89ceced7-0b90-4697-959a-8a10e46bb012"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "5271",
+            "path": [
+              "notes"
+            ],
+            "host": [
+              "127",
+              "0",
+              "0",
+              "1"
+            ],
+            "query": [
+              {
+                "key": "user_id",
+                "value": "abc"
+              }
+            ],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "bec23d21-6fc6-4a5f-96d1-716620524adf",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "127.0.0.1:5271",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "eb6891d4-654d-468d-95f0-85518fb6a35f",
+          "status": "Bad Request",
+          "code": 400,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Sun, 27 Sep 2026 22:20:23 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "Kestrel"
+            },
+            {
+              "key": "Transfer-Encoding",
+              "value": "chunked"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              34,
+              58,
+              34,
+              117,
+              115,
+              101,
+              114,
+              95,
+              105,
+              100,
+              32,
+              208,
+              180,
+              208,
+              190,
+              208,
+              187,
+              208,
+              182,
+              208,
+              181,
+              208,
+              189,
+              32,
+              208,
+              177,
+              209,
+              139,
+              209,
+              130,
+              209,
+              140,
+              32,
+              208,
+              191,
+              208,
+              190,
+              208,
+              187,
+              208,
+              190,
+              208,
+              182,
+              208,
+              184,
+              209,
+              130,
+              208,
+              181,
+              208,
+              187,
+              209,
+              140,
+              208,
+              189,
+              209,
+              139,
+              208,
+              188,
+              32,
+              209,
+              134,
+              208,
+              181,
+              208,
+              187,
+              209,
+              139,
+              208,
+              188,
+              32,
+              209,
+              135,
+              208,
+              184,
+              209,
+              129,
+              208,
+              187,
+              208,
+              190,
+              208,
+              188,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 5,
+          "responseSize": 92
+        },
+        "id": "8c9ffc13-9293-4dc9-be11-514131fe79da",
+        "assertions": [
+          {
+            "assertion": "HTTP 400",
+            "skipped": false
+          },
+          {
+            "assertion": "Валидный JSON",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "236345db-984c-4258-8ab4-413687cbe6fc",
+          "length": 5,
+          "cycles": 1,
+          "position": 3,
+          "iteration": 0,
+          "httpRequestId": "970db6a2-3c74-4b55-b530-8e41c4262cb8"
+        },
+        "item": {
+          "id": "809d2481-70b9-4b7f-a848-19e19d54a535",
+          "name": "Нет заметок автора",
+          "request": {
+            "url": {
+              "path": [
+                "notes"
+              ],
+              "host": [
+                "{{base_url}}"
+              ],
+              "query": [
+                {
+                  "key": "user_id",
+                  "value": "2147483647"
+                }
+              ],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "d31d49a3-b462-44ec-8e44-f23d20fd87b9",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });"
+                ],
+                "_lastExecutionId": "dd3621c2-357f-4656-93f9-9fe938df586a"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "id": "2f83d889-140b-4601-b58d-f97660a73e9e",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Валидный JSON\", function () { pm.expect(pm.response.json()).to.eql([]); });"
+                ],
+                "_lastExecutionId": "b6a7e1da-52bf-48c9-92c0-fa4e3b0edf37"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "5271",
+            "path": [
+              "notes"
+            ],
+            "host": [
+              "127",
+              "0",
+              "0",
+              "1"
+            ],
+            "query": [
+              {
+                "key": "user_id",
+                "value": "2147483647"
+              }
+            ],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "317df18a-86c1-4f24-a86d-858e7090d2be",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "127.0.0.1:5271",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "390a56cf-70e7-4b94-b34d-4595f03e4dbe",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Sun, 27 Sep 2026 22:20:24 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "Kestrel"
+            },
+            {
+              "key": "Transfer-Encoding",
+              "value": "chunked"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              91,
+              93
+            ]
+          },
+          "cookie": [],
+          "responseTime": 4,
+          "responseSize": 2
+        },
+        "id": "809d2481-70b9-4b7f-a848-19e19d54a535",
+        "assertions": [
+          {
+            "assertion": "HTTP 200",
+            "skipped": false
+          },
+          {
+            "assertion": "Валидный JSON",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "5c144b34-4151-471c-aa91-0575ab36f0b5",
+          "length": 5,
+          "cycles": 1,
+          "position": 4,
+          "iteration": 0,
+          "httpRequestId": "50a43018-e31f-43fe-ae83-66ef1550091a"
+        },
+        "item": {
+          "id": "0f672b03-1871-4168-bce6-9fd95727c674",
+          "name": "Ошибка подключения",
+          "request": {
+            "url": {
+              "path": [
+                "notes"
+              ],
+              "host": [
+                "{{error_url}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "67a05412-b6eb-4859-9b4c-7286e3c0699d",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 500\", function () { pm.response.to.have.status(500); });"
+                ],
+                "_lastExecutionId": "3622d4c6-13d3-40c1-a1f3-7632889f6e07"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "id": "c4d03efd-2cbc-4201-8c73-accdaa96e76f",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Валидный JSON\", function () { pm.expect(pm.response.json()).to.have.property(\"error\"); });"
+                ],
+                "_lastExecutionId": "def3c93f-e68b-44c5-8227-fcfe6b8ee339"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "5281",
+            "path": [
+              "notes"
+            ],
+            "host": [
+              "127",
+              "0",
+              "0",
+              "1"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "677fcb4e-4a38-43e8-9145-3422d1662937",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "127.0.0.1:5281",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "7a09f1b0-e195-472f-8e39-7bb7e9011196",
+          "status": "Internal Server Error",
+          "code": 500,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Sun, 27 Sep 2026 22:20:25 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "Kestrel"
+            },
+            {
+              "key": "Transfer-Encoding",
+              "value": "chunked"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              34,
+              58,
+              34,
+              208,
+              158,
+              209,
+              136,
+              208,
+              184,
+              208,
+              177,
+              208,
+              186,
+              208,
+              176,
+              32,
+              208,
+              191,
+              208,
+              190,
+              208,
+              180,
+              208,
+              186,
+              208,
+              187,
+              209,
+              142,
+              209,
+              135,
+              208,
+              181,
+              208,
+              189,
+              208,
+              184,
+              209,
+              143,
+              32,
+              208,
+              186,
+              32,
+              208,
+              177,
+              208,
+              176,
+              208,
+              183,
+              208,
+              181,
+              32,
+              208,
+              180,
+              208,
+              176,
+              208,
+              189,
+              208,
+              189,
+              209,
+              139,
+              209,
+              133,
+              32,
+              208,
+              184,
+              208,
+              187,
+              208,
+              184,
+              32,
+              208,
+              190,
+              208,
+              177,
+              209,
+              128,
+              208,
+              176,
+              208,
+              177,
+              208,
+              190,
+              209,
+              130,
+              208,
+              186,
+              208,
+              184,
+              32,
+              208,
+              183,
+              208,
+              176,
+              208,
+              191,
+              209,
+              128,
+              208,
+              190,
+              209,
+              129,
+              208,
+              176,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 1025,
+          "responseSize": 113
+        },
+        "id": "0f672b03-1871-4168-bce6-9fd95727c674",
+        "assertions": [
+          {
+            "assertion": "HTTP 500",
+            "skipped": false
+          },
+          {
+            "assertion": "Валидный JSON",
+            "skipped": false
+          }
+        ]
+      }
+    ],
+    "transfers": {
+      "responseTotal": 1511
+    },
+    "failures": [],
+    "error": null
+  }
+}

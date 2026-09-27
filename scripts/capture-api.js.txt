@@ -1,0 +1,26 @@
+async (page) => {
+ const root='C:/Users/gvadoskr/Desktop/hub/2027-dkip-demo/materials/screenshots/';
+ const results=[];
+ for(const [stack,port] of [['mysql',5271],['postgresql',5272]]){
+  const base='http://127.0.0.1:'+port;
+  await page.goto(base+'/swagger/');await page.getByRole('button',{name:'GET /notes Получить обработанные заметки',exact:true}).waitFor();
+  await page.screenshot({path:root+stack+'/swagger.png'});
+  await page.getByRole('button',{name:'GET /notes Получить обработанные заметки',exact:true}).click();
+  await page.screenshot({path:root+stack+'/swagger-expanded.png'});
+  await page.getByRole('button',{name:'Try it out',exact:true}).click();
+  await page.screenshot({path:root+stack+'/swagger-parameter.png'});
+  for(const [value,name,expected] of [['','swagger-200',200],['2','swagger-filter',200],['2147483647','swagger-empty',200]]){
+   await page.getByRole('textbox',{name:'user_id',exact:true}).fill(value);
+   const response=page.waitForResponse(r=>r.url().includes('/notes')&&r.request().method()==='GET');
+   await page.getByRole('button',{name:'Execute',exact:true}).click();
+   const r=await response;if(r.status()!==expected)throw new Error(name+' '+r.status());
+   await page.locator('.live-responses-table').waitFor();await page.locator('.live-responses-table').scrollIntoViewIfNeeded();
+   await page.screenshot({path:root+stack+'/'+name+'.png'});results.push({stack,name,status:r.status(),body:await r.json()});
+  }
+  await page.goto('http://127.0.0.1:'+(port+10)+'/swagger/');await page.getByRole('button',{name:'GET /notes Получить обработанные заметки',exact:true}).click();await page.getByRole('button',{name:'Try it out',exact:true}).click();
+  const response=page.waitForResponse(r=>r.url().endsWith('/notes'));await page.getByRole('button',{name:'Execute',exact:true}).click();const failed=await response;if(failed.status()!==500)throw new Error('Expected real DB error');await page.locator('.live-responses-table').waitFor();await page.locator('.live-responses-table').scrollIntoViewIfNeeded();await page.screenshot({path:root+stack+'/api-500.png'});results.push({stack,name:'db-failure',status:failed.status(),body:await failed.json()});
+  await page.goto(base+'/openapi.json');await page.screenshot({path:root+stack+'/openapi.png'});
+ }
+ return results;
+}
+
