@@ -130,6 +130,6 @@ GROUP BY o.id;
 '''
  (folder/'01-schema.sql').write_text('\n\n'.join(statements)+'\n\n'+query,encoding='utf8')
  (folder/'03-cost.sql').write_text('SELECT * FROM order_cost WHERE order_id=1;\n-- Ожидается 14374.28 при допущениях docs/DECISIONS.md.\n',encoding='utf8')
-data=dict(order=[t['id'] for t in tables],stacks={s:dict(tables=tables,links=links) for s in ['mysql','postgresql']},report=dict(why='Итог вычисляется по нормам, действующим ценам и количеству. Файл расчёта содержит расхождения; см. допущения. Нормативный итог двух столов в примере — 14 374,28.',file='Расчет стоимости.xlsx',location='D13; сравнить со Спецификацией и Ценами'))
+data=dict(source={'code':'09.02.07-5-2027','level':'ГИА БУ','task':'Задание 1','archive':'Прил_ОЗ_КИМ_09.02.07-5-2027.zip','section':'БУ / Задание 1','files':['Заказ покупателя.xlsx','Спецификация.xlsx','Цены.xlsx','Заказ на производство.xlsx','Расчет стоимости.xlsx','Заказчики.json']},order=[t['id'] for t in tables],stacks={s:dict(tables=tables,links=links) for s in ['mysql','postgresql']},report=dict(why='Итог вычисляется по нормам, действующим ценам и количеству. Файл расчёта содержит расхождения; см. допущения. Нормативный итог двух столов в примере — 14 374,28.',file='Расчет стоимости.xlsx',location='D13; сравнить со Спецификацией и Ценами'))
 (root/'content/model.json').write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding='utf8')
 print('12 tables,',len(links),'relations; both SQL dialects generated.')

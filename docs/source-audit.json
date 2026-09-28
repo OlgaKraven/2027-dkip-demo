@@ -1,0 +1,37 @@
+{
+  "sourceArchive": "Прил_ОЗ_КИМ_09.02.07-5-2027.zip",
+  "sourceArchiveSha256": "574870215266ccc10a645978a7eb44410cf16e55c684e8f3376f4b291f090847",
+  "nestedArchive": "БУ/Задание 1/Прил_1_ОЗ_КИМ_09.02.07-5-2027.rar",
+  "files": [
+    {
+      "file": "Заказ на производство.xlsx",
+      "sha256": "74f3ea2ff5b7fb6fe78ad969fa57d8feb576dc85560a589a721bc10e6d39c56f",
+      "originalLocalIdentical": true
+    },
+    {
+      "file": "Заказ покупателя.xlsx",
+      "sha256": "eb2c3613a7d25f6b2692446d9ae90111b32d94d73cb59dbc3c610fc354f2c2fa",
+      "originalLocalIdentical": true
+    },
+    {
+      "file": "Заказчики.json",
+      "sha256": "fdcf93ee388b61edfe19ba714888ad4e31c8d00b90df1b0eb9ca99fbd662b730",
+      "originalLocalIdentical": true
+    },
+    {
+      "file": "Расчет стоимости.xlsx",
+      "sha256": "12ef54c28f301a55f3aba58b155682bbd2cf2879cad00f1c28eeef61acdd2f3f",
+      "originalLocalIdentical": true
+    },
+    {
+      "file": "Спецификация.xlsx",
+      "sha256": "c476b6d4a27c1e91815f80f52893be8ed90f6c7c5043e237c38881a1b8d2498f",
+      "originalLocalIdentical": true
+    },
+    {
+      "file": "Цены.xlsx",
+      "sha256": "621dc45998f2815a0a6e4047d3f4720bf2c430f373b54532dabdb08c51d149b0",
+      "originalLocalIdentical": true
+    }
+  ]
+}
