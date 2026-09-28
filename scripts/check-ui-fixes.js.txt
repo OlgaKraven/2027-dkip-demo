@@ -1,0 +1,21 @@
+async page => {
+ const base='http://127.0.0.1:4198/';let checks=0;const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ const check=(value,label)=>{if(!value)throw Error(label);checks++;};
+ async function tour(button){await button.click();while(await page.locator('.tour-dialog[open]').count()){
+  await page.waitForFunction(()=>{const e=document.querySelector(".tour-spotlight");return e&&e.getBoundingClientRect().width>0&&e.getBoundingClientRect().height>0;});
+  const geometry=await page.locator('.tour-spotlight').evaluate(e=>{const t=document.querySelector(e.dataset.target),r=e.getBoundingClientRect(),c=document.querySelector('.tour-card').getBoundingClientRect();return {target:e.dataset.target,visible:!!t&&t.getClientRects().length>0,w:r.width,h:r.height,card:c.left>=0&&c.top>=0&&c.right<=innerWidth+1&&c.bottom<=innerHeight+1};});
+  check(geometry.visible&&geometry.w>0&&geometry.h>0&&geometry.card,JSON.stringify(geometry));await page.locator('#tour-next').click();
+ }}
+ for(const width of [1360,390]){await page.setViewportSize({width,height:900});for(const stack of ['mysql','postgresql']){
+  await page.goto(base+'?mode=learn&module=M1&stack='+stack);await tour(page.getByRole('button',{name:'Тур по сайту',exact:true}));
+  check(page.url().includes('module=M1'),'Tour restores stage');
+  await tour(page.locator('.route-content [data-guide="lesson"]'));
+  await page.locator('#er-launch').click();await page.locator('#er-jump').selectOption('3');await tour(page.getByRole('button',{name:'Гид по схеме',exact:true}));await page.locator('.er-dialog [data-er-close]').count().then(async count=>{if(count)await page.locator('.er-dialog [data-er-close]').click();else await page.locator('.er-dialog').evaluate(d=>d.close());});
+  for(const mode of ['training','mock']){await page.goto(base+'?mode='+mode+'&stack='+stack);const gap=await page.locator('.assignment-heading').evaluate(e=>{const a=e.firstElementChild.getBoundingClientRect(),b=e.querySelector('.timer-card').getBoundingClientRect();return innerWidth>800?b.left-a.right:b.top-a.bottom;});check(gap>=0&&gap<=25,'Timer gap '+gap);await tour(page.locator('[data-guide="lesson"]'));check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No horizontal overflow');}
+ }}
+ await page.setViewportSize({width:1360,height:900});await page.goto(base+'?mode=mock&stack=mysql');
+ for(let n=1;n<=30;n++){const id='V'+String(n).padStart(2,'0');await page.selectOption('#variant',id);const brand=await page.evaluate(id=>COURSE.variants.find(v=>v.id===id).brand,id);for(let t=0;t<6;t++){await page.locator('[data-task="'+t+'"]').click();check((await page.locator('.training-task>p').last().innerText()).includes(brand),id+' task '+t);}}
+ await page.goto(base+'?mode=training');await page.locator('[data-timer="start"]').click();await page.locator('[data-timer="pause"]').click();const paused=await page.locator('#clock').innerText();await page.reload();check(await page.locator('#timer-status').innerText()==='На паузе'&&await page.locator('#clock').innerText()===paused,'Pause persists');
+ await page.goto(base+'?mode=mock');await page.selectOption('#variant','V01');await page.locator('[data-timer="start"]').click();await page.reload();check(await page.locator('#timer-status').innerText()==='Идёт отсчёт','Mock runs after reload');check(await page.locator('[data-timer="pause"]').count()===0,'No mock pause');await page.locator('[data-timer="finish"]').click();
+ check(errors.length===0,errors.join('\n'));return {checks,errors};
+}
