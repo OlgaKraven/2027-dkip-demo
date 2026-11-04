@@ -2,16 +2,19 @@ import fs from 'node:fs';import path from 'node:path';import {createHash} from '
 import {stagesFor,tasks,criteria} from '../content/course.mjs';import {buildErLayouts} from './er-layout.mjs';import '../src/core.js';
 const out='site';fs.mkdirSync(out,{recursive:true});
 for(const f of fs.readdirSync('src'))fs.copyFileSync('src/'+f,out+'/'+f);
-fs.cpSync('materials',out+'/materials',{recursive:true});fs.cpSync('docs',out+'/docs',{recursive:true});fs.mkdirSync(out+'/downloads',{recursive:true});
+fs.cpSync('materials',out+'/materials',{recursive:true});fs.mkdirSync(out+'/docs',{recursive:true});
+const teachingDoc=f=>/^(DECISIONS\.md|api-(mysql|postgresql)\.(md|pdf|docx)|openapi\.json|postman-(mysql|postgresql)\.json)$/.test(f);
+for(const f of fs.readdirSync(out+'/docs'))if(!teachingDoc(f))fs.rmSync(out+'/docs/'+f,{recursive:true,force:true});
+for(const f of fs.readdirSync('docs'))if(teachingDoc(f))fs.copyFileSync('docs/'+f,out+'/docs/'+f);fs.mkdirSync(out+'/downloads',{recursive:true});
 for(const stack of ['mysql','postgresql'])fs.cpSync('examples/'+stack+'/Sql',out+'/code/examples/'+stack+'/Sql',{recursive:true});
 const read=f=>JSON.parse(fs.readFileSync(f,'utf8'));const er=read('content/model.json');er.layouts=await buildErLayouts(er);fs.writeFileSync(out+'/er-data.js','globalThis.ER_GUIDE='+JSON.stringify(er)+';');
 const code={};function walk(dir,fn,rel=dir+'/'){for(const f of fs.readdirSync(dir,{withFileTypes:true})){if(['bin','obj','wwwroot','.vs','.runtime'].includes(f.name))continue;const p=path.join(dir,f.name).replaceAll('\\','/');if(f.isDirectory())walk(p,fn);else fn(p,fs.readFileSync(p));}}
-for(const dir of ['examples','docs'])walk(dir,(p,b)=>{if(/\.(cs|csproj|xaml|sql|json|md|ps1)$/.test(p))code[p]=b.toString('utf8');});
+for(const dir of ['examples','docs'])walk(dir,(p,b)=>{if(/\.(cs|csproj|xaml|sql|json|md|ps1)$/.test(p)&&(!p.startsWith('docs/')||teachingDoc(path.basename(p))))code[p]=b.toString('utf8');});
 const screens=fs.existsSync('content/screens.json')?read('content/screens.json'):{};
 for(const entries of Object.values(screens))for(const screen of Object.values(entries))screen.file+='?v='+createHash('sha256').update(fs.readFileSync(screen.file)).digest('hex').slice(0,12);
 const variants=read('content/variants.json');const sources=[];walk('materials',(p,b)=>{if(/\.(pdf|docx|xlsx|json|rar)$/.test(p))sources.push({file:p,sha256:createHash('sha256').update(b).digest('hex')});});
 for(const stack of ['mysql','postgresql']){
- const files={};walk('examples',(p,b)=>{if(!p.startsWith('examples/'+(stack==='mysql'?'postgresql':'mysql')+'/'))files[p]=b;});walk('docs',(p,b)=>{files[p]=b;});walk('materials/basic',(p,b)=>{files[p]=b;});
+ const files={};walk('examples',(p,b)=>{if(!p.startsWith('examples/'+(stack==='mysql'?'postgresql':'mysql')+'/')&&!p.startsWith('examples/starter/'+(stack==='mysql'?'postgresql':'mysql')+'/'))files[p]=b;});walk('docs',(p,b)=>{if(teachingDoc(path.basename(p)))files[p]=b;});walk('materials/basic',(p,b)=>{files[p]=b;});
  for(const f of fs.readdirSync('examples/Api/wwwroot'))files['examples/Api/wwwroot/'+f]=fs.readFileSync('examples/Api/wwwroot/'+f);
  fs.writeFileSync(`${out}/downloads/dkip2027-${stack}.zip`,ExamCore.zip(files));
 }

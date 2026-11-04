@@ -1,0 +1,212 @@
+[
+  {
+    "variant": "V01",
+    "customers": 6,
+    "resources": 5,
+    "notes": 5,
+    "cost": "7680.00"
+  },
+  {
+    "variant": "V02",
+    "customers": 6,
+    "resources": 5,
+    "notes": 5,
+    "cost": "2672.00"
+  },
+  {
+    "variant": "V03",
+    "customers": 6,
+    "resources": 5,
+    "notes": 5,
+    "cost": "10035.00"
+  },
+  {
+    "variant": "V04",
+    "customers": 6,
+    "resources": 5,
+    "notes": 5,
+    "cost": "14880.00"
+  },
+  {
+    "variant": "V05",
+    "customers": 6,
+    "resources": 5,
+    "notes": 5,
+    "cost": "16425.00"
+  },
+  {
+    "variant": "V06",
+    "customers": 6,
+    "resources": 6,
+    "notes": 5,
+    "cost": "9555.00"
+  },
+  {
+    "variant": "V07",
+    "customers": 6,
+    "resources": 5,
+    "notes": 5,
+    "cost": "1267.20"
+  },
+  {
+    "variant": "V08",
+    "customers": 6,
+    "resources": 5,
+    "notes": 5,
+    "cost": "31480.00"
+  },
+  {
+    "variant": "V09",
+    "customers": 6,
+    "resources": 5,
+    "notes": 5,
+    "cost": "11610.00"
+  },
+  {
+    "variant": "V10",
+    "customers": 6,
+    "resources": 5,
+    "notes": 5,
+    "cost": "52500.00"
+  },
+  {
+    "variant": "V11",
+    "customers": 6,
+    "resources": 5,
+    "notes": 5,
+    "cost": "31000.00"
+  },
+  {
+    "variant": "V12",
+    "customers": 6,
+    "resources": 5,
+    "notes": 5,
+    "cost": "15711.00"
+  },
+  {
+    "variant": "V13",
+    "customers": 6,
+    "resources": 5,
+    "notes": 5,
+    "cost": "2520.00"
+  },
+  {
+    "variant": "V14",
+    "customers": 6,
+    "resources": 5,
+    "notes": 5,
+    "cost": "16080.00"
+  },
+  {
+    "variant": "V15",
+    "customers": 6,
+    "resources": 5,
+    "notes": 5,
+    "cost": "15480.00"
+  },
+  {
+    "variant": "V16",
+    "customers": 6,
+    "resources": 5,
+    "notes": 5,
+    "cost": "137600.00"
+  },
+  {
+    "variant": "V17",
+    "customers": 6,
+    "resources": 5,
+    "notes": 5,
+    "cost": "27412.50"
+  },
+  {
+    "variant": "V18",
+    "customers": 6,
+    "resources": 5,
+    "notes": 5,
+    "cost": "23775.00"
+  },
+  {
+    "variant": "V19",
+    "customers": 6,
+    "resources": 5,
+    "notes": 5,
+    "cost": "8424.00"
+  },
+  {
+    "variant": "V20",
+    "customers": 6,
+    "resources": 5,
+    "notes": 5,
+    "cost": "30760.00"
+  },
+  {
+    "variant": "V21",
+    "customers": 6,
+    "resources": 5,
+    "notes": 5,
+    "cost": "21213.00"
+  },
+  {
+    "variant": "V22",
+    "customers": 6,
+    "resources": 5,
+    "notes": 5,
+    "cost": "32500.00"
+  },
+  {
+    "variant": "V23",
+    "customers": 6,
+    "resources": 5,
+    "notes": 5,
+    "cost": "9725.00"
+  },
+  {
+    "variant": "V24",
+    "customers": 6,
+    "resources": 5,
+    "notes": 5,
+    "cost": "25218.00"
+  },
+  {
+    "variant": "V25",
+    "customers": 6,
+    "resources": 5,
+    "notes": 5,
+    "cost": "13500.00"
+  },
+  {
+    "variant": "V26",
+    "customers": 6,
+    "resources": 5,
+    "notes": 5,
+    "cost": "3340.00"
+  },
+  {
+    "variant": "V27",
+    "customers": 6,
+    "resources": 5,
+    "notes": 5,
+    "cost": "36288.00"
+  },
+  {
+    "variant": "V28",
+    "customers": 6,
+    "resources": 5,
+    "notes": 5,
+    "cost": "35700.00"
+  },
+  {
+    "variant": "V29",
+    "customers": 6,
+    "resources": 5,
+    "notes": 5,
+    "cost": "13437.50"
+  },
+  {
+    "variant": "V30",
+    "customers": 6,
+    "resources": 7,
+    "notes": 5,
+    "cost": "16560.00"
+  }
+]

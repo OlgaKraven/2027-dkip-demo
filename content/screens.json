@@ -49,8 +49,8 @@
       "caption": "Внешние ключи учебной базы данных. Маршрут: Windows Forms / XAMPP MySQL."
     },
     "connection": {
-      "file": "materials/screenshots/mysql/connection.png",
-      "caption": "Выбор провайдера и чтение локальных переменных подключения в Database.cs. Маршрут: Windows Forms / XAMPP MySQL."
+      "file": "materials/screenshots/windows-guide/vs-profile-mysql-final.png",
+      "caption": "Профиль запуска Visual Studio: DKIP_STACK=mysql и учебная строка DKIP_CONNECTION введены в Environment variables. Вверху находится поле аргументов программы."
     },
     "import": {
       "file": "materials/screenshots/mysql/import.png",
@@ -81,31 +81,31 @@
       "caption": "Результат расчёта в СУБД: 14 374,28. Маршрут: Windows Forms / XAMPP MySQL."
     },
     "login": {
-      "file": "materials/screenshots/mysql/login.png",
+      "file": "materials/screenshots/windows-guide/mysql-login-native.png",
       "caption": "Настоящее окно авторизации приложения. Маршрут: Windows Forms / XAMPP MySQL."
     },
     "puzzle": {
-      "file": "materials/screenshots/mysql/puzzle.png",
+      "file": "materials/screenshots/windows-guide/mysql-login-native.png",
       "caption": "Исходное изображение и четыре переставляемых фрагмента в работающем приложении. Маршрут: Windows Forms / XAMPP MySQL."
     },
     "login-error": {
-      "file": "materials/screenshots/mysql/login-error.png",
-      "caption": "Сообщение работающего приложения при неверном вводе. Маршрут: Windows Forms / XAMPP MySQL."
+      "file": "materials/screenshots/windows-guide/mysql-error-native.png",
+      "caption": "Ошибка сборки пазла: приложение сообщает о двух оставшихся попытках."
     },
     "locked": {
-      "file": "materials/screenshots/mysql/locked.png",
-      "caption": "Работающее приложение сообщает о блокировке после трёх неудачных попыток. Маршрут: Windows Forms / XAMPP MySQL."
+      "file": "materials/screenshots/windows-guide/mysql-locked-native.png",
+      "caption": "После третьей ошибки приложение сообщает о блокировке учебной записи student."
     },
     "main": {
-      "file": "materials/screenshots/mysql/main.png",
+      "file": "materials/screenshots/windows-guide/mysql-main-native.png",
       "caption": "Рабочая форма заказа и результат расчёта себестоимости. Маршрут: Windows Forms / XAMPP MySQL."
     },
     "users": {
-      "file": "materials/screenshots/mysql/users.png",
-      "caption": "Рабочее место администратора с записями пользователей. Маршрут: Windows Forms / XAMPP MySQL."
+      "file": "materials/screenshots/windows-guide/mysql-unlock-native.png",
+      "caption": "Вкладка администратора: выбран учебный student, видны три ошибки и установлен флажок «Снять блокировку». Изменение применяется кнопкой «Сохранить»."
     },
     "unlock": {
-      "file": "materials/screenshots/mysql/unlock.png",
+      "file": "materials/screenshots/windows-guide/mysql-unlock-native.png",
       "caption": "Выбор пользователя и отметка снятия блокировки в работающем приложении. Маршрут: Windows Forms / XAMPP MySQL."
     },
     "notes-table": {
@@ -129,8 +129,8 @@
       "caption": "Swagger UI: настоящий ответ 200 с пустым массивом []. Маршрут: Windows Forms / XAMPP MySQL."
     },
     "api-start": {
-      "file": "materials/screenshots/mysql/api-start.png",
-      "caption": "Консоль запущенного локального API с адресом прослушивания. Маршрут: Windows Forms / XAMPP MySQL."
+      "file": "materials/screenshots/mysql/swagger.png",
+      "caption": "Swagger UI запущенного API: два доступных GET-пути. Маршрут: Windows Forms / XAMPP MySQL."
     },
     "postman-import": {
       "file": "materials/screenshots/mysql/postman-import.png",
@@ -146,7 +146,7 @@
     },
     "postman": {
       "file": "materials/screenshots/mysql/postman.png",
-      "caption": "Postman Lightweight: настоящий ответ локального API. Коллекция отдельно проверена Newman. Маршрут: Windows Forms / XAMPP MySQL."
+      "caption": "Postman Lightweight: настоящий ответ локального API. Маршрут: Windows Forms / XAMPP MySQL."
     },
     "doc-template": {
       "file": "materials/screenshots/mysql/doc-template.png",
@@ -191,6 +191,18 @@
     "doc-filled": {
       "file": "materials/screenshots/mysql/doc-filled.png",
       "caption": "Заполненный исходный шаблон документации API в Microsoft Word. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "vs-start": {
+      "file": "materials/screenshots/windows-guide/vs-create-native.png",
+      "caption": "Мастер Create a new project в Visual Studio: поле Search for templates и кнопка Next. Введите шаблон из текущего шага; список Recent зависит от ранее открытых проектов."
+    },
+    "vs-template": {
+      "file": "materials/screenshots/windows-guide/vs-create-native.png",
+      "caption": "В мастере Visual Studio выбран Windows Forms App на C#. Современный .NET-шаблон без пометки .NET Framework."
+    },
+    "vs-packages": {
+      "file": "materials/screenshots/windows-guide/vs-first-form-final.png",
+      "caption": "Первый запуск Form1 из Visual Studio; справа видна установленная версия MySqlConnector 2.6.1."
     }
   },
   "postgresql": {
@@ -224,7 +236,7 @@
     },
     "db-start": {
       "file": "materials/screenshots/postgresql/db-start.png",
-      "caption": "XAMPP Control Panel: запущены Apache и MySQL (MariaDB). Маршрут: WPF / PostgreSQL."
+      "caption": "pgAdmin: регистрация подключения к локальному PostgreSQL. На снимке отдельный учебный сервер с портом 55437; укажите порт своего сервера, обычно 5432."
     },
     "db-create": {
       "file": "materials/screenshots/postgresql/db-create.png",
@@ -243,8 +255,8 @@
       "caption": "Внешние ключи учебной базы данных. Маршрут: WPF / PostgreSQL."
     },
     "connection": {
-      "file": "materials/screenshots/postgresql/connection.png",
-      "caption": "Выбор провайдера и чтение локальных переменных подключения в Database.cs. Маршрут: WPF / PostgreSQL."
+      "file": "materials/screenshots/windows-guide/vs-profile-postgresql.png",
+      "caption": "Профиль запуска Visual Studio: DKIP_STACK=postgresql и DKIP_CONNECTION в Environment variables. YOUR_PASSWORD — заглушка, замените её паролем своего сервера."
     },
     "import": {
       "file": "materials/screenshots/postgresql/import.png",
@@ -275,31 +287,31 @@
       "caption": "Результат расчёта в СУБД: 14 374,28. Маршрут: WPF / PostgreSQL."
     },
     "login": {
-      "file": "materials/screenshots/postgresql/login.png",
+      "file": "materials/screenshots/windows-guide/postgresql-login-native.png",
       "caption": "Настоящее окно авторизации приложения. Маршрут: WPF / PostgreSQL."
     },
     "puzzle": {
-      "file": "materials/screenshots/postgresql/puzzle.png",
+      "file": "materials/screenshots/windows-guide/postgresql-login-native.png",
       "caption": "Исходное изображение и четыре переставляемых фрагмента в работающем приложении. Маршрут: WPF / PostgreSQL."
     },
     "login-error": {
-      "file": "materials/screenshots/postgresql/login-error.png",
-      "caption": "Сообщение работающего приложения при неверном вводе. Маршрут: WPF / PostgreSQL."
+      "file": "materials/screenshots/windows-guide/postgresql-error-native.png",
+      "caption": "Ошибка сборки пазла: приложение сообщает о двух оставшихся попытках."
     },
     "locked": {
-      "file": "materials/screenshots/postgresql/locked.png",
-      "caption": "Работающее приложение сообщает о блокировке после трёх неудачных попыток. Маршрут: WPF / PostgreSQL."
+      "file": "materials/screenshots/windows-guide/postgresql-locked-native.png",
+      "caption": "После третьей ошибки приложение сообщает о блокировке учебной записи student."
     },
     "main": {
-      "file": "materials/screenshots/postgresql/main.png",
+      "file": "materials/screenshots/windows-guide/postgresql-main-native.png",
       "caption": "Рабочая форма заказа и результат расчёта себестоимости. Маршрут: WPF / PostgreSQL."
     },
     "users": {
-      "file": "materials/screenshots/postgresql/users.png",
-      "caption": "Рабочее место администратора с записями пользователей. Маршрут: WPF / PostgreSQL."
+      "file": "materials/screenshots/windows-guide/postgresql-unlock-native.png",
+      "caption": "Вкладка администратора: выбран учебный student, видны три ошибки и установлен флажок «Снять блокировку». Изменение применяется кнопкой «Сохранить»."
     },
     "unlock": {
-      "file": "materials/screenshots/postgresql/unlock.png",
+      "file": "materials/screenshots/windows-guide/postgresql-unlock-native.png",
       "caption": "Выбор пользователя и отметка снятия блокировки в работающем приложении. Маршрут: WPF / PostgreSQL."
     },
     "notes-table": {
@@ -323,8 +335,8 @@
       "caption": "Swagger UI: настоящий ответ 200 с пустым массивом []. Маршрут: WPF / PostgreSQL."
     },
     "api-start": {
-      "file": "materials/screenshots/postgresql/api-start.png",
-      "caption": "Консоль запущенного локального API с адресом прослушивания. Маршрут: WPF / PostgreSQL."
+      "file": "materials/screenshots/postgresql/swagger.png",
+      "caption": "Swagger UI запущенного API: два доступных GET-пути. Маршрут: WPF / PostgreSQL."
     },
     "postman-import": {
       "file": "materials/screenshots/postgresql/postman-import.png",
@@ -340,7 +352,7 @@
     },
     "postman": {
       "file": "materials/screenshots/postgresql/postman.png",
-      "caption": "Postman Lightweight: настоящий ответ локального API. Коллекция отдельно проверена Newman. Маршрут: WPF / PostgreSQL."
+      "caption": "Postman Lightweight: настоящий ответ локального API. Маршрут: WPF / PostgreSQL."
     },
     "doc-template": {
       "file": "materials/screenshots/postgresql/doc-template.png",
@@ -385,6 +397,18 @@
     "doc-filled": {
       "file": "materials/screenshots/postgresql/doc-filled.png",
       "caption": "Заполненный исходный шаблон документации API в Microsoft Word. Маршрут: WPF / PostgreSQL."
+    },
+    "vs-start": {
+      "file": "materials/screenshots/windows-guide/vs-create-native.png",
+      "caption": "Мастер Create a new project в Visual Studio: поле Search for templates и кнопка Next. Введите шаблон из текущего шага; список Recent зависит от ранее открытых проектов."
+    },
+    "vs-template": {
+      "file": "materials/screenshots/windows-guide/vs-wpf-template-final.png",
+      "caption": "Выбор современного шаблона WPF Application на C# в Visual Studio. Не выбирайте вариант .NET Framework."
+    },
+    "vs-packages": {
+      "file": "materials/screenshots/windows-guide/vs-npgsql-preview-final.png",
+      "caption": "Окно Preview Changes для Npgsql 10.0.1. Apply подтверждает установку показанного пакета и зависимостей."
     }
   }
 }

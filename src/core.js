@@ -29,7 +29,7 @@
       assert(s.mode !== 'mock', 'В пробном экзамене пауза не предусмотрена');
       n.elapsedMs=elapsed(s,now); n.anchorMs=null; n.status='paused';
     } else if (action === 'finish' && s.status !== 'finished') {
-      n.elapsedMs=elapsed(s,now); n.anchorMs=null; n.status='finished';
+      n.elapsedMs=Math.min(s.durationMs,elapsed(s,now)); n.anchorMs=null; n.status='finished';
     } else if (action === 'assisted') n.assisted=true;
     return n;
   }
