@@ -9,7 +9,19 @@ test('diagram field origins cover every SQL field and every reference',()=>{cons
 test('training pause persists, mock continues with elapsed wall time',()=>{let t=ExamCore.freshTimer(12600,'training',0);t=ExamCore.transition(t,'start',100);t=ExamCore.transition(t,'pause',10100);assert.equal(ExamCore.timerView(t,90000).used,10000);const restored=ExamCore.restoreTimer(JSON.stringify(t),12600,'training');assert.equal(restored.status,'paused');let m=ExamCore.transition(ExamCore.freshTimer(12600,'mock',0),'start',100);assert.throws(()=>ExamCore.transition(m,'pause',1000));assert.equal(ExamCore.timerView(m,10100).used,10000);});
 test('built site has thirty distinct variants and launchable projects in ZIP',()=>{const context={};vm.runInNewContext(fs.readFileSync('site/content.js','utf8'),context);const d=context.COURSE;assert.equal(d.variants.length,30);assert.equal(new Set(d.variants.map(v=>v.brand)).size,30);for(const stack of ['mysql','postgresql'])assert.ok(fs.statSync('site/downloads/dkip2027-'+stack+'.zip').size>100000);});
 test('OpenAPI defines actual response fields and both endpoint paths',()=>{const spec=JSON.parse(fs.readFileSync('docs/openapi.json'));assert.deepEqual(Object.keys(spec.paths),['/notes','/api/notes']);assert.deepEqual(spec.components.schemas.Note.required,['id','title_user','content','formatted_date']);for(const p of Object.values(spec.paths))assert.deepEqual(Object.keys(p.get.responses),['200','400','500']);});
-test('referenced screenshots exist and have descriptive captions',()=>{const screens=JSON.parse(fs.readFileSync('content/screens.json'));for(const stack of ['mysql','postgresql'])for(const stage of stagesFor(stack))for(const step of stage.steps){if(!step.shot)continue;const image=screens[stack][step.shot];assert.ok(image,stack+' '+step.title);assert.ok(fs.statSync(image.file).size>1000,image.file);assert.ok(image.caption.length>30);}});
+test('referenced screenshots exist and have descriptive captions',()=>{
+ const screens=JSON.parse(fs.readFileSync('content/screens.json'));
+ for(const stack of ['mysql','postgresql'])for(const stage of stagesFor(stack)){
+  const refs=stage.steps.flatMap(step=>[step.shot,...(step.actionGroups||[]).map(group=>group.shot)]);
+  for(const [, ,shot] of stage.foundation.guide.csvExport?.importSteps||[]) refs.push(shot);
+  for(const ref of refs.filter(Boolean)){
+   const image=screens[stack][ref];
+   assert.ok(image,stack+' '+ref);
+   assert.ok(fs.statSync(image.file).size>1000,image.file);
+   assert.ok(image.caption.length>30);
+  }
+ }
+});
 test('deployed ER SQL links and downloadable PDF and DOCX files exist',()=>{for(const stack of ['mysql','postgresql'])assert.ok(fs.existsSync(`site/code/examples/${stack}/Sql/01-schema.sql`));assert.ok(fs.statSync('site/materials/er.pdf').size>10000);for(const stack of ['mysql','postgresql'])assert.ok(fs.statSync(`site/docs/api-${stack}.docx`).size>10000);});
 
 test('finished attempts stop and cap time at the limit',()=>{
@@ -22,8 +34,17 @@ test('finished attempts stop and cap time at the limit',()=>{
  const fresh=ExamCore.freshTimer(60,'training',900001);
  assert.equal(fresh.status,'idle');assert.equal(ExamCore.timerView(fresh).used,0);
 });
-test('every stage has novice preparation, diagnostics and an explained transfer question in both routes',()=>{
- for(const stack of ['mysql','postgresql'])for(const stage of stagesFor(stack)){
-  const f=stage.foundation;assert.ok(f.intro);assert.ok(f.terms.length>=3);assert.ok(f.steps.length>=4);assert.ok(f.errors.length>=2);assert.ok(f.question&&f.answer);
+test('every stage has novice preparation and diagnostics in both routes',()=>{
+ for(const stack of ['mysql','postgresql']){
+  const stages=stagesFor(stack);
+  assert.equal(new Set(stages.map(stage=>stage.foundation.guide.title)).size,stages.length);
+  for(const stage of stages){
+   const f=stage.foundation;assert.ok(f.intro);assert.ok(f.terms.length>=3);assert.ok(f.steps.length>=4);assert.ok(f.errors.length>=2);
+   if(stage.id==='M2') assert.equal(f.question,undefined);
+   else assert.ok(f.question&&f.answer);
+   for(const field of ['title','summary','exampleTitle','example','termsTitle','diagnosticsTitle']){
+    assert.ok(f.guide[field]?.trim(),`${stack}/${stage.id} needs help ${field}`);
+   }
+  }
  }
 });

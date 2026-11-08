@@ -1,55 +1,363 @@
-(function(root){
+(function (root) {
 'use strict';
-let ctx,dialog,returnFocus,position=0,view='steps',selection=null,zoom=1,fitMode=false,activeLayout=null,sourceOpen=false,scrollPosition={left:0,top:0};
-const E=v=>root.ExamCore.escape(v),D=()=>root.ER_GUIDE.stacks[ctx.stack];
-function steps(){return [{kind:'intro'},...root.ER_GUIDE.order.flatMap(id=>[{kind:'table',table:id},...D().tables.find(t=>t.id===id).fields.map(f=>({kind:'field',table:id,field:f.id}))]),{kind:'report'},{kind:'finish'}];}
-function button(text,fn){const b=document.createElement('button');b.type='button';b.className='btn';b.textContent=text;b.onclick=fn;return b;}
-function open(){returnFocus=document.activeElement;if(!dialog){dialog=document.createElement('dialog');dialog.className='er-dialog';dialog.setAttribute('aria-labelledby','er-title');document.body.append(dialog);dialog.addEventListener('close',()=>returnFocus?.isConnected&&returnFocus.focus());dialog.addEventListener('click',e=>{if(e.target===dialog&&e.clientX<dialog.getBoundingClientRect().left)dialog.close();});}const saved=Number(ctx.get('er-guide-step-v1'));position=Number.isInteger(saved)?Math.max(0,Math.min(steps().length-1,saved)):0;dialog.showModal();render();}
-function openFull(){
- if(view==='full')return;
- if(root.ExamProductTour?.active())root.ExamProductTour.close();
- const parent=dialog,scroll=parent.querySelector('.er-scroll');
- const saved={selection,zoom,fitMode,activeLayout,sourceOpen,scrollPosition:{left:scroll.scrollLeft,top:scroll.scrollTop}};
- const contents=document.createDocumentFragment();while(parent.firstChild)contents.append(parent.firstChild);
- parent.style.display='none';
- const modal=document.createElement('dialog');modal.className='er-dialog er-fullscreen';modal.setAttribute('aria-labelledby','er-title');document.body.append(modal);
- dialog=modal;view='full';fitMode=true;sourceOpen=false;selection={kind:'table',table:'counterparty'};scrollPosition={left:0,top:0};
- modal.addEventListener('close',()=>{
-  if(root.ExamProductTour?.active())root.ExamProductTour.close();
-  modal.remove();dialog=parent;view='steps';selection=saved.selection;zoom=saved.zoom;fitMode=saved.fitMode;activeLayout=saved.activeLayout;sourceOpen=saved.sourceOpen;scrollPosition=saved.scrollPosition;
-  parent.append(contents);parent.style.display='';parent.querySelector('.er-scroll').scrollTo(scrollPosition.left,scrollPosition.top);parent.querySelector('#er-full').focus({preventScroll:true});
- },{once:true});
- modal.showModal();render();
+
+const workspaces = new Map();
+const E = value => root.ExamCore.escape(value);
+const expandIcon = '<svg class="er-expand-icon" viewBox="0 0 24 24" width="19" height="19" fill="currentColor" aria-hidden="true"><path d="M3 3h7v2.5H5.5V10H3zm11 0h7v7h-2.5V5.5H14zM3 14h2.5v4.5H10V21H3zm15.5 0H21v7h-7v-2.5h4.5z"/></svg>';
+const closeIcon = '<svg class="er-close-icon" viewBox="0 0 24 24" width="19" height="19" fill="currentColor" aria-hidden="true"><path d="m6 4.6 6 6 6-6L19.4 6l-6 6 6 6-1.4 1.4-6-6-6 6L4.6 18l6-6-6-6z"/></svg>';
+
+function mount(workspace, ctx) {
+  const existing = workspaces.get(ctx.stack);
+  if (existing) {
+    workspace.replaceWith(existing);
+    return;
+  }
+  workspaces.set(ctx.stack, workspace);
+  const D = () => root.ER_GUIDE.stacks[ctx.stack];
+  const er = selector => workspace.querySelector(selector);
+  const all = [{kind:'intro'}, ...root.ER_GUIDE.order.flatMap(id => [
+    {kind:'table',table:id},
+    ...D().tables.find(table => table.id===id).fields.map(field => ({kind:'field',table:id,field:field.id}))
+  ]), {kind:'report'}, {kind:'finish'}];
+  const saved = Number(ctx.get('er-guide-step-v1'));
+  let position = Number.isInteger(saved) ? Math.max(0,Math.min(all.length-1,saved)) : 0;
+  let view = 'steps', infoVisible = true, observer;
+  const views = {
+    steps: {selection:null, zoom:1, fit:null, scroll:{left:0,top:0}},
+    full: {selection:{kind:'table',table:'counterparty'}, zoom:1, fit:null, scroll:{left:0,top:0}}
+  };
+  const state = () => views[view];
+  const current = () => state().selection || all[position];
+
+  function syncControls() {
+    const expanded = !!workspace.closest('.er-expanded-dialog[open]');
+    workspace.classList.toggle('er-is-expanded',expanded);
+    er('#er-title').textContent=expanded?'Построение ER-диаграммы':'Схема и пояснения';
+    const expand = er('#er-expand');
+    const title = expanded?'Закрыть большую схему':'На весь экран';
+    expand.setAttribute('aria-label',title);
+    expand.title=title;
+    if (expanded) expand.removeAttribute('aria-haspopup');
+    else expand.setAttribute('aria-haspopup','dialog');
+
+    const hidden = view==='full' && expanded && !infoVisible;
+    workspace.classList.toggle('er-info-hidden',hidden);
+    er('#er-info').hidden=hidden;
+    const toggle=er('#er-source-toggle');
+    if (toggle) {
+      toggle.hidden=!expanded;
+      toggle.textContent=hidden?'Показать пояснения':'Скрыть пояснения';
+      toggle.setAttribute('aria-expanded',String(!hidden));
+    }
+  }
+
+  function toggleExpanded() {
+    const open = workspace.closest('.er-expanded-dialog[open]');
+    if (open) {
+      open.close();
+      return;
+    }
+    const anchor = document.createComment('ER workspace');
+    workspace.before(anchor);
+    const dialog = document.createElement('dialog');
+    dialog.className='er-expanded-dialog';
+    dialog.setAttribute('aria-labelledby','er-title');
+    dialog.append(workspace);
+    document.body.append(dialog);
+    dialog.addEventListener('close',() => {
+      if (anchor.isConnected) anchor.replaceWith(workspace);
+      dialog.remove();
+      infoVisible=true;
+      syncControls();
+      if (workspace.isConnected) er('#er-expand').focus({preventScroll:true});
+    },{once:true});
+    dialog.showModal();
+    syncControls();
+    er('#er-expand').focus({preventScroll:true});
+  }
+
+  function availableTables() {
+    if (view==='full') return D().tables;
+    const visible = all.slice(0,position+1);
+    return root.ER_GUIDE.order.filter(id => visible.some(step => step.table===id)).map(id => {
+      const table = D().tables.find(item => item.id===id);
+      return {...table, fields:table.fields.filter(field => visible.some(step => step.table===id && step.field===field.id))};
+    });
+  }
+
+  function detail(){const s=current();if(s.kind==='intro')return '<h3>Документы задания 1 · ДЭ 2027</h3><p class="er-origin">КИМ '+E(root.ER_GUIDE.source.code)+'</p><p>Выберите этап построения, чтобы увидеть, из какого документа взято поле и как оно связано с другими таблицами.</p><ul class="er-source-list">'+root.ER_GUIDE.source.files.map(file=>'<li>'+sourceLink(file)+'</li>').join('')+'</ul>';
+   if(s.kind==='report')return '<h3>Почему расчёт не стал ещё одной таблицей?</h3><p>'+E(root.ER_GUIDE.report.why)+'</p>'+sourceLink(root.ER_GUIDE.report.file)+'<p>Источник: '+E(root.ER_GUIDE.report.location)+'</p>';
+   if(s.kind==='finish')return '<h3>От схемы к реализации</h3><ol><li>Проверьте источники и допущения, составные ключи и связи. Таблица «Пользователи» относится к заданию 4.</li><li>Выберите единый словарь имён латиницей. Здесь имена соответствуют готовому SQL проекта.</li><li>В новой пустой базе выполните схему выбранной СУБД. Импортируйте заказчиков, сохранив коды и сопоставление addres → address.</li><li>В конструкторе СУБД проверьте внешние ключи. Откройте задание 2 для настройки типов и ограничений.</li><li>Проверьте связи и экспортируйте ER в PDF по требованиям задания.</li></ol><p>'+sourceLink('Заказчики.json')+' · <a href="code/examples/'+ctx.stack+'/Sql/01-schema.sql" target="_blank" rel="noopener">SQL схемы · '+E(ctx.stack)+'</a> · <a href="materials/er.pdf" target="_blank" rel="noopener">Готовая ER в PDF</a></p><p>Графическая справка использует ту же структуру таблиц и связей, что SQL. Значения и ограничения проверяются в СУБД.</p>';
+   const table=D().tables.find(t=>t.id===s.table);
+   if(s.kind==='table')return '<h3>Почему появилась таблица «'+E(table.title)+'»?</h3><p>'+E(table.why)+'</p><p>Имя в СУБД: <code>'+E(table.id)+'</code>.</p>';
+   const field=table.fields.find(item=>item.id===s.field);
+   const link=D().links.find(item=>item.from===table.id&&item.field===field.id);
+   const target=link&&D().tables.find(item=>item.id===link.to);
+   const title=s.kind==='link'&&target
+     ? table.title+' → '+target.title
+     : table.title+' · '+field.title;
+   const fieldName=table.id+'.'+field.id;
+   const keys=[field.pk&&'PK',field.fk&&'FK',field.unique&&'UNIQUE'].filter(Boolean);
+   const explanation=link?.explanation||field.why||field.location;
+   return `<div class="er-element">
+     <header>
+       <h4>${E(title)}</h4>
+       <code class="er-field-path">${E(fieldName)}</code>
+     </header>
+     <section class="er-detail-section er-field-explanation">
+       <h5>${link?'Что связывает':'Зачем нужно поле'}</h5>
+       ${!field.file&&!link?'<p class="er-origin">Решение модели</p>':''}
+       ${explanation?`<p>${E(explanation.replace(/^Техническое: /,''))}</p>`:''}
+     </section>
+     ${field.file?`<section class="er-detail-section">
+       <h5>Источник</h5>
+       <p>${sourceLink(field.file)}</p>
+       ${field.location&&field.location!==explanation?`<p>${E(field.location)}</p>`:''}
+       ${field.value&&field.value!==field.title?`<p><strong>Пример из файла</strong> <code>${E(field.value)}</code></p>`:''}
+     </section>`:link&&field.why?`<section class="er-detail-section">
+       <h5>Решение модели</h5>
+       <p>${E(field.why.replace(/^Техническое: /,''))}</p>
+     </section>`:''}
+     ${link?`<section class="er-detail-section">
+       <h5>Связь</h5>
+       <p><code>${E(fieldName)} <wbr>→ ${E(link.to+'.'+link.target)}</code></p>
+       <p>${E(link.cardinality)} · ${link.cardinality==='1 : 0..1'?'один к нулю или одному':'один ко многим'}</p>
+     </section>`:''}
+     <section class="er-detail-section">
+       <h5>Свойства в SQL</h5>
+       <dl class="er-field-properties">
+         ${keys.length?`<div><dt>Ключи</dt><dd>${keys.join(' · ')}</dd></div>`:''}
+         <div><dt>Тип поля</dt><dd><code>${E(field.type.split(' REF ')[0].replace(/ UNIQUE$/,''))}</code></dd></div>
+         <div><dt>Значение NULL</dt><dd>${field.nullable?'Разрешено':'Запрещено'}</dd></div>
+       </dl>
+     </section>
+   </div>`;
+  }
+  function sourceLink(file){const x=COURSE.previews.find(x=>x.name===file);return '<a href="'+(x?encodeURI(x.path):'materials/kim-2027.pdf')+'" target="_blank" rel="noopener">'+E(file)+'</a>';}
+
+  function keepScroll() {
+    const box = er('.er-scroll');
+    if (box) state().scroll = {left:box.scrollLeft,top:box.scrollTop};
+  }
+
+  function move(index, control) {
+    keepScroll();
+    position = Math.max(0,Math.min(all.length-1,index));
+    views.steps.selection = null;
+    ctx.set('er-guide-step-v1',String(position));
+    render();
+    const target = er(control);
+    (target.disabled ? er('#er-jump') : target).focus({preventScroll:true});
+  }
+
+  function changeView(next) {
+    if (next===view) return;
+    keepScroll();
+    view = next;
+    infoVisible = true;
+    render();
+    er(view==='steps'?'#er-steps':'#er-full').focus({preventScroll:true});
+    if (view==='full' && !workspace.classList.contains('er-is-expanded') && workspace.offsetHeight<=window.innerHeight) {
+      workspace.scrollIntoView({block:'nearest',behavior:'instant'});
+    }
+  }
+
+  function stepTitle(step) {
+    if (!step.table) return {intro:'Источники', report:'Расчёт и допущения', finish:'Реализация в СУБД'}[step.kind];
+    const table = D().tables.find(item => item.id===step.table);
+    return table.title + ' · ' + (step.field ? table.fields.find(field => field.id===step.field).title : 'добавляем таблицу');
+  }
+
+  function tableMarkup(table) {
+    return `<section class="er-table" data-table="${E(table.id)}">
+      <button class="er-table-title" data-select-table="${E(table.id)}">${E(table.title)}<small>${E(table.id)}</small></button>
+      ${table.fields.map(field => `<button class="er-field" id="er-f-${E(table.id)}-${E(field.id)}" data-table-id="${E(table.id)}" data-field-id="${E(field.id)}">
+        <span>${E((field.pk?'PK ':'')+(field.fk?'FK ':'')+field.title)}</span><small>${E(field.id)}</small>
+      </button>`).join('') || '<p class="er-table-empty">Поля появятся на следующих этапах.</p>'}
+    </section>`;
+  }
+
+  function focusCurrent(force=false) {
+    const step = current(), scroll = er('.er-scroll');
+    const node = step.field ? er('#er-f-'+step.table+'-'+step.field) : er('[data-table="'+step.table+'"] .er-table-title');
+    workspace.querySelectorAll('.er-current-table').forEach(item => item.classList.remove('er-current-table'));
+    if (!node) return;
+    node.closest('.er-table').classList.add('er-current-table');
+    const row=node.getBoundingClientRect(), box=scroll.getBoundingClientRect();
+    if (!force && row.left>=box.left+12 && row.right<=box.right-12 && row.top>=box.top+12 && row.bottom<=box.bottom-12) return;
+    scroll.scrollTo({
+      left:scroll.scrollLeft+(row.left+row.width/2-box.left-box.width/2),
+      top:scroll.scrollTop+(row.top+row.height/2-box.top-box.height/2),
+      behavior:'instant'
+    });
+  }
+
+  function render() {
+    observer?.disconnect();
+    const tables = availableTables(), isFull = view==='full';
+    const links = D().links.filter(link => tables.some(table => table.id===link.from && table.fields.some(field => field.id===link.field))
+      && tables.some(table => table.id===link.to && table.fields.some(field => field.id===link.target)));
+    const key = tables.map(table => table.id+':'+table.fields.length).sort().join('|');
+    const layout = root.ER_GUIDE.layouts[key];
+
+    workspace.innerHTML = `
+      <header class="er-head">
+        <h3 id="er-title"></h3>
+        <div class="er-head-actions">
+          <button class="btn er-icon" id="er-expand" type="button">${expandIcon}${closeIcon}</button>
+        </div>
+      </header>
+      <div class="er-toolbar">
+        <div class="er-modes" role="group" aria-label="Вид схемы">
+          <button class="btn" id="er-steps" type="button" aria-pressed="${!isFull}">Поэтапное построение</button>
+          <button class="btn" id="er-full" type="button" aria-pressed="${isFull}">Готовая схема</button>
+        </div>
+        ${isFull?'<button class="btn" type="button" id="er-source-toggle" aria-controls="er-info" hidden></button>':''}
+      </div>
+      ${isFull?'':`<div class="er-step-bar">
+          <div class="er-step-picker">
+            <label for="er-jump">Этап построения</label>
+            <select id="er-jump">${all.map((step,index) => `<option value="${index}" ${index===position?'selected':''}>${E((index+1)+'. '+stepTitle(step))}</option>`).join('')}</select>
+          </div>
+          <div class="er-step-navigation" role="group" aria-label="Переключение этапов построения">
+            <button class="btn" type="button" id="er-prev" aria-label="Предыдущий этап построения" ${position===0?'disabled':''}>←</button>
+            <span aria-live="polite">${position+1} из ${all.length}</span>
+            <button class="btn primary" type="button" id="er-next" aria-label="Следующий этап построения" ${position===all.length-1?'disabled':''}>→</button>
+          </div>
+        </div>`}
+      <div class="er-zoom" role="group" aria-label="Масштаб схемы" ${!layout?'hidden':''}>
+        <button class="btn" type="button" id="er-smaller" aria-label="Уменьшить схему" ${!layout?'disabled':''}>−</button>
+        <button class="btn" type="button" id="er-scale" aria-label="Вернуть масштаб 100 процентов" title="Вернуть масштаб 100%">100%</button>
+        <button class="btn" type="button" id="er-larger" aria-label="Увеличить схему" ${!layout?'disabled':''}>+</button>
+        <button class="btn" type="button" id="er-fit" ${!layout?'disabled':''}>По ширине</button>
+        <button class="btn" type="button" id="er-overview" ${!layout?'disabled':''}>Вся схема</button>
+        <button class="btn" type="button" id="er-focus" ${!layout?'disabled':''}>К элементу</button>
+      </div>
+      <div class="er-body">
+        <div class="er-diagram">
+          <div class="er-scroll" role="region" aria-label="Диаграмма. Прокручивается по горизонтали и вертикали" tabindex="0" ${!layout?'data-empty':''}>
+            <div class="er-canvas" style="${layout?`width:${layout.width}px;height:${layout.height}px`:''}">
+              ${tables.length ? tables.map(tableMarkup).join('') : '<p class="er-empty">Перейдите к следующему этапу построения, чтобы добавить первую таблицу.</p>'}
+              <svg class="er-wires" aria-label="Стрелки внешних ключей"></svg>
+            </div>
+          </div>
+        </div>
+        <aside class="er-info" id="er-info" aria-label="Пояснения к схеме">
+          <div class="er-explanation" aria-live="polite"></div>
+        </aside>
+      </div>`;
+
+    const canvas=er('.er-canvas'), scroll=er('.er-scroll');
+    for (const node of layout?.nodes || []) {
+      const table=er('[data-table="'+node.id+'"]');
+      Object.assign(table.style,{left:node.x+'px',top:node.y+'px',width:node.width+'px'});
+    }
+
+    function select(element) {
+      state().selection = element;
+      infoVisible = true;
+      syncControls();
+      renderPanel();
+      draw(layout,links,select);
+      focusCurrent();
+    }
+
+    function renderPanel() {
+      const body=er('.er-explanation');
+      body.innerHTML=detail();
+      body.scrollTop=0;
+    }
+
+    function applyZoom(restore=false) {
+      if (!canvas.isConnected || !layout || !scroll.clientWidth) return;
+      const settings=state();
+      const widthFit=Math.max(.05,(scroll.clientWidth-16)/layout.width);
+      const heightFit=Math.max(.05,(scroll.clientHeight-16)/layout.height);
+      if (settings.fit==='overview') settings.zoom=Math.min(1,widthFit,heightFit);
+      if (settings.fit==='width') settings.zoom=Math.min(1,widthFit);
+      canvas.style.zoom=String(settings.zoom);
+      er('#er-scale').textContent=Math.round(settings.zoom*100)+'%';
+      if (restore) scroll.scrollTo(settings.scroll.left,settings.scroll.top);
+      if (settings.fit==='overview') scroll.scrollTo(0,0);
+      else if (restore || settings.fit) focusCurrent();
+    }
+
+    function setZoom(zoom,fit=null) {
+      Object.assign(state(),{zoom,fit});
+      applyZoom();
+    }
+
+    er('#er-expand').onclick=toggleExpanded;
+    er('#er-steps').onclick=() => changeView('steps');
+    er('#er-full').onclick=() => changeView('full');
+    if (isFull) er('#er-source-toggle').onclick=() => {infoVisible=!infoVisible;syncControls();};
+    else {
+      er('#er-prev').onclick=() => move(position-1,'#er-prev');
+      er('#er-next').onclick=() => move(position+1,'#er-next');
+      er('#er-jump').onchange=event => move(Number(event.target.value),'#er-jump');
+    }
+    er('#er-smaller').onclick=() => setZoom(Math.max(.05,state().zoom-.1));
+    er('#er-larger').onclick=() => setZoom(Math.min(1.6,state().zoom+.1));
+    er('#er-scale').onclick=() => setZoom(1);
+    er('#er-fit').onclick=() => setZoom(1,'width');
+    er('#er-overview').onclick=() => setZoom(1,'overview');
+    er('#er-focus').onclick=() => {setZoom(1);focusCurrent(true);};
+    workspace.querySelectorAll('[data-select-table]').forEach(button => button.onclick=() => select({kind:'table',table:button.dataset.selectTable}));
+    workspace.querySelectorAll('[data-field-id]').forEach(button => button.onclick=() => select({kind:'field',table:button.dataset.tableId,field:button.dataset.fieldId}));
+    syncControls();
+    renderPanel();
+    draw(layout,links,select);
+    requestAnimationFrame(() => applyZoom(true));
+    observer=new ResizeObserver(() => {if (state().fit) applyZoom();});
+    observer.observe(scroll);
+  }
+
+  function draw(layout, links, select) {
+    const step=current(), svg=er('.er-wires');
+    svg.replaceChildren();
+    workspace.querySelectorAll('.er-field').forEach(button => button.classList.toggle('selected',button.dataset.tableId===step.table && button.dataset.fieldId===step.field));
+    if (!layout) return;
+    const ns='http://www.w3.org/2000/svg';
+    const svgNode=(name, attributes={}) => {
+      const node=document.createElementNS(ns,name);
+      for (const [attribute,value] of Object.entries(attributes)) node.setAttribute(attribute,value);
+      return node;
+    };
+    svg.setAttribute('viewBox','0 0 '+layout.width+' '+layout.height);
+    const defs=svgNode('defs'), marker=svgNode('marker',{id:'er-arrow',viewBox:'0 0 8 8',refX:8,refY:4,markerWidth:7,markerHeight:7,orient:'auto'});
+    marker.append(svgNode('path',{d:'M0 0L8 4L0 8Z',fill:'var(--red)'}));
+    defs.append(marker);
+    svg.append(defs);
+    const labelledParents=new Set();
+    for (const link of links) {
+      const edge=layout.edges.find(item => item.id===link.from+'.'+link.field);
+      if (!edge) continue;
+      const chosen=step.table===link.from && step.field===link.field;
+      if (chosen) {
+        er('#er-f-'+link.from+'-'+link.field)?.classList.add('selected');
+        er('#er-f-'+link.to+'-'+link.target)?.classList.add('selected');
+      }
+      for (const section of edge.sections) {
+        const points=[section.startPoint,...(section.bendPoints||[]),section.endPoint].reverse();
+        const path=svgNode('path',{d:points.map((point,index) => (index?'L':'M')+point.x+' '+point.y).join(' '),class:'er-wire'+(chosen?' selected':''),'marker-end':'url(#er-arrow)'});
+        path.onclick=() => select({kind:'link',table:link.from,field:link.field});
+        const title=svgNode('title');
+        title.textContent=link.from+'.'+link.field+' → '+link.to+'.'+link.target+' · '+link.cardinality;
+        path.append(title);
+        svg.append(path);
+        const parent=section.startPoint, child=section.endPoint;
+        for (const [key,x,y,text] of [[link.from+'.'+link.field,child.x-18,child.y-7,link.cardinality==='1 : 0..1'?'0..1':'N'],[link.to+'.'+link.target,parent.x+5,parent.y-7,'1']]) {
+          if (text==='1' && labelledParents.has(key)) continue;
+          if (text==='1') labelledParents.add(key);
+          const label=svgNode('text',{class:'er-cardinality',x,y});
+          label.textContent=text;
+          svg.append(label);
+        }
+      }
+    }
+  }
+
+  render();
 }
-function move(n){position=Math.max(0,Math.min(steps().length-1,n));selection=null;ctx.set('er-guide-step-v1',String(position));render();dialog.querySelector('#er-next').focus({preventScroll:true});}
-function current(){return selection||steps()[position];}
-function available(){if(view==='full')return D().tables;const done=steps().slice(0,position+1);return root.ER_GUIDE.order.filter(id=>done.some(s=>s.table===id)).map(id=>({...D().tables.find(t=>t.id===id),fields:D().tables.find(t=>t.id===id).fields.filter(f=>done.some(s=>s.table===id&&s.field===f.id))}));}
-function detail(){const s=current();if(s.kind==='intro')return '<h3>Документы задания 1 · ДЭ 2027</h3><p class="er-origin">КИМ '+E(root.ER_GUIDE.source.code)+' · '+E(root.ER_GUIDE.source.level)+'</p><p>Источник: '+E(root.ER_GUIDE.source.archive)+', раздел «'+E(root.ER_GUIDE.source.section)+'». Названия файлов и даты внутри документов сохранены из выданного комплекта.</p><p>Сначала читаем реквизиты и повторяющиеся строки. Затем выделяем сущности, добавляем поля и ключи. Связь появляется, когда показаны оба её поля.</p><p>Это проверенный разбор конкретного комплекта, а не автоматическое проектирование произвольных Excel-файлов.</p>'+root.ER_GUIDE.source.files.map(file=>sourceLink(file)).join(' · ');
- if(s.kind==='report')return '<h3>Почему расчёт не стал ещё одной таблицей?</h3><p>'+E(root.ER_GUIDE.report.why)+'</p>'+sourceLink(root.ER_GUIDE.report.file)+'<p>Источник: '+E(root.ER_GUIDE.report.location)+'</p>';
- if(s.kind==='finish')return '<h3>От схемы к реализации</h3><ol><li>Проверьте источники и допущения, составные ключи и связи. Таблица «Пользователи» относится к заданию 4.</li><li>Выберите единый словарь имён латиницей. Здесь имена соответствуют готовому SQL проекта.</li><li>В новой пустой базе выполните схему выбранной СУБД. Импортируйте заказчиков, сохранив коды и сопоставление addres → address.</li><li>В конструкторе СУБД проверьте внешние ключи. Откройте задание 2 для настройки типов и ограничений.</li><li>Проверьте связи и экспортируйте ER в PDF по требованиям задания.</li></ol><p>'+sourceLink('Заказчики.json')+' · <a href="code/examples/'+ctx.stack+'/Sql/01-schema.sql" target="_blank" rel="noopener">SQL схемы · '+E(ctx.stack)+'</a> · <a href="materials/er.pdf" target="_blank" rel="noopener">Готовая ER в PDF</a></p><p>Графическая справка использует ту же структуру таблиц и связей, что SQL. Значения и ограничения проверяются в СУБД.</p>';
- const table=D().tables.find(t=>t.id===s.table);
- if(s.kind==='table')return '<h3>Почему появилась таблица «'+E(table.title)+'»?</h3><p>'+E(table.why)+'</p><p>Имя в СУБД: <code>'+E(table.id)+'</code>.</p>';
- const f=table.fields.find(f=>f.id===s.field);const link=D().links.find(l=>l.from===table.id&&l.field===f.id);
- return '<h3>'+E(s.kind==='link'?'Связь: '+table.title+' → '+D().tables.find(t=>t.id===link.to).title:table.title+' · '+f.title)+'</h3><p class="er-origin">'+E(f.kind)+'</p>'+'<p><strong>Почему:</strong> '+E(f.why)+'</p>'+(link?'<p><strong>Связь:</strong> <code>'+E(table.id+'.'+f.id+' → '+link.to+'.'+link.target)+'</code>. '+(link.cardinality==='1 : 0..1'?'У продукта не более одной спецификации (UNIQUE).':'Один ко многим (1 : N): одной записи основной таблицы могут соответствовать несколько записей связанной таблицы.')+' '+(f.nullable?'Ссылка может быть пустой (NULL).':'Ссылка обязательна.')+'</p>':'')+'<p><strong>Реализация:</strong> <code>'+E(table.id+'.'+f.id)+'</code> · '+E(f.type)+' · '+(f.pk?'PK · ':'')+(f.unique?'UNIQUE · ':'')+(f.nullable?'NULL разрешён':'NULL запрещён')+'</p><p class="small">Имя поля — часть схемы. Пример значения — содержимое отдельной записи.</p>';
-}
-function sourceLink(file){const x=COURSE.previews.find(x=>x.name===file);return '<a href="'+(x?encodeURI(x.path):'materials/kim-2027.pdf')+'" target="_blank" rel="noopener">'+E(file)+'</a>';}
-function highlightSource(){const s=current();if(!s.table||!s.field)return;const f=D().tables.find(t=>t.id===s.table).fields.find(f=>f.id===s.field);const box=document.createElement('section');box.className='er-source-preview';box.innerHTML=f.file?'<span class="er-source-label">ИСТОЧНИК ВЫБРАННОГО ПОЛЯ</span><h4>'+sourceLink(f.file)+'</h4><p>'+E(f.location)+'</p><div class="er-source-value">'+E(f.value)+'</div>':'<span class="er-source-label">ДОБАВЛЕНО ПРИ ПРОЕКТИРОВАНИИ</span><p>В исходном документе такого поля или готового значения нет. Основание описано ниже.</p>';const aside=dialog.querySelector('.er-explanation');aside.prepend(box);aside.scrollTop=0;}
-function focusCurrent(force=false){if(!dialog?.open)return;const s=current(),scroll=dialog.querySelector('.er-scroll'),node=s.field?dialog.querySelector('#er-f-'+s.table+'-'+s.field):dialog.querySelector('[data-table="'+s.table+'"] .er-table-title');dialog.querySelectorAll('.er-current-table').forEach(e=>e.classList.remove('er-current-table'));if(!node)return;node.closest('.er-table').classList.add('er-current-table');const r=node.getBoundingClientRect(),v=scroll.getBoundingClientRect();if(!force&&r.left>=v.left+12&&r.right<=v.right-12&&r.top>=v.top+12&&r.bottom<=v.bottom-12)return;scroll.scrollTo({left:scroll.scrollLeft+(r.left+r.width/2-v.left-v.width/2),top:scroll.scrollTop+(r.top+r.height/2-v.top-v.height/2),behavior:'instant'});}
-function setupZoom(links){const controls=document.createElement('div');controls.className='er-zoom';controls.innerHTML='<button class="btn" id="er-smaller" aria-label="Уменьшить схему">−</button><output id="er-scale"></output><button class="btn" id="er-larger" aria-label="Увеличить схему">+</button><button class="btn" id="er-focus">К текущему элементу</button><button class="btn" id="er-overview">Вся схема</button><button class="btn" id="er-fit">По ширине</button><button class="btn" id="er-actual">100%</button>';dialog.querySelector('.er-body').before(controls);const canvas=dialog.querySelector('.er-canvas'),scroll=dialog.querySelector('.er-scroll');function apply(){scroll.scrollTo(scrollPosition.left,scrollPosition.top);if(fitMode==='overview')zoom=Math.min(1,(scroll.clientWidth-24)/canvas.offsetWidth,(scroll.clientHeight-24)/canvas.offsetHeight);else if(fitMode)zoom=Math.min(1,Math.max(.4,(scroll.clientWidth-16)/canvas.offsetWidth));canvas.style.zoom=String(zoom);dialog.querySelector('#er-scale').textContent=Math.round(zoom*100)+'%';requestAnimationFrame(()=>{draw(links);if(fitMode==='overview')scroll.scrollTo(0,0);else focusCurrent();});}dialog.querySelector('#er-smaller').onclick=()=>{fitMode=false;zoom=Math.max(.25,zoom-.1);apply();};dialog.querySelector('#er-larger').onclick=()=>{fitMode=false;zoom=Math.min(1.6,zoom+.1);apply();};dialog.querySelector('#er-fit').onclick=()=>{fitMode=true;apply();};dialog.querySelector('#er-actual').onclick=dialog.querySelector('#er-focus').onclick=()=>{fitMode=false;zoom=1;apply();requestAnimationFrame(()=>focusCurrent(true));};dialog.querySelector('#er-overview').onclick=()=>{fitMode='overview';apply();};requestAnimationFrame(apply);}
-function render(){const previousScroll=dialog.querySelector('.er-scroll');if(previousScroll)scrollPosition={left:previousScroll.scrollLeft,top:previousScroll.scrollTop};if(root.ExamProductTour?.active())root.ExamProductTour.close();const all=steps(),s=current(),tables=available();const links=D().links.filter(l=>tables.some(t=>t.id===l.from&&t.fields.some(f=>f.id===l.field))&&tables.some(t=>t.id===l.to&&t.fields.some(f=>f.id===l.target)));
-dialog.classList.toggle('er-fullscreen',view==='full');dialog.classList.toggle('er-source-open',view!=='full'||sourceOpen);
-dialog.innerHTML='<header class="er-head"><div><span class="section-code">КИМ 09.02.07-5-2027 · ГИА БУ · EXCEL / JSON → ER</span><h2 id="er-title">Построение схемы данных</h2></div><button type="button" class="btn" id="er-close">Закрыть</button></header><div class="er-controls"><button class="btn '+(view==='steps'?'active':'')+'" id="er-steps" aria-pressed="'+(view==='steps')+'">Поэтапное построение</button><button class="btn '+(view==='full'?'active':'')+'" id="er-full" aria-pressed="'+(view==='full')+'">Готовая схема</button><span>'+E(ctx.stack==='mysql'?'MySQL':'PostgreSQL')+'</span></div><p class="er-naming">На схеме — русские названия. В СУБД и коде используйте латиницу: перевод или транслитерацию, последовательно во всём проекте, включая компоненты программы. Примеры здесь используют английский перевод.</p><div class="er-controls"><label for="er-jump">Этап</label><select id="er-jump">'+all.map((x,i)=>'<option value="'+i+'" '+(i===position?'selected':'')+'>'+E((i+1)+'. '+(x.table?D().tables.find(t=>t.id===x.table).title+(x.field?' · '+D().tables.find(t=>t.id===x.table).fields.find(f=>f.id===x.field).title:' · добавляем таблицу'):x.kind==='intro'?'Источники':x.kind==='report'?'Расчёт и допущения':'Реализация в СУБД'))+'</option>').join('')+'</select></div><div class="er-body"><div class="er-scroll" role="region" aria-label="Схема, прокручиваемая по горизонтали" tabindex="0"><div class="er-canvas">'+(tables.length?tables.map(t=>'<section class="er-table" data-table="'+t.id+'"><button class="er-table-title" data-select-table="'+t.id+'">'+E(t.title)+'<small>'+E(t.id)+'</small></button>'+t.fields.map(f=>'<button class="er-field '+(s.table===t.id&&s.field===f.id?'selected':'')+'" data-table-id="'+t.id+'" data-field-id="'+f.id+'" id="er-f-'+t.id+'-'+f.id+'"><span>'+E((f.pk?'PK ':'')+(f.fk?'FK ':'')+f.title)+'</span><small>'+E(f.id)+'</small></button>').join('')+(t.fields.length?'':'<p class="er-table-empty">Поля появятся на следующих шагах.</p>')+'</section>').join(''):'<p class="er-empty">Начните разбор — здесь будут появляться таблицы, поля и связи.</p>')+'<svg class="er-wires" aria-label="Стрелки внешних ключей"></svg></div></div><aside class="er-explanation" aria-live="polite">'+detail()+'</aside></div><details class="er-links"><summary>Связи на этом этапе ('+links.length+'). Стрелка: FK → PK; подпись — кратность</summary>'+links.map(l=>'<button class="btn" data-link="'+l.from+'.'+l.field+'">'+E(D().tables.find(t=>t.id===l.to).title+' (1) → '+D().tables.find(t=>t.id===l.from).title+(l.cardinality==='1 : 0..1'?' (0..1) · не более одной':' (N) · один ко многим')+' · '+D().tables.find(t=>t.id===l.from).fields.find(f=>f.id===l.field).title)+'</button>').join('')+'</details><footer class="er-controls"><button class="btn" id="er-prev" '+(!position?'disabled':'')+'>← Назад</button><span aria-live="polite">'+(position+1)+' / '+all.length+' · '+tables.length+' таблиц</span><button class="btn primary" id="er-next" '+(position===all.length-1?'disabled':'')+'>Далее →</button></footer>';
-const legend=document.createElement('section');legend.className='er-legend';legend.innerHTML='<strong>Как читать связи: 1 : N — один ко многим</strong><p><b>1</b> — одна запись в основной таблице; <b>N</b> — несколько связанных записей. Например: один заказчик может оформить много заказов, а один заказ — содержать много строк.</p><p>Производственные таблицы относятся к заданию 1. Пользователи добавлены для задания 4, заметки — для задания 5 этого комплекта.</p><p><b>0..1</b> — ни одной или одна запись: у продукта не более одной действующей спецификации. Стрелка FK → PK показывает направление ссылки, а не порядок чтения «один ко многим».</p>';dialog.querySelector('.er-body').before(legend);dialog.querySelector('.er-links').open=false;dialog.querySelector('#er-jump').parentElement.hidden=view==='full';dialog.querySelector('#er-prev').hidden=view==='full';dialog.querySelector('#er-next').hidden=view==='full';if(view==='full')dialog.querySelector('footer span').textContent='КИМ 09.02.07-5-2027 · '+tables.length+' таблиц · '+links.length+' связей';
-if(view==='full'){dialog.querySelector('#er-title').textContent='Готовая ER-схема';dialog.querySelector('#er-close').textContent='Закрыть схему';dialog.querySelector('#er-steps').hidden=true;dialog.querySelector('#er-full').hidden=true;}else{dialog.querySelector('#er-full').setAttribute('aria-haspopup','dialog');dialog.querySelector('#er-full').removeAttribute('aria-pressed');}dialog.querySelector('#er-close').onclick=()=>dialog.close();dialog.querySelector('#er-steps').onclick=()=>{view='steps';fitMode=false;zoom=1;selection=null;render();};dialog.querySelector('#er-full').onclick=openFull;dialog.querySelector('#er-prev').onclick=()=>move(position-1);dialog.querySelector('#er-next').onclick=()=>move(position+1);dialog.querySelector('#er-jump').onchange=e=>{view='steps';fitMode=false;zoom=1;move(Number(e.target.value));};
- const select=next=>{selection=next;sourceOpen=true;dialog.classList.add('er-source-open');dialog.querySelector('#er-source-toggle')?.setAttribute('aria-expanded','true');const box=dialog.querySelector('.er-explanation');box.innerHTML=detail();dialog.querySelectorAll('.er-field').forEach(b=>b.classList.toggle('selected',b.dataset.tableId===next.table&&b.dataset.fieldId===next.field));draw(links);focusCurrent();};
-dialog.querySelectorAll('[data-select-table]').forEach(b=>b.onclick=()=>select({kind:'table',table:b.dataset.selectTable}));dialog.querySelectorAll('[data-field-id]').forEach(b=>b.onclick=()=>select({kind:'field',table:b.dataset.tableId,field:b.dataset.fieldId}));dialog.querySelectorAll('[data-link]').forEach(b=>b.onclick=()=>{const [table,field]=b.dataset.link.split('.');select({kind:'link',table,field});});applyLayout(tables);setupZoom(links);compactLayout();const sourceToggle=button('Справка об элементе',()=>{sourceOpen=!sourceOpen;dialog.classList.toggle('er-source-open',sourceOpen);sourceToggle.setAttribute('aria-expanded',String(sourceOpen));});sourceToggle.id='er-source-toggle';sourceToggle.hidden=view!=='full';sourceToggle.setAttribute('aria-expanded',String(sourceOpen));dialog.querySelector('.er-toolbar').append(sourceToggle);root.ExamProductTour.add('er',dialog.querySelector('.er-head'),'Гид по схеме');requestAnimationFrame(()=>draw(links));
-}
-function compactLayout(){const help=document.createElement('details');help.className='er-help';const summary=document.createElement('summary');summary.textContent='1 : N — один ко многим · Как читать схему';help.append(summary,dialog.querySelector('.er-naming'),dialog.querySelector('.er-legend'));dialog.querySelector('.er-body').before(help);const toolbar=dialog.querySelector('.er-head + .er-controls');toolbar.classList.add('er-toolbar');toolbar.append(dialog.querySelector('.er-zoom'));dialog.querySelector('#er-jump').parentElement.classList.add('er-stage');dialog.scrollTop=0;}
-function applyLayout(tables){const canvas=dialog.querySelector('.er-canvas');const key=tables.map(t=>t.id+':'+t.fields.length).sort().join('|');activeLayout=root.ER_GUIDE.layouts[key]||null;canvas.style.width=(activeLayout?.width||300)+'px';canvas.style.height=(activeLayout?.height||180)+'px';if(!activeLayout)return;for(const n of activeLayout.nodes){const e=canvas.querySelector('[data-table="'+n.id+'"]');e.style.left=n.x+'px';e.style.top=n.y+'px';e.style.width=n.width+'px';}}
-function draw(links){if(!dialog?.open)return;const canvas=dialog.querySelector('.er-canvas'),svg=dialog.querySelector('.er-wires'),ns='http://www.w3.org/2000/svg';svg.replaceChildren();svg.setAttribute('viewBox','0 0 '+canvas.offsetWidth+' '+canvas.offsetHeight);const defs=document.createElementNS(ns,'defs'),marker=document.createElementNS(ns,'marker');for(const [k,v] of Object.entries({id:'er-arrow',viewBox:'0 0 8 8',refX:8,refY:4,markerWidth:7,markerHeight:7,orient:'auto'}))marker.setAttribute(k,v);const tip=document.createElementNS(ns,'path');tip.setAttribute('d','M0 0L8 4L0 8Z');tip.setAttribute('fill','var(--red)');marker.append(tip);defs.append(marker);svg.append(defs);
- const labelledParents=new Set(),s=current();dialog.querySelectorAll('.er-source-preview').forEach(e=>e.remove());highlightSource();dialog.querySelectorAll('.er-field').forEach(e=>e.classList.toggle('selected',e.dataset.tableId===s.table&&e.dataset.fieldId===s.field));
- for(const l of links){const edge=activeLayout?.edges.find(e=>e.id===l.from+'.'+l.field);if(!edge)continue;const chosen=s.table===l.from&&s.field===l.field;if(chosen){dialog.querySelector('#er-f-'+l.from+'-'+l.field).classList.add('selected');dialog.querySelector('#er-f-'+l.to+'-'+l.target).classList.add('selected');}for(const section of edge.sections){const points=[section.startPoint,...(section.bendPoints||[]),section.endPoint].reverse();const path=document.createElementNS(ns,'path');path.setAttribute('d',points.map((p,i)=>(i?'L':'M')+p.x+' '+p.y).join(' '));path.setAttribute('class','er-wire'+(chosen?' selected':''));path.setAttribute('marker-end','url(#er-arrow)');path.onclick=()=>{selection={kind:'link',table:l.from,field:l.field};sourceOpen=true;dialog.classList.add('er-source-open');dialog.querySelector('#er-source-toggle')?.setAttribute('aria-expanded','true');dialog.querySelector('.er-explanation').innerHTML=detail();draw(links);};const title=document.createElementNS(ns,'title');title.textContent=l.from+'.'+l.field+' → '+l.to+'.'+l.target+' · '+l.cardinality;path.append(title);svg.append(path);const parent=section.startPoint,child=section.endPoint;for(const [key,x,y,text] of [[l.from+'.'+l.field,child.x-18,child.y-7,l.cardinality==='1 : 0..1'?'0..1':'N'],[l.to+'.'+l.target,parent.x+5,parent.y-7,'1']]){if(text==='1'&&labelledParents.has(key))continue;if(text==='1')labelledParents.add(key);const label=document.createElementNS(ns,'text');label.setAttribute('class','er-cardinality');label.setAttribute('x',x);label.setAttribute('y',y);label.textContent=text;svg.append(label);}}}
-}
-function mount(input){ctx=input;if(ctx.mode==='learn'&&['M1','M2'].includes(ctx.module.id)){const route=document.querySelector('.lesson-heading');const b=button('Справка: построить ER-схему',open);b.id='er-launch';route?.after(b);}if(dialog?.open)render();}
-root.ExamErGuide={mount};
+root.ExamErGuide={mount,closeExpanded:()=>document.querySelector('.er-expanded-dialog[open]')?.close()};
 })(globalThis);

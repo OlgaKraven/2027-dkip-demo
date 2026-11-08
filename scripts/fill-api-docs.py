@@ -76,7 +76,7 @@ for stack,port in [('mysql',5271),('postgresql',5272)]:
  out=root/f'docs/api-{stack}.docx'
  with zipfile.ZipFile(out,'w',zipfile.ZIP_DEFLATED) as z:
   for n,b in parts.items():z.writestr(n,E.tostring(tree,xml_declaration=True,encoding='UTF-8',standalone=True) if n=='word/document.xml' else b)
- text=f'# Документация API заметок\n\nБазовый URL: {base}. Маршрут: {stack}. Сервер локальный; он запускается на компьютере читателя.\n\n'+'\n\n'.join(descriptions)+'\n\n## Коды ответов HTTP\n\n'+'\n\n'.join(a+' — '+b for a,b in status)+f'\n\nSwagger UI: {base}/swagger/\nOpenAPI JSON: {base}/openapi.json\n\nСлужебные адреса показывают документацию; данные заметок возвращают два GET-метода выше. Коллекция: postman-{stack}.json.\n'
+ text=f'# Документация API заметок\n\nБазовый URL: {base}. Маршрут: {stack}. Сервер локальный; он запускается на компьютере читателя.\n\n'+'\n\n'.join(descriptions)+'\n\n## Коды ответов HTTP\n\n'+'\n\n'.join(a+' — '+b for a,b in status)+f'\n\nOpenAPI JSON: {base}/openapi.json\n\nВыполните запросы к ASP.NET Core Minimal API в Postman. Коллекция: postman-{stack}.json.\n'
  (root/f'docs/api-{stack}.md').write_text(text,encoding='utf8')
  with zipfile.ZipFile(out) as z:assert all(z.read(n)==b for n,b in parts.items() if n!='word/document.xml')
  print(out.name,'untouched parts verified')

@@ -7,7 +7,7 @@ for(const [stack,port] of [['mysql',5271],['postgresql',5272]]){
   results.push({stack,path,status:r.status,passed:true});
  }
  const bad=await fetch(`http://127.0.0.1:${port+10}/notes`);assert.equal(bad.status,500);assert.ok((await bad.json()).error);results.push({stack,path:'separate failing DB /notes',status:500,passed:true});
- const swagger=await fetch(`http://127.0.0.1:${port}/swagger/`);assert.equal(swagger.status,200);assert.match(await swagger.text(),/SwaggerUIBundle/);
+ const swagger=await fetch(`http://127.0.0.1:${port}/swagger/`);assert.equal(swagger.status,404);
  const spec=await (await fetch(`http://127.0.0.1:${port}/openapi.json`)).json();assert.equal(spec.openapi,'3.0.3');
 }
 fs.writeFileSync('docs/api-results.json',JSON.stringify(results,null,2));console.log('Passed',results.length,'real HTTP scenarios across both databases.');

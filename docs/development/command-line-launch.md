@@ -34,7 +34,7 @@ dotnet run --project examples/Api --urls http://127.0.0.1:5271
 # Для PostgreSQL используйте 5272 и DKIP_STACK=postgresql.
 ```
 
-Откройте `/swagger/`, выполните GET /notes. OpenAPI: `/openapi.json`. Swagger работает с локальными файлами, без CDN. Скопируйте `docs/postman-mysql.json` или `docs/postman-postgresql.json` в Postman через Import.
+Выполните GET /notes в Postman. OpenAPI доступен по адресу `/openapi.json`. Скопируйте `docs/postman-mysql.json` или `docs/postman-postgresql.json` в Postman через Import.
 
 6. Для теста 500 запустите **отдельный** экземпляр API с заведомо неработающим подключением, не останавливая рабочую СУБД:
 

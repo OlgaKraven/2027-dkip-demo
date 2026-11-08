@@ -1,5 +1,17 @@
 {
   "mysql": {
+    "drawio-editor": {
+      "file": "materials/screenshots/drawio/01-editor.jpg",
+      "caption": "Браузерный draw.io с пустой диаграммой. Слева видна панель фигур, внизу кнопка «Больше фигур»."
+    },
+    "drawio-library": {
+      "file": "materials/screenshots/drawio/02-entity-relation.jpg",
+      "caption": "В окне «Фигуры» выбрана библиотека «Отношения сущностей». Внизу справа кнопка «Применить»."
+    },
+    "drawio-table": {
+      "file": "materials/screenshots/drawio/03-table.jpg",
+      "caption": "Фигура Table из библиотеки «Отношения сущностей» на холсте. Под заголовком видна строка PK."
+    },
     "kim": {
       "file": "materials/screenshots/common/kim.png",
       "caption": "КИМ 09.02.07-5-2027, страница 30: начало заданий ГИА БУ. Изображение оригинальной страницы PDF."
@@ -46,7 +58,15 @@
     },
     "db-keys": {
       "file": "materials/screenshots/mysql/db-keys.png",
-      "caption": "Внешние ключи учебной базы данных. Маршрут: Windows Forms / XAMPP MySQL."
+      "caption": "Вкладка «Структура» таблицы notes в phpMyAdmin. Здесь видны первичный индекс и индекс поля id_user. Целевое поле ключа проверяется на вкладке «Связи»."
+    },
+    "m2-counterparty-create": {
+      "file": "materials/screenshots/mysql/m2-counterparty-create.png",
+      "caption": "phpMyAdmin, вкладка «Структура» учебной базы. Перед нажатием «Создать» указаны counterparty и шесть столбцов."
+    },
+    "m2-counterparty-fields": {
+      "file": "materials/screenshots/mysql/m2-counterparty-fields.png",
+      "caption": "В конструкторе phpMyAdmin заполнены шесть полей VARCHAR. Для id выбран PRIMARY, флажки NULL сняты."
     },
     "connection": {
       "file": "materials/screenshots/windows-guide/vs-profile-mysql-final.png",
@@ -59,6 +79,18 @@
     "db-import": {
       "file": "materials/screenshots/mysql/db-import.png",
       "caption": "Импортированные исходные контрагенты и две явно обозначенные записи из документов. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "m2-csv-file": {
+      "file": "materials/screenshots/mysql/m2-csv-file.jpg",
+      "caption": "Импорт в counterparty: выбран файл CSV, кодировка utf-8 и пропуск первой строки."
+    },
+    "m2-csv-options": {
+      "file": "materials/screenshots/mysql/m2-csv-options.jpg",
+      "caption": "Настройки CSV в phpMyAdmin: точка с запятой между полями и двойная кавычка в двух полях настроек."
+    },
+    "m2-csv-rows": {
+      "file": "materials/screenshots/mysql/m2-csv-rows.jpg",
+      "caption": "Результат в «Обзоре» counterparty: шесть строк, ведущие нули в кодах и пустой ИНН у первой записи."
     },
     "db-export": {
       "file": "materials/screenshots/mysql/db-export.png",
@@ -81,8 +113,8 @@
       "caption": "Результат расчёта в СУБД: 14 374,28. Маршрут: Windows Forms / XAMPP MySQL."
     },
     "login": {
-      "file": "materials/screenshots/windows-guide/mysql-login-native.png",
-      "caption": "Настоящее окно авторизации приложения. Маршрут: Windows Forms / XAMPP MySQL."
+      "file": "materials/screenshots/mysql/login.png",
+      "caption": "Windows Forms. Окно «Вход»: поля логина и пароля, образец пазла слева и четыре фрагмента справа."
     },
     "puzzle": {
       "file": "materials/screenshots/windows-guide/mysql-login-native.png",
@@ -124,14 +156,6 @@
       "file": "materials/screenshots/mysql/api-400.png",
       "caption": "Настоящий JSON-ответ на user_id=abc. Статус 400 отдельно подтверждён HTTP-тестами. Маршрут: Windows Forms / XAMPP MySQL."
     },
-    "api-empty": {
-      "file": "materials/screenshots/mysql/swagger-empty.png",
-      "caption": "Swagger UI: настоящий ответ 200 с пустым массивом []. Маршрут: Windows Forms / XAMPP MySQL."
-    },
-    "api-start": {
-      "file": "materials/screenshots/mysql/swagger.png",
-      "caption": "Swagger UI запущенного API: два доступных GET-пути. Маршрут: Windows Forms / XAMPP MySQL."
-    },
     "postman-import": {
       "file": "materials/screenshots/mysql/postman-import.png",
       "caption": "Файл коллекции Postman: адреса base_url и error_url перед импортом. Маршрут: Windows Forms / XAMPP MySQL."
@@ -139,10 +163,6 @@
     "postman-tests": {
       "file": "materials/screenshots/mysql/postman-tests.png",
       "caption": "Postman: выполненные проверки HTTP 200, JSON и преобразованных полей. Маршрут: Windows Forms / XAMPP MySQL."
-    },
-    "api-500": {
-      "file": "materials/screenshots/mysql/api-500.png",
-      "caption": "Swagger UI отдельного тестового процесса: настоящий ответ 500 при отказе подключения к БД. Маршрут: Windows Forms / XAMPP MySQL."
     },
     "postman": {
       "file": "materials/screenshots/mysql/postman.png",
@@ -155,30 +175,6 @@
     "openapi": {
       "file": "materials/screenshots/mysql/openapi.png",
       "caption": "Файл OpenAPI JSON, полученный с работающего сервера. Маршрут: Windows Forms / XAMPP MySQL."
-    },
-    "swagger": {
-      "file": "materials/screenshots/mysql/swagger.png",
-      "caption": "Swagger UI запущенного API: два доступных GET-пути. Маршрут: Windows Forms / XAMPP MySQL."
-    },
-    "swagger-expanded": {
-      "file": "materials/screenshots/mysql/swagger-expanded.png",
-      "caption": "Раскрытое описание GET /notes в Swagger UI. Маршрут: Windows Forms / XAMPP MySQL."
-    },
-    "swagger-parameter": {
-      "file": "materials/screenshots/mysql/swagger-parameter.png",
-      "caption": "Try it out: необязательный параметр user_id в Swagger UI. Маршрут: Windows Forms / XAMPP MySQL."
-    },
-    "swagger-200": {
-      "file": "materials/screenshots/mysql/swagger-200.png",
-      "caption": "Swagger UI: фактический HTTP 200 и список обработанных заметок. Маршрут: Windows Forms / XAMPP MySQL."
-    },
-    "swagger-filter": {
-      "file": "materials/screenshots/mysql/swagger-filter.png",
-      "caption": "Swagger UI: запрос user_id=2 и заметки выбранного автора. Маршрут: Windows Forms / XAMPP MySQL."
-    },
-    "swagger-empty": {
-      "file": "materials/screenshots/mysql/swagger-empty.png",
-      "caption": "Swagger UI: отсутствующий автор, HTTP 200 и []. Маршрут: Windows Forms / XAMPP MySQL."
     },
     "openapi-paths": {
       "file": "materials/screenshots/mysql/openapi-paths.png",
@@ -203,9 +199,41 @@
     "vs-packages": {
       "file": "materials/screenshots/windows-guide/vs-first-form-final.png",
       "caption": "Первый запуск Form1 из Visual Studio; справа видна установленная версия MySqlConnector 2.6.1."
+    },
+    "m4-view-designer": {
+      "file": "materials/screenshots/mysql/m4-view-designer.png",
+      "caption": "Windows Forms. В контекстном меню LoginForm.cs выберите View Designer (Shift+F7)."
+    },
+    "m4-toolbox": {
+      "file": "materials/screenshots/mysql/m4-toolbox.png",
+      "caption": "Visual Studio, Windows Forms. Слева в Toolbox открыта группа All Windows Forms. Справа на макете LoginForm видны поля «Логин» и «Пароль» и кнопка «Войти»."
+    },
+    "m4-click": {
+      "file": "materials/screenshots/mysql/m4-click.png",
+      "caption": "Visual Studio, Windows Forms. Выделена кнопка «Войти». Справа в Properties нажата молния; у события Click указан обработчик SignIn. В своём проекте сверяйте имя созданного метода."
+    },
+    "m4-student": {
+      "file": "materials/screenshots/mysql/m4-student.png",
+      "caption": "Windows Forms. Рабочее окно student: видны логин и роль «Пользователь»."
+    },
+    "m4-admin": {
+      "file": "materials/screenshots/mysql/m4-admin.png",
+      "caption": "Windows Forms. Рабочее окно admin: таблица учётных записей, поля редактирования и кнопки «Новый» и «Сохранить»."
     }
   },
   "postgresql": {
+    "drawio-editor": {
+      "file": "materials/screenshots/drawio/01-editor.jpg",
+      "caption": "Браузерный draw.io с пустой диаграммой. Слева видна панель фигур, внизу кнопка «Больше фигур»."
+    },
+    "drawio-library": {
+      "file": "materials/screenshots/drawio/02-entity-relation.jpg",
+      "caption": "В окне «Фигуры» выбрана библиотека «Отношения сущностей». Внизу справа кнопка «Применить»."
+    },
+    "drawio-table": {
+      "file": "materials/screenshots/drawio/03-table.jpg",
+      "caption": "Фигура Table из библиотеки «Отношения сущностей» на холсте. Под заголовком видна строка PK."
+    },
     "kim": {
       "file": "materials/screenshots/common/kim.png",
       "caption": "КИМ 09.02.07-5-2027, страница 30: начало заданий ГИА БУ. Изображение оригинальной страницы PDF."
@@ -252,7 +280,15 @@
     },
     "db-keys": {
       "file": "materials/screenshots/postgresql/db-keys.png",
-      "caption": "Внешние ключи учебной базы данных. Маршрут: WPF / PostgreSQL."
+      "caption": "Проверка по каталогу PostgreSQL показывает 14 внешних ключей учебной схемы. Поля отдельной связи открываются через Constraints соответствующей таблицы."
+    },
+    "m2-counterparty-create": {
+      "file": "materials/screenshots/postgresql/m2-counterparty-create.png",
+      "caption": "pgAdmin, форма Create Table. На вкладке General введено имя counterparty и выбрана учебная схема."
+    },
+    "m2-counterparty-fields": {
+      "file": "materials/screenshots/postgresql/m2-counterparty-fields.png",
+      "caption": "Вкладка Columns в pgAdmin. Для шести полей counterparty заданы текстовые типы и длины, id отмечен как первичный ключ."
     },
     "connection": {
       "file": "materials/screenshots/windows-guide/vs-profile-postgresql.png",
@@ -266,9 +302,25 @@
       "file": "materials/screenshots/postgresql/db-import.png",
       "caption": "Импортированные исходные контрагенты и две явно обозначенные записи из документов. Маршрут: WPF / PostgreSQL."
     },
+    "m2-csv-file": {
+      "file": "materials/screenshots/postgresql/m2-csv-file.png",
+      "caption": "pgAdmin, вкладка General. Для импорта в counterparty выбран учебный файл CSV в кодировке UTF8."
+    },
+    "m2-csv-options": {
+      "file": "materials/screenshots/postgresql/m2-csv-options.png",
+      "caption": "Вкладка Options. Заголовок включён, разделитель — точка с запятой, в Quote и Escape выбрана двойная кавычка."
+    },
+    "m2-csv-columns": {
+      "file": "materials/screenshots/postgresql/m2-csv-columns.png",
+      "caption": "Вкладка Columns. Столбцы идут в порядке CSV, а inn добавлен в NOT NULL columns."
+    },
+    "m2-csv-rows": {
+      "file": "materials/screenshots/postgresql/m2-csv-rows.png",
+      "caption": "В counterparty загружены шесть строк. Видны ведущие нули, кавычки в названиях, пустой ИНН и знак + в телефонах."
+    },
     "db-export": {
-      "file": "materials/screenshots/postgresql/db-export.png",
-      "caption": "Настройка SQL-выгрузки в редакторе СУБД. Маршрут: WPF / PostgreSQL."
+      "file": "materials/screenshots/postgresql/m2-backup.png",
+      "caption": "pgAdmin, окно Backup учебной схемы. Формат Plain создаёт SQL-файл со структурой и данными."
     },
     "db-restore": {
       "file": "materials/screenshots/postgresql/db-restore.png",
@@ -287,8 +339,8 @@
       "caption": "Результат расчёта в СУБД: 14 374,28. Маршрут: WPF / PostgreSQL."
     },
     "login": {
-      "file": "materials/screenshots/windows-guide/postgresql-login-native.png",
-      "caption": "Настоящее окно авторизации приложения. Маршрут: WPF / PostgreSQL."
+      "file": "materials/screenshots/postgresql/login.png",
+      "caption": "WPF. Окно «Вход»: поля логина и пароля, образец пазла слева и четыре фрагмента справа."
     },
     "puzzle": {
       "file": "materials/screenshots/windows-guide/postgresql-login-native.png",
@@ -330,14 +382,6 @@
       "file": "materials/screenshots/postgresql/api-400.png",
       "caption": "Настоящий JSON-ответ на user_id=abc. Статус 400 отдельно подтверждён HTTP-тестами. Маршрут: WPF / PostgreSQL."
     },
-    "api-empty": {
-      "file": "materials/screenshots/postgresql/swagger-empty.png",
-      "caption": "Swagger UI: настоящий ответ 200 с пустым массивом []. Маршрут: WPF / PostgreSQL."
-    },
-    "api-start": {
-      "file": "materials/screenshots/postgresql/swagger.png",
-      "caption": "Swagger UI запущенного API: два доступных GET-пути. Маршрут: WPF / PostgreSQL."
-    },
     "postman-import": {
       "file": "materials/screenshots/postgresql/postman-import.png",
       "caption": "Файл коллекции Postman: адреса base_url и error_url перед импортом. Маршрут: WPF / PostgreSQL."
@@ -345,10 +389,6 @@
     "postman-tests": {
       "file": "materials/screenshots/postgresql/postman-tests.png",
       "caption": "Postman: выполненные проверки HTTP 200, JSON и преобразованных полей. Маршрут: WPF / PostgreSQL."
-    },
-    "api-500": {
-      "file": "materials/screenshots/postgresql/api-500.png",
-      "caption": "Swagger UI отдельного тестового процесса: настоящий ответ 500 при отказе подключения к БД. Маршрут: WPF / PostgreSQL."
     },
     "postman": {
       "file": "materials/screenshots/postgresql/postman.png",
@@ -361,30 +401,6 @@
     "openapi": {
       "file": "materials/screenshots/postgresql/openapi.png",
       "caption": "Файл OpenAPI JSON, полученный с работающего сервера. Маршрут: WPF / PostgreSQL."
-    },
-    "swagger": {
-      "file": "materials/screenshots/postgresql/swagger.png",
-      "caption": "Swagger UI запущенного API: два доступных GET-пути. Маршрут: WPF / PostgreSQL."
-    },
-    "swagger-expanded": {
-      "file": "materials/screenshots/postgresql/swagger-expanded.png",
-      "caption": "Раскрытое описание GET /notes в Swagger UI. Маршрут: WPF / PostgreSQL."
-    },
-    "swagger-parameter": {
-      "file": "materials/screenshots/postgresql/swagger-parameter.png",
-      "caption": "Try it out: необязательный параметр user_id в Swagger UI. Маршрут: WPF / PostgreSQL."
-    },
-    "swagger-200": {
-      "file": "materials/screenshots/postgresql/swagger-200.png",
-      "caption": "Swagger UI: фактический HTTP 200 и список обработанных заметок. Маршрут: WPF / PostgreSQL."
-    },
-    "swagger-filter": {
-      "file": "materials/screenshots/postgresql/swagger-filter.png",
-      "caption": "Swagger UI: запрос user_id=2 и заметки выбранного автора. Маршрут: WPF / PostgreSQL."
-    },
-    "swagger-empty": {
-      "file": "materials/screenshots/postgresql/swagger-empty.png",
-      "caption": "Swagger UI: отсутствующий автор, HTTP 200 и []. Маршрут: WPF / PostgreSQL."
     },
     "openapi-paths": {
       "file": "materials/screenshots/postgresql/openapi-paths.png",
@@ -409,6 +425,22 @@
     "vs-packages": {
       "file": "materials/screenshots/windows-guide/vs-npgsql-preview-final.png",
       "caption": "Окно Preview Changes для Npgsql 10.0.1. Apply подтверждает установку показанного пакета и зависимостей."
+    },
+    "m4-student": {
+      "file": "materials/screenshots/postgresql/m4-student.png",
+      "caption": "WPF. Рабочее окно student: видны логин и роль «Пользователь»."
+    },
+    "m4-admin": {
+      "file": "materials/screenshots/postgresql/m4-admin.png",
+      "caption": "WPF. Рабочее окно admin: таблица учётных записей, поля редактирования и кнопки «Новый» и «Сохранить»."
+    },
+    "m4-toolbox": {
+      "file": "materials/screenshots/postgresql/m4-toolbox.png",
+      "caption": "Visual Studio, WPF. В Toolbox слева видны StackPanel, TextBlock, TextBox и Button. Справа — собранный макет LoginWindow."
+    },
+    "m4-click": {
+      "file": "materials/screenshots/postgresql/m4-click.png",
+      "caption": "Visual Studio, WPF. В нижней панели XAML у кнопки SignInButton видно Click=\"SignIn\". В учебном проекте здесь должно стоять имя вашего обработчика."
     }
   }
 }

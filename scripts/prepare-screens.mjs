@@ -33,20 +33,12 @@ unlock:'Выбор пользователя и отметка снятия бл�
 'notes-code':'Код JOIN и преобразования полей ответа в Notes.cs.',
 'api-code':'Код HTTP-маршрутов и обработки ошибок в Program.cs.',
 'api-400':'Настоящий JSON-ответ на user_id=abc. Статус 400 отдельно подтверждён HTTP-тестами.',
-'api-empty':'Swagger UI: настоящий ответ 200 с пустым массивом [].',
 'api-start':'Консоль запущенного локального API с адресом прослушивания.',
 postman:'Postman Lightweight: настоящий ответ локального API. Коллекция отдельно проверена Newman.',
 'postman-import':'Файл коллекции Postman: адреса base_url и error_url перед импортом.',
 'postman-tests':'Postman: выполненные проверки HTTP 200, JSON и преобразованных полей.',
-'api-500':'Swagger UI отдельного тестового процесса: настоящий ответ 500 при отказе подключения к БД.',
 'doc-template':'Исходный шаблон Приложения 3 открыт в Microsoft Word.',
 'doc-filled':'Заполненный исходный шаблон документации API в Microsoft Word.',
-swagger:'Swagger UI запущенного API: два доступных GET-пути.',
-'swagger-expanded':'Раскрытое описание GET /notes в Swagger UI.',
-'swagger-parameter':'Try it out: необязательный параметр user_id в Swagger UI.',
-'swagger-200':'Swagger UI: фактический HTTP 200 и список обработанных заметок.',
-'swagger-filter':'Swagger UI: запрос user_id=2 и заметки выбранного автора.',
-'swagger-empty':'Swagger UI: отсутствующий автор, HTTP 200 и [].',
 openapi:'Файл OpenAPI JSON, полученный с работающего сервера.',
 'openapi-paths':'Раздел paths в OpenAPI: путь, GET и параметры запроса.',
 'openapi-schemas':'Раздел components.schemas: обязательные поля Note и схема ошибки.'
@@ -54,8 +46,8 @@ openapi:'Файл OpenAPI JSON, полученный с работающего �
 const screens={};
 for(const stack of ['mysql','postgresql']){
  screens[stack]={};
- for(const name of new Set(stagesFor(stack).flatMap(s=>s.steps.map(x=>x.shot)).concat(['main','users','login','swagger-200']))){
-  const target=name==='api-empty'?'swagger-empty':name;
+ for(const name of new Set(stagesFor(stack).flatMap(s=>s.steps.map(x=>x.shot)).concat(['users','login','postman-tests']))){
+  const target=name;
   const file=name==='kim'?'materials/screenshots/common/kim.png':`materials/screenshots/${stack}/${target}.png`;
   if(!fs.existsSync(file))throw Error('Missing screenshot '+file);
   if(!captions[name])throw Error('Missing caption '+name);
