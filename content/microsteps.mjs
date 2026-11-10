@@ -9,7 +9,7 @@ export function expandMicrosteps(stage, foundation){
   'Откройте draw.io':'Открыт редактор draw.io. На холсте пока нет фигур, слева видна панель фигур.',
   'Подключите библиотеку ER':'В левой панели раскрыт раздел «Отношения сущностей». В нём видны фигуры таблиц и линий связи.',
   'Добавьте фигуру таблицы':'На холсте появилась фигура Table с заголовком и строками, включая строку PK.',
-  'Подготовьте строки для расчёта':'В своих таблицах присутствуют заказ, продукция, спецификация, ресурсы и цены из исходных Excel.',
+  'Подготовьте строки для расчёта':'Запрос показывает пять материалов и три операции. Во всех строках tables_ordered = 2. Для евровинта qty_per_table = 0,012 и amount = 595, для сборки time_norm = 0,75 и amount = 1400.',
   'Проверьте пустое окно':'Своё пустое окно открылось без ошибок и закрылось крестиком.',
   'Запустите первый HTTP-проект':'Браузер показывает Hello World! от своего API; после проверки процесс остановлен.',
   'Настройте HTTP-адрес Api':'Выбран профиль проекта http. App URL содержит адрес текущего учебного маршрута.',
@@ -54,7 +54,8 @@ export function expandMicrosteps(stage, foundation){
   if(item.title==='Выберите шаблон MyApp')screenshot='vs-template';
   if(['Откройте пакеты ','Выберите версию ','Установите провайдер ','Проверьте провайдер '].some(p=>item.title.startsWith(p)))screenshot='vs-packages';
   if(['Откройте профиль подключения ','Введите параметры подключения ','Задайте маршрут и сохраните '].some(p=>item.title.startsWith(p)))screenshot='connection';
-  return {title:item.title,why,actions:[item.text].flat(),check,resources:preparationResources[item.title],...(item.code?{code:item.code}:{}),...(item.file?{file:item.file}:{}),...(screenshot?{shot:screenshot}:{}),preparation:true};
+  const actions=item.actionGroups?.flatMap(group=>group.actions)??[item.text].flat();
+  return {title:item.title,why,actions,check,resources:item.resources||preparationResources[item.title],...(item.actionGroups?{actionGroups:item.actionGroups}:{}),...(item.codeBlocks?{codeBlocks:item.codeBlocks}:{}),...(item.code?{code:item.code}:{}),...(item.file?{file:item.file}:{}),...(screenshot?{shot:screenshot}:{}),preparation:true};
  }
  const byTitle=title=>{const x=foundation.steps.find(x=>x.title===title);if(!x)throw new Error(title);return x;};
  const group=predicate=>foundation.steps.filter(predicate).map(x=>prepare(x));
