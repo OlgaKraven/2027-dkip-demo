@@ -104,6 +104,22 @@
       "file": "materials/screenshots/mysql/cost-lines.png",
       "caption": "Проверка двух строк материалов через SQL: 6500 и 14,28. Маршрут: Windows Forms / XAMPP MySQL."
     },
+    "cost-order-rows": {
+      "file": "materials/screenshots/mysql/cost-order-rows.png",
+      "caption": "phpMyAdmin показывает одну строку заказа № 1 с количеством 2."
+    },
+    "cost-resource-rows": {
+      "file": "materials/screenshots/mysql/cost-resource-rows.png",
+      "caption": "В phpMyAdmin у заказа № 1 восемь строк ресурсов с нормами на один стол."
+    },
+    "cost-price-rows": {
+      "file": "materials/screenshots/mysql/cost-price-rows.png",
+      "caption": "phpMyAdmin показывает восемь ресурсов и цены учебного прайса от 01.04.2026."
+    },
+    "cost-date-rows": {
+      "file": "materials/screenshots/mysql/cost-date-rows.png",
+      "caption": "В phpMyAdmin видно, какие даты цен выбраны для заказа от 22.04.2026."
+    },
     "cost-query": {
       "file": "materials/screenshots/mysql/cost-query.png",
       "caption": "Выполнение запроса к представлению order_cost. Маршрут: Windows Forms / XAMPP MySQL."
@@ -329,6 +345,22 @@
     "cost-lines": {
       "file": "materials/screenshots/postgresql/cost-lines.png",
       "caption": "Проверка двух строк материалов через SQL: 6500 и 14,28. Маршрут: WPF / PostgreSQL."
+    },
+    "cost-order-rows": {
+      "file": "materials/screenshots/postgresql/cost-order-rows.png",
+      "caption": "pgAdmin показывает одну строку заказа № 1 с количеством 2."
+    },
+    "cost-resource-rows": {
+      "file": "materials/screenshots/postgresql/cost-resource-rows.png",
+      "caption": "В pgAdmin у заказа № 1 восемь строк ресурсов с нормами на один стол."
+    },
+    "cost-price-rows": {
+      "file": "materials/screenshots/postgresql/cost-price-rows.png",
+      "caption": "pgAdmin показывает восемь ресурсов и цены учебного прайса от 01.04.2026."
+    },
+    "cost-date-rows": {
+      "file": "materials/screenshots/postgresql/cost-date-rows.png",
+      "caption": "В pgAdmin видно, какие даты цен выбраны для заказа от 22.04.2026."
     },
     "cost-query": {
       "file": "materials/screenshots/postgresql/cost-query.png",

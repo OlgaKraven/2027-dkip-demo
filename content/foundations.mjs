@@ -16,18 +16,7 @@ export function foundationsFor(stack){
    {label:'Контрагенты из заказа',code:`INSERT INTO counterparty (id, name, inn, address, phone, party_type)
 VALUES
   ('DOC-CUSTOMER', 'ИП Томилин Александр Сергеевич', '', '', '', 'Покупатель'),
-  ('DOC-MAKER', 'ООО ТД «Вершина»', '', '', '', 'Производитель');`},
-   {label:'Проверка данных заказа',code:`SELECT o.doc_no, l.qty AS tables_ordered, r.name AS resource,
-       c.qty AS qty_per_table, c.time_norm, p.amount
-FROM customer_order o
-JOIN customer_order_line l ON l.order_id = o.id
-JOIN specification s ON s.product_id = l.product_id
-JOIN specification_component c ON c.specification_id = s.id
-JOIN item r ON r.id = c.item_id
-LEFT JOIN price p ON p.item_id = r.id
-                 AND p.valid_from = '2026-04-01'
-WHERE o.doc_no = '1'
-ORDER BY r.kind, r.code;`}
+  ('DOC-MAKER', 'ООО ТД «Вершина»', '', '', '', 'Производитель');`}
   ],
   resources:['Заказ покупателя.xlsx','Заказ на производство.xlsx','Спецификация.xlsx','Цены.xlsx'],
   actionGroups:[
@@ -49,10 +38,6 @@ ORDER BY r.kind, r.code;`}
     'В price добавьте по строке для каждого из восьми ресурсов. По названию в A2:A9 файла «Цены.xlsx» найдите item_id, цену возьмите из столбца D. Прайс без даты и единиц тарифа. Для всех строк примите valid_from = 2026-04-01, для операций — тариф за час.',
     'В customer_order внесите номер 1 и дату 2026-04-22 из B3 заказа покупателя. Укажите customer_id = DOC-CUSTOMER и executor_id = DOC-MAKER. Запишите присвоенный id заказа.',
     'В customer_order_line укажите order_id заказа и product_id стола. Из строки 11 возьмите source_code = ФР-00000034 (P11), qty = 2 (S11), sale_price = 14120 (X11) и discount = 1412 (AA11). По совпадению названия оба кода относятся к одному столу. В item достаточно одной записи о нём.'
-   ]},
-   {title:'Сверьте восемь ресурсов перед расчётом',actions:[
-    `Откройте ${mysql?'вкладку «SQL» выбранной базы':'Query Tool выбранной базы'}. Выполните блок «Проверка данных заказа». В нём видны количество столов, нормы на один стол и цены из прайса, принятые на 1 апреля 2026 года.`,
-    'Если строк меньше восьми, проверьте связи заказа, стола и состава спецификации. Если amount пустое (NULL), проверьте item_id ресурса и дату его цены.'
    ]}
   ]
  };

@@ -511,8 +511,6 @@ body.dark .pause-symbol { color: var(--red); }
   background: var(--paper);
 }
 .lesson-card-heading h2, .training-compact .training-task > h2 { margin: 0; }
-.lesson-title-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
-.lesson-title-row .btn[aria-current="page"] { color: var(--red); border-color: var(--red); }
 .lesson-card .task-meta, .training-compact .task-meta { margin: 6px 0 0; }
 .training-compact .task-complete { font-weight: 600; margin: 16px 0; }
 .task-support, .lesson-brief .task-files { border-top: 1px solid var(--workspace-line); padding-top: 12px; }

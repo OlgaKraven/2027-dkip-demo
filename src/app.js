@@ -22,9 +22,9 @@ if(!D.stages[stack])stack='mysql';if(!isMode(mode))mode='learn';if(!D.stages[sta
 const exampleStackFrom = query => query.get('exampleStack') || query.get('stack');
 let exampleStack = mode==='examples' ? exampleStackFrom(p) || get('example-stack') : get('example-stack');
 const selectedExampleStack = () => Object.hasOwn(D.exampleLaunch,exampleStack) ? exampleStack : stack;
-const lessonTabs = [['brief','Условие и файлы'],['steps','Шаги']];
+const lessonTabs = [['brief','Условие и файлы'],['steps','Шаги'],['help','Справка']];
 const resultStepTitle = 'Что сохранить';
-const isLessonView = view => view==='help' || lessonTabs.some(([id])=>id===view);
+const isLessonView = view => lessonTabs.some(([id])=>id===view);
 let learningView = isLessonView(p.get('view')) ? p.get('view')
   : !p.has('view') && (p.has('module') || p.has('stage')) ? 'steps' : 'map';
 const stageProgressKey = () => 'learning-stage:' + stack;
@@ -192,7 +192,7 @@ function siteTools() {
   </div>`;
 }
 const S=()=>D.stages[stack],current=()=>S().find(s=>s.id===stage),key=()=>`${stack}:${mode}:${mode==='mock'?variant+':domains-v2':'sample'}`;
-const stepKey=(id=stage)=>`step:${stack}:${id}${{M1:':v4',M2:':v2',M4:':v3',M6:':v2'}[id]||''}`;
+const stepKey=(id=stage)=>`step:${stack}:${id}${{M1:':v4',M2:':v2',M3:':v2',M4:':v3',M6:':v2'}[id]||''}`;
 function savedStep(lesson) {
   const saved=get(stepKey(lesson.id));
   if (saved!==null) return saved;
@@ -200,6 +200,11 @@ function savedStep(lesson) {
     const previous=get(`step:${stack}:M2`);
     if (previous===null || previous<5) return previous;
     return previous<18?5:previous-11;
+  }
+  if (lesson.id==='M3') {
+    const previous=get(`step:${stack}:M3`);
+    // The old join step is now the first of three query-building steps.
+    return previous>=4?previous+2:previous;
   }
   if (lesson.id!=='M1') return saved;
   const recent=get(`step:${stack}:M1:v3`);
@@ -500,10 +505,7 @@ function learn() {
       ${stageNavigation()}
       <section class="route-content lesson-card${lesson.id==='M1'?' lesson-card-er':''}${lesson.id==='M2'?' lesson-card-db':''}${learningView==='help'?' lesson-card-with-help':''}" aria-labelledby="lesson-title">
         <header class="lesson-card-heading">
-          <div class="lesson-title-row">
-            <h2 id="lesson-title">${E(lesson.title)}</h2>
-            ${btn('Гид по разбору',`type="button" data-lesson-tab="help" ${learningView==='help'?'aria-current="page"':''}`)}
-          </div>
+          <h2 id="lesson-title">${E(lesson.title)}</h2>
           <p class="task-meta">${E(lesson.module)}</p>
         </header>
         <nav class="lesson-tabs" aria-label="Разделы этапа">
@@ -1007,7 +1009,7 @@ function tour(){
   step('learn','Выберите этап маршрута','Начните с документов. Нажмите на этап, прочитайте его описание и откройте задание. Цветная отметка показывает завершённые этапы.','.map-node[aria-pressed="true"]'),
   step('learn','Прочитайте условие и откройте файлы','В этой вкладке находится полный текст задания из КИМ. Приложения можно просмотреть и скачать перед переходом к шагам.','.lesson-tabs [aria-current="page"]','brief'),
   step('learn','Выполните шаги и сохраните файлы','Здесь можно выбрать любой шаг этапа. В задании 1 шаг «Сверьте свою ER-диаграмму» открывает интерактивную схему. Последний шаг каждого этапа перечисляет файлы для сохранения.','#lesson-steps','steps'),
-  step('learn','Откройте «Гид по разбору»','Кнопка рядом с названием этапа открывает объяснение, примеры и подсказки на случай ошибки. При возврате к шагам откроется тот же шаг.','[data-lesson-tab="help"]','help'),
+  step('learn','Откройте «Справку»','Вкладка «Справка» открывает объяснение, примеры и подсказки на случай ошибки. При возврате к шагам откроется тот же шаг.','[data-lesson-tab="help"]','help'),
   step('training','Тренировка · откройте образец КИМ','Прочитайте условие о кухонном столе «Самобранка» и скачайте приложения.','#training-sample'),
   step('training','Управляйте временем тренировки','Верхний таймер показывает время на всю тренировку, нижний — на выбранное задание. «Пауза» останавливает оба отсчёта.','.training-timer-top'),
   step('training','Выполните и отметьте задание','Выберите одно из шести заданий, прочитайте условие и при необходимости откройте подсказку. Отметьте пункты самопроверки и поставьте «Задание выполнено».','.stage-nav [aria-current="step"]'),

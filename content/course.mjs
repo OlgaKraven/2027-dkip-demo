@@ -13,6 +13,12 @@ export const tasks=[
 const step=(title,why,actions,check,extra={})=>({title,why,actions,check,...extra});
 const groupedStep=(title,why,actionGroups,check,extra)=>
  step(title,why,actionGroups.flatMap(group=>group.actions),check,{...extra,actionGroups});
+const costOrderRows=`FROM customer_order o
+JOIN customer_order_line l ON l.order_id = o.id`;
+const costResourceRows=`${costOrderRows}
+JOIN specification s ON s.product_id = l.product_id
+JOIN specification_component c ON c.specification_id = s.id
+JOIN item r ON r.id = c.item_id`;
 export function stagesFor(stack){
  const mysql=stack==='mysql',db=mysql?'MySQL / MariaDB':'PostgreSQL',ui=mysql?'Windows Forms':'WPF',port=mysql?5271:5272,base=`http://127.0.0.1:${port}`,project=mysql?'examples/mysql/Dkip.WinForms.csproj':'examples/postgresql/Dkip.Wpf.csproj',editor=mysql?'phpMyAdmin':'pgAdmin',folder=`examples/${stack}`;
  const connection=mysql?'Server=127.0.0.1;Database=dkip2027_course;User ID=root;Password=;Character Set=utf8mb4':'Host=127.0.0.1;Port=5432;Database=dkip2027_course;Username=postgres;Password=ВАШ_ПАРОЛЬ';
@@ -248,10 +254,58 @@ export function stagesFor(stack){
  {id:'M3',title:'Расчёт стоимости',module:'Задание 3 · 20 мин',goal:tasks[2].text,output:'Запрос SQL, результат и записанные допущения.',steps:[
  step('Посчитайте одну строку материала','Стоимость материала = количество изделий × норма × цена.', ['Найдите столешницу: 1 на стол, цена 3250.','Для 2 столов вычислите 2 × 1 × 3250.','Проверьте евровинт: 2 × 0,012 × 595.'],'Столешницы: 6500; евровинты: 14,28.',{code:'SELECT 2*1*3250 AS tabletops, 2*0.012*595 AS screws;',shot:'cost-lines'}),
  step('Посчитайте технологические операции','Для операции учитываются количество и норма времени. Тариф за час — принятое допущение.', ['Сборка: 2 × 1 × 0,75 × 1400.','Распил: 2 × 1 × 1,5 × 450.','Упаковка: 2 × 1 × 0,5 × 950.'],'Операции стоят 2100 + 1350 + 950 = 4400.',{source:'Спецификация.xlsx, J19:L21; Цены.xlsx, D6:D9',shot:'cost-lines'}),
- step('Соедините количество и нормы','JOIN связывает строки по ключам. Один составной список ресурсов предотвращает перемножение материалов и операций.', ['От customer_order перейдите к customer_order_line.','По product_id найдите specification.','По specification_id получите specification_component и price.'],'Каждый ресурс изделия участвует в сумме ровно один раз.',{file:folder+'/Sql/01-schema.sql',shot:'cost-query'}),
- step('Выберите цену на дату заказа','Поздняя цена не должна менять расчёт старого заказа.', ['Напишите условие выбора последней цены ресурса, действовавшей на дату заказа.','Используйте MAX(valid_from) с условием valid_from <= дата заказа.','Проверьте, что для каждого ресурса есть допустимая цена.'],'На 22.04.2026 используются цены с 01.04.2026.',{file:'examples/Shared/Database.cs',shot:'cost-query'}),
- step('Выполните итоговый запрос','SUM суммирует ресурсы, ROUND округляет общий итог до двух знаков.', [`В ${editor} запишите собственный запрос: соедините заказ, строки состава и цены, затем вычислите SUM.`,`Оформите запрос как представление order_cost и выполните выборку для своего заказа; в примере его order_id=1.`,`Сверьте с ручной суммой: материалы 9974,28 плюс операции 4400.`],'Нормативная стоимость двух столов: 14374,28.',{file:folder+'/Sql/03-cost.sql',code:'SELECT * FROM order_cost WHERE order_id=1;',shot:'cost-result'}),
- step('Обработайте неполные данные','Если отсутствует спецификация или цена, частичная сумма неверна.', ['Используйте LEFT JOIN для спецификации, её состава и действующих цен. Так строка с недостающими данными останется в расчёте.','Сравните COUNT(price.item_id) и COUNT(*) в каждой группе. Если хотя бы у одной строки нет цены, верните NULL вместо суммы.','В копии базы оставьте один ресурс без цены на дату заказа и выполните 03-cost.sql. Затем верните цену и повторите запрос.'],'Без цены итог равен NULL и видна причина. После восстановления цены итог снова 14 374,28.',{referenceFile:folder+'/Sql/03-cost.sql',referenceLabel:'Открыть проверочный запрос'})]},
+ step('Найдите заказ и количество столов','Сначала установите, сколько изделий заказали и какой ключ ведёт от позиции заказа к спецификации.',[
+  `В ${editor} выберите свою базу и откройте ${mysql?'вкладку «SQL»':'Tools → Query Tool'}. Начните с customer_order и задайте короткое имя o. Условие WHERE o.doc_no = '1' выбирает заказ по номеру из Excel.`,
+  'Присоедините customer_order_line под именем l по l.order_id = o.id. В шапке хранятся номер и дата, в строке — изделие и количество. По ключу заказа строка попадёт именно к своей шапке.',
+  'Выведите l.product_id и l.qty. Префикс l. указывает на строку заказа, а AS tables_ordered задаёт заголовок столбца. Выполните первый фрагмент перед добавлением следующих JOIN.'
+ ],'Одна строка заказа № 1. В tables_ordered стоит 2, а product_id совпадает с id стола в item. Если строк нет, сверьте номер заказа и order_id позиции.',{
+  codeLabel:'1. Заказ и строка товара',code:`SELECT o.doc_no, l.product_id, l.qty AS tables_ordered
+${costOrderRows}
+WHERE o.doc_no = '1';`,shot:'cost-order-rows'}),
+ step('Разверните заказ до строк спецификации','Количество столов берём из заказа, а расход материалов и время операций на один стол — из спецификации.',[
+  'Продолжите запрос с предыдущей карточки. Перед WHERE добавьте JOIN specification s ON s.product_id = l.product_id. Так позиция заказа получит спецификацию именно своего изделия.',
+  'Добавьте JOIN specification_component c ON c.specification_id = s.id. Теперь одна позиция заказа даёт по строке на каждый ресурс. Материалы и операции уже хранятся в общем составе, поэтому хватает одного соединения с ним.',
+  'Присоедините item r по r.id = c.item_id, чтобы показать название ресурса. В SELECT оставьте количество столов из l.qty и добавьте c.qty как qty_per_table и c.time_norm. Сортировка по виду и коду упорядочивает вывод.'
+ ],'Восемь строк, в каждой tables_ordered = 2. У евровинта qty_per_table = 0,012, у сборки time_norm = 0,75. Если строк меньше, сверьте ключи изделия, спецификации и состава.',{
+  codeLabel:'2. Заказ и восемь ресурсов',code:`SELECT o.doc_no, l.qty AS tables_ordered, r.name AS resource,
+       c.qty AS qty_per_table, c.time_norm
+${costResourceRows}
+WHERE o.doc_no = '1'
+ORDER BY r.kind, r.code;`,shot:'cost-resource-rows'}),
+ step('Добавьте цены и проверьте пропуски','LEFT JOIN сохраняет все строки состава и показывает NULL у ресурса, для которого на выбранную дату нет цены.',[
+  'Добавьте p.amount в SELECT и LEFT JOIN price p перед WHERE. По p.item_id = r.id найдите цены того же ресурса. Условие по p.valid_from в ON оставляет конкретный прайс от 01.04.2026. Пара «ресурс и дата» даёт максимум одну цену.',
+  'Оставьте условие даты в ON. Обычный JOIN отбросит ресурс без цены, потому что ему не найдётся пары. Условие даты в WHERE тоже отбросит его, потому что сравнение NULL с датой не проходит фильтр.',
+  'Выполните запрос, затем в редакторе замените дату цены на 2026-04-02 и запустите ещё раз. Снова будет восемь строк, теперь с NULL в amount. Верните исходную дату. В следующей карточке дата цены будет определяться по дате заказа.'
+ ],'Для прайса от 01.04.2026 видны восемь цен. У евровинта amount = 595, у сборки = 1400. При проверке на 02.04.2026 все восемь строк сохраняются.',{
+  codeLabel:'3. Восемь ресурсов с ценами',code:`SELECT o.doc_no, l.qty AS tables_ordered, r.name AS resource,
+       c.qty AS qty_per_table, c.time_norm, p.amount
+${costResourceRows}
+LEFT JOIN price p ON p.item_id = r.id
+                 AND p.valid_from = '2026-04-01'
+WHERE o.doc_no = '1'
+ORDER BY r.kind, r.code;`,shot:'cost-price-rows'}),
+ step('Выберите цену на дату заказа','Дата 1 апреля в проверочном запросе относится к конкретному учебному прайсу. Для расчёта берём последнюю действующую цену каждого ресурса на дату заказа.',[
+  'В запросе с предыдущей карточки замените условие с фиксированной датой на подзапрос ниже. Добавьте o.doc_date и p.valid_from в SELECT, чтобы сверить дату заказа и дату найденной цены.',
+  'В подзапросе p2.item_id = r.id ограничивает выбор ценами текущего ресурса. Условие p2.valid_from <= o.doc_date исключает будущие цены. MAX возвращает самую позднюю из оставшихся дат.',
+  'Сохраните подзапрос в ON. Если допустимой даты нет, LEFT JOIN всё равно покажет ресурс, а поля цены будут NULL.'
+ ],'Для заказа от 22.04.2026 запрос показывает восемь цен с датой 01.04.2026.',{
+  codeLabel:'Условие для цены на дату заказа',code:`LEFT JOIN price p ON p.item_id = r.id
+  AND p.valid_from = (
+    SELECT MAX(p2.valid_from) FROM price p2
+    WHERE p2.item_id = r.id AND p2.valid_from <= o.doc_date
+  )`,shot:'cost-date-rows'}),
+ step('Выполните итоговый запрос','Количество заказа делим на выпуск по спецификации. Затем умножаем на норму ресурса, норму времени и цену. SUM складывает вклады ресурсов, ROUND округляет итог.',[
+  `В ${editor} выполните первый блок. Он создаёт представление order_cost на ваших таблицах. В нём GROUP BY o.id собирает один итог на заказ, а CASE проверяет полноту данных.`,
+  'Выполните второй блок. Он находит ваш заказ по номеру 1 из Excel и показывает присвоенный order_id и рассчитанную стоимость.',
+  'Сверьте с ручной суммой. Материалы стоят 9 974,28, операции — 4 400.'
+ ],'Нормативная стоимость двух столов — 14 374,28.',{codeBlocks:[
+  {label:'Представление order_cost',code:'CREATE OR REPLACE VIEW order_cost AS'+readFileSync(new URL('../'+folder+'/Sql/01-schema.sql',import.meta.url),'utf8').split('CREATE OR REPLACE VIEW order_cost AS')[1].trimEnd()},
+  {label:'Итог по заказу № 1',code:`SELECT v.order_id, v.total_cost
+FROM order_cost v
+JOIN customer_order o ON o.id = v.order_id
+WHERE o.doc_no = '1';`}
+ ],shot:'cost-result'}),
+ step('Обработайте неполные данные','Если отсутствует спецификация или цена, частичная сумма неверна.', ['LEFT JOIN для спецификации, её состава и действующих цен оставляет в расчёте строки с недостающими данными.','Сравните COUNT(p.item_id) и COUNT(*) в группе. Если хотя бы у одной строки нет цены, CASE возвращает NULL вместо суммы.','В копии базы уберите цену евровинта от 01.04.2026. Откройте проверочный запрос и подставьте order_id с предыдущей карточки. Затем верните цену и повторите запрос.'],'Без цены итог равен NULL и видна причина. После восстановления цены итог снова 14 374,28.',{referenceFile:folder+'/Sql/03-cost.sql',referenceLabel:'Открыть проверочный запрос'})]},
  {id:'M4',title:`Формы и ${ui}`,module:'Задание 4 · 60 мин',goal:tasks[3].text,output:`Проект ${ui}, работающий с ${db}.`,steps:[
  groupedStep('Создайте окно «Вход»',
   'Окно с именем LoginForm или LoginWindow легко найти в проекте. Назначьте его первым окном при запуске.',[
