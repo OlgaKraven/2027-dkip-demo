@@ -21,6 +21,17 @@ public static class IntegrationChecks
             catch (InvalidOperationException e) { Check(e.Message.Contains(message), message); }
         }
         Check(Database.OrderCost(1) == 14374.28m, "Cost includes all resources and operation norms");
+        using (var connection = Database.Open())
+        using (var transaction = connection.BeginTransaction())
+        {
+            using var removePrice = Database.Command(connection, "DELETE FROM price WHERE item_id=2");
+            removePrice.Transaction = transaction;
+            removePrice.ExecuteNonQuery();
+            using var cost = Database.Command(connection, "SELECT total_cost FROM order_cost WHERE order_id=1");
+            cost.Transaction = transaction;
+            Check(cost.ExecuteScalar() == DBNull.Value, "A missing price suppresses the partial total");
+            transaction.Rollback();
+        }
         Check(Convert.ToInt32(Database.Scalar("SELECT COUNT(*) FROM counterparty WHERE id NOT LIKE 'DOC-%'")) == 6, "Six original customers");
         var name = "qa_" + Guid.NewGuid().ToString("N")[..12];
         var admin = Accounts.SignIn("admin", "Demo2027!", true);

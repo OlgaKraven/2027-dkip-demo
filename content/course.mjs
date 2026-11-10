@@ -18,7 +18,7 @@ export function stagesFor(stack){
  const connection=mysql?'Server=127.0.0.1;Database=dkip2027_course;User ID=root;Password=;Character Set=utf8mb4':'Host=127.0.0.1;Port=5432;Database=dkip2027_course;Username=postgres;Password=ВАШ_ПАРОЛЬ';
  const loginFile=folder+(mysql?'/LoginForm.cs':'/LoginWindow.xaml.cs');
  const workFile=folder+(mysql?'/MainForm.cs':'/MainWindow.xaml.cs');
- const loginSource=readFileSync(new URL('../'+loginFile,import.meta.url),'utf8');
+ const loginSource=readFileSync(new URL('../'+loginFile,import.meta.url),'utf8').replaceAll('\r\n','\n');
  const signInBody=loginSource
   .split(' void SignIn(')[1].split('\n    {\n')[1].split('\n    }')[0]
   .split('\n').map(line=>line.slice(8)).join('\n');
@@ -251,7 +251,7 @@ export function stagesFor(stack){
  step('Соедините количество и нормы','JOIN связывает строки по ключам. Один составной список ресурсов предотвращает перемножение материалов и операций.', ['От customer_order перейдите к customer_order_line.','По product_id найдите specification.','По specification_id получите specification_component и price.'],'Каждый ресурс изделия участвует в сумме ровно один раз.',{file:folder+'/Sql/01-schema.sql',shot:'cost-query'}),
  step('Выберите цену на дату заказа','Поздняя цена не должна менять расчёт старого заказа.', ['Напишите условие выбора последней цены ресурса, действовавшей на дату заказа.','Используйте MAX(valid_from) с условием valid_from <= дата заказа.','Проверьте, что для каждого ресурса есть допустимая цена.'],'На 22.04.2026 используются цены с 01.04.2026.',{file:'examples/Shared/Database.cs',shot:'cost-query'}),
  step('Выполните итоговый запрос','SUM суммирует ресурсы, ROUND округляет общий итог до двух знаков.', [`В ${editor} запишите собственный запрос: соедините заказ, строки состава и цены, затем вычислите SUM.`,`Оформите запрос как представление order_cost и выполните выборку для своего заказа; в примере его order_id=1.`,`Сверьте с ручной суммой: материалы 9974,28 плюс операции 4400.`],'Нормативная стоимость двух столов: 14374,28.',{file:folder+'/Sql/03-cost.sql',code:'SELECT * FROM order_cost WHERE order_id=1;',shot:'cost-result'}),
- step('Обработайте неполные данные','Если отсутствует спецификация или цена, частичная сумма неверна.', ['Добавьте проверку NOT EXISTS для отсутствующей спецификации или подходящей цены ресурса.','Сначала проверяйте полноту, затем используйте order_cost.','Сохраните запрос и пояснение, почему итог не равен продажной цене.'],'Приложение сообщает о недостающих нормах/ценах, а не показывает заниженный итог.',{file:'examples/Shared/Database.cs',shot:'cost-result'})]},
+ step('Обработайте неполные данные','Если отсутствует спецификация или цена, частичная сумма неверна.', ['Используйте LEFT JOIN для спецификации, её состава и действующих цен. Так строка с недостающими данными останется в расчёте.','Сравните COUNT(price.item_id) и COUNT(*) в каждой группе. Если хотя бы у одной строки нет цены, верните NULL вместо суммы.','В копии базы оставьте один ресурс без цены на дату заказа и выполните 03-cost.sql. Затем верните цену и повторите запрос.'],'Без цены итог равен NULL и видна причина. После восстановления цены итог снова 14 374,28.',{referenceFile:folder+'/Sql/03-cost.sql',referenceLabel:'Открыть проверочный запрос'})]},
  {id:'M4',title:`Формы и ${ui}`,module:'Задание 4 · 60 мин',goal:tasks[3].text,output:`Проект ${ui}, работающий с ${db}.`,steps:[
  groupedStep('Создайте окно «Вход»',
   'Окно с именем LoginForm или LoginWindow легко найти в проекте. Назначьте его первым окном при запуске.',[

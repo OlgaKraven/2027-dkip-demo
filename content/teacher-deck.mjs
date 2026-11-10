@@ -1,5 +1,3 @@
-const stackName = 'Windows Forms + MySQL / MariaDB';
-
 const guidance = {
   documents: {
     say:'Перед вами пример про мебельное производство. Мы начнём с заказа на два стола «Самобранка» и дойдём до приложения, сервиса и документации.',
@@ -60,8 +58,17 @@ function codePages(code) {
   return pages;
 }
 
-export function teacherDeck(data) {
-  const stages=data.stages.mysql,screens=data.screens.mysql,slides=[],chapters=[];
+export function teacherDeck(data,stack) {
+  const mysql=stack==='mysql';
+  const stackName=mysql?'Windows Forms + MySQL / MariaDB':'WPF + PostgreSQL';
+  const desktop=mysql?'Windows Forms':'WPF',editor=mysql?'phpMyAdmin':'pgAdmin';
+  const exampleZip='downloads/dkip2027-'+stack+'.zip';
+  const stages=data.stages[stack],screens=data.screens[stack],slides=[],chapters=[];
+  const databaseGuidance=mysql?guidance.M2:{
+    say:'Схема из задания 1 становится таблицами в PostgreSQL. Импортируем клиентов после создания таблицы.',
+    show:'В pgAdmin откройте Query Tool. Покажите создание таблиц, импорт в counterparty, просмотр строк и выгрузку базы.',
+    result:'В counterparty шесть строк. Первый id — 000000001, ведущие нули сохранены. Есть файл выгрузки dkip2027-postgresql.sql.'
+  };
   const image=key=>key?screens[key]:undefined;
   const add=(kind,chapter,title,props={})=>slides.push({kind,chapter,title,...props});
   const start=(id,label)=>chapters.push({id,label,index:slides.length});
@@ -83,14 +90,14 @@ export function teacherDeck(data) {
   add('text','intro','Что открыть перед занятием',{
     actions:[
       'Откройте КИМ на страницах 30–32 и скачайте приложения к официальному образцу. Проверьте, что открываются Excel, JSON, PDF и шаблон DOCX.',
-      'Проверьте Visual Studio с поддержкой .NET, XAMPP с phpMyAdmin, draw.io и Postman.',
+      'Проверьте Visual Studio с поддержкой .NET, '+(mysql?'XAMPP с phpMyAdmin':'PostgreSQL с pgAdmin')+', draw.io и Postman.',
       'Распакуйте готовый пример отдельно от рабочей папки. В Visual Studio откройте решение или файл проекта. Перед входом подготовьте базу и учебные записи по инструкции запуска.'
     ],
-    links:[['КИМ · PDF','materials/kim-2027.pdf#page=30'],['Исходные файлы · ZIP','downloads/basic-inputs.zip'],['Готовый пример · ZIP','downloads/dkip2027-mysql.zip']],
+    links:[['КИМ · PDF','materials/kim-2027.pdf#page=30'],['Исходные файлы · ZIP','downloads/basic-inputs.zip'],['Готовый пример · ZIP',exampleZip]],
     check:'Исходные документы и готовый пример открываются с одного учебного компьютера.'
   });
   for(const s of stages){
-    const t=data.tasks.find(t=>t.id===s.id),g=guidance[s.id];
+    const t=data.tasks.find(t=>t.id===s.id),g=s.id==='M2'?databaseGuidance:guidance[s.id];
     const order=t?Number(s.id.slice(1)):0;
     start(s.id,order?order+'. '+s.title:'Подготовка');
     add('section',s.id,s.title,{
@@ -103,7 +110,7 @@ export function teacherDeck(data) {
       pages.forEach((text,i)=>add('text',s.id,kim.title,{
         eyebrow:'Условие из КИМ'+(pages.length>1?' · '+(i+1)+'/'+pages.length:''),
         paragraphs:text,
-        note:i===pages.length-1?'Приложение: '+kim.attachment:undefined,
+        source:i===pages.length-1?'Приложение: '+kim.attachment:undefined,
         links:i===pages.length-1?[['КИМ · стр. '+t.pages,'materials/kim-2027.pdf#page='+String(t.pages).match(/\d+/)?.[0]],['Исходные файлы · ZIP','downloads/basic-inputs.zip']]:undefined
       }));
     }
@@ -111,7 +118,7 @@ export function teacherDeck(data) {
       const stepKey=s.id+':'+(i+1);
       const segments=(step.actionGroups||[{actions:step.actions,shot:step.shot}]).flatMap(group=>{
         const shot=image(group.shot);
-        return blocks(group.actions,shot?520:665,shot?3:4).map((actions,j)=>({actions,heading:group.title,image:j===0?shot:undefined}));
+        return blocks(group.actions,shot?520:550,shot?3:4).map((actions,j)=>({actions,heading:group.title,image:j===0?shot:undefined}));
       });
       const mainImage=image(step.shot);
       if(mainImage&&!segments.some(s=>s.image?.file===mainImage.file)){
@@ -120,18 +127,18 @@ export function teacherDeck(data) {
       }
       const details=segments.map((segment,j)=>({
         ...segment,body:j===0?step.why:undefined,
-        check:j===segments.length-1?step.check:undefined,note:step.source,
+        check:j===segments.length-1?step.check:undefined,source:step.source,
         resources:j===segments.length-1?step.resources?.filter(s=>s!=='kim'):undefined
       })).flatMap(detail=>{
-        const size=[...(detail.actions||[]),detail.body,detail.check,detail.note,...(detail.resources||[])].filter(Boolean).join(' ').length;
+        const size=[...(detail.actions||[]),detail.body,detail.check,detail.source,...(detail.resources||[])].filter(Boolean).join(' ').length;
         if(!detail.image||size<=480||!detail.actions.length)return [detail];
-        return [{...detail,image:undefined},{image:detail.image,heading:detail.heading||'Покажите на экране',note:detail.note}];
+        return [{...detail,image:undefined},{image:detail.image,heading:detail.heading||'Покажите на экране',source:detail.source}];
       });
       details.forEach((detail,j)=>add('step',s.id,step.title,{
         stepKey,eyebrow:'Шаг '+(i+1)+' из '+s.steps.length+(details.length>1?' · '+(j+1)+'/'+details.length:''),
         ...detail
       }));
-      const sources=[...(step.code?[{label:step.codeLabel||'Код для этого шага',code:step.code}]:[])];
+      const sources=[...(step.codeBlocks??(step.code?[{label:step.codeLabel||'Код для этого шага',code:step.code}]:[]))];
       if(step.referenceFile&&data.code[step.referenceFile])sources.push({label:step.referenceFile.split('/').at(-1),code:data.code[step.referenceFile]});
       for(const {label,code} of sources){
         const pages=codePages(code);
@@ -152,14 +159,14 @@ export function teacherDeck(data) {
   add('section','example','От исходных файлов до работающей системы',{
     eyebrow:'Готовый пример',body:stackName,
     note:'Откройте готовый комплект отдельно и пройдите по тому же порядку, что и студенты.',
-    links:[['Готовый пример · ZIP','downloads/dkip2027-mysql.zip']]
+    links:[['Готовый пример · ZIP',exampleZip]]
   });
   add('step','example','База и расчёт заказа',{
-    actions:['В phpMyAdmin откройте counterparty и сравните первую запись с «Заказчики.json».','Откройте представление order_cost и найдите заказ с order_id = 1.'],
+    actions:['В '+editor+' откройте counterparty и сравните первую запись с «Заказчики.json».','Откройте представление order_cost и найдите заказ с order_id = 1.'],
     image:image('cost-result'),check:'Первый код 000000001 сохранился. Нормативная стоимость — 14 374,28.'
   });
   add('step','example','Вход в настольное приложение',{
-    actions:['Запустите Windows Forms. В окне «Вход» введите логин и пароль, затем соберите пазл.','Покажите по очереди вход пользователя и администратора. Учебный пароль обеих записей: Demo2027!.'],
+    actions:['Запустите '+desktop+'. В окне «Вход» введите логин и пароль, затем соберите пазл.','Покажите по очереди вход пользователя и администратора. Учебный пароль обеих записей: Demo2027!.'],
     image:image('login'),check:'Логин student открывает окно пользователя. Логин admin — управление учётными записями.'
   });
   add('step','example','Что видит пользователь',{
@@ -172,7 +179,7 @@ export function teacherDeck(data) {
   });
   add('step','example','Запрос, тесты и документ Word',{
     actions:['В Postman отправьте GET /notes. Покажите обработанный ответ и запустите тесты коллекции.','Сравните пример ответа в заполненном DOCX с результатом этого запроса.'],
-    image:image('postman-tests'),links:[['Коллекция Postman','docs/postman-mysql.json'],['Заполненный DOCX','docs/api-mysql.docx']]
+    image:image('postman-tests'),links:[['Коллекция Postman','docs/postman-'+stack+'.json'],['Заполненный DOCX','docs/api-'+stack+'.docx']]
   });
   add('table','example','За что начисляют баллы',{
     eyebrow:'КИМ · таблица 7',columns:['Критерий','Баллы'],rows:data.criteria.map(([label,n])=>[label,String(n)]),

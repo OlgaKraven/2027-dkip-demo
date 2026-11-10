@@ -132,15 +132,17 @@ CREATE TABLE notes (
  FOREIGN KEY (id_user) REFERENCES users(id)
 );
 
-CREATE VIEW order_cost AS
+CREATE OR REPLACE VIEW order_cost AS
 SELECT o.id AS order_id,
- ROUND(SUM(l.qty / s.output_qty * c.qty * c.time_norm * p.amount),2) AS total_cost
+ CASE WHEN COUNT(p.item_id) = COUNT(*)
+      THEN ROUND(SUM(l.qty / s.output_qty * c.qty * c.time_norm * p.amount),2)
+ END AS total_cost
 FROM customer_order o
 JOIN customer_order_line l ON l.order_id=o.id
-JOIN specification s ON s.product_id=l.product_id
-JOIN specification_component c ON c.specification_id=s.id
-JOIN price p ON p.item_id=c.item_id
+LEFT JOIN specification s ON s.product_id=l.product_id
+LEFT JOIN specification_component c ON c.specification_id=s.id
+LEFT JOIN price p ON p.item_id=c.item_id
  AND p.valid_from=(SELECT MAX(p2.valid_from) FROM price p2
                   WHERE p2.item_id=c.item_id AND p2.valid_from<=o.doc_date)
 GROUP BY o.id;
--- До расчёта проверяйте полноту норм и наличие цены каждого ресурса на дату заказа.
+-- NULL означает, что для заказа не хватает норм или действующих цен.

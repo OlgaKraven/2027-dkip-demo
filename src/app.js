@@ -648,11 +648,12 @@ function timerBox() {
     </div>`:!finished?'<p class="timer-hint">После начала время идёт непрерывно, даже при закрытой странице.</p>':''}
   </section>`;
 }
-function resetAttempt(){for(const t of D.tasks){for(let i=0;i<Math.max(t.checks.length,12);i++)del('check:'+key()+':'+t.id+':'+i);del('notes:'+key()+':'+t.id);}if(mode==='training'){
+function resetAttempt(){
+ for(const t of D.tasks){for(let i=0;i<Math.max(t.checks.length,12);i++)del('check:'+key()+':'+t.id+':'+i);del('notes:'+key()+':'+t.id);}if(mode==='training'){
  for(let i=0;i<D.tasks.length;i++)del('task-done:'+key()+':'+i);
  del('task-clock:'+key());
 }set('timer:'+key(),C.freshTimer(210*60,mode));set('task:'+key(),0);render();}
-function attemptNotice(){const t=timer();if(t.status==='paused')return '<section class="pause-screen" aria-labelledby="pause-title" tabindex="-1"><h2 id="pause-title">Тренировка на паузе</h2><p>Отсчёт остановлен. Условия и отметки снова появятся после продолжения.</p></section>';if(t.status==='finished')return `<section class="attempt-result" role="status"><h2>${C.timerView(t).expired?'Время вышло':'Попытка завершена'}</h2><p>Отметки самопроверки сохранены.</p></section>`;return '';}
+function attemptNotice(){const t=timer();if(t.status==='paused')return '<section class="pause-screen" aria-labelledby="pause-title" tabindex="-1"><h2 id="pause-title">Тренировка на паузе</h2><p>Отсчёт остановлен. Условия и отметки снова появятся после продолжения.</p></section>';if(t.status==='finished')return `<section class="attempt-result" role="status"><h2>${C.timerView(t).expired?'Время вышло':'Попытка завершена'}</h2><p>Отметки этой попытки доступны до нового запуска.</p></section>`;return '';}
 
 function mockVariantBrief(v) {
   return `<article class="training-task">
@@ -799,8 +800,11 @@ function criteria() {
     <p>${link('Полные формулировки в КИМ · стр. 13','materials/kim-2027.pdf#page=13')}</p>
   </section>`;
 }
-function deckPath(){return location.pathname.includes('/_mock-preview/')?'../deck.html?preview=1':'deck.html';}
-function teacher(){return `<section class="training-page">${header('Преподавателю','Разбор официального образца ДЭ 2027 для занятия.')}<article class="route-panel"><h2>Презентация по демоэкзамену</h2><p>Windows Forms + MySQL / MariaDB. На слайдах — условия шести заданий, пошаговая демонстрация и готовый пример.</p><p>Перед показом впишите ФИО, должность и кафедру. В самой презентации можно открыть отдельное окно для аудитории или сохранить PDF с вашими данными.</p><div class="button-row">${btn('Данные преподавателя','id="teacher-settings"')}${btn('Открыть презентацию','id="deck-open"',true)}<a class="btn" href="materials/presentation-dkip2027-winforms.pdf" download>Скачать PDF</a></div></article></section>`;}
+function deckPath(){return (location.pathname.includes('/_mock-preview/')?'../deck.html?preview=1&':'deck.html?')+'stack='+stack;}
+function teacher(){
+ const pdf=stack==='postgresql'?'wpf':'winforms';
+ return `<section class="training-page">${header('Преподавателю','Разбор официального образца ДЭ 2027 для занятия.')}<article class="route-panel"><h2>Презентация по демоэкзамену</h2><p>${E(label())}. На слайдах — условия шести заданий, пошаговая демонстрация и готовый пример.</p><p>Перед показом впишите ФИО, должность и кафедру. В самой презентации можно открыть отдельное окно для аудитории или сохранить PDF с вашими данными.</p><div class="button-row">${btn('Данные преподавателя','id="teacher-settings"')}${btn('Открыть презентацию','id="deck-open"',true)}<a class="btn" href="materials/presentation-dkip2027-${pdf}.pdf" download>Скачать PDF</a></div></article></section>`;
+}
 function modal(title){const d=document.createElement('dialog');d.className='course-dialog';d.setAttribute('aria-label',title);d.innerHTML=`<header class="modal-head"><h2>${E(title)}</h2>${btn('Закрыть','data-close')}</header><div class="modal-body"></div>`;document.body.append(d);d.querySelector('[data-close]').onclick=()=>d.close();d.addEventListener('close',()=>d.remove());d.showModal();return d;}
 function openExampleInstructions() {
   const guide = D.exampleLaunch[selectedExampleStack()];
@@ -1006,7 +1010,7 @@ function tour(){
   step('mock','Выполните задания и проверьте себя','Выберите задание в списке. Откройте его файлы под условием и отметьте выполненные пункты самопроверки.','.stage-nav [data-task]'),
   step('examples','Примеры · выберите стек и скачайте проект','Выберите Windows Forms или WPF. Архив, инструкция по запуску и исходники откроются для выбранного стека.','.example-stacks'),
   step('examples','Посмотрите исходный код','Выберите файл по пути и нажмите «Открыть файл». В окне можно прочитать и скопировать весь код. Сохраняйте исходные имена и пути файлов.','#example-file'),
-  step('teacher','Преподавателю · подготовьте занятие','Заполните данные преподавателя и откройте презентацию. Она показывает весь маршрут на Windows Forms и MySQL / MariaDB.','#deck-open')
+  step('teacher','Преподавателю · подготовьте занятие','Заполните данные преподавателя и откройте презентацию. Она показывает весь маршрут для выбранного стека.','#deck-open')
  ];
  let i=0;
  const d=modal('Тур по сайту');

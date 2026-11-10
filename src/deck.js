@@ -1,12 +1,14 @@
 (() => {
   'use strict';
-  const deck=TEACHER_DECK, esc=ExamCore.escape, by=id=>document.getElementById(id);
+  const esc=ExamCore.escape, by=id=>document.getElementById(id);
   const params=new URLSearchParams(location.search), preview=params.has('preview');
   const prefix=preview?'dkip2027-mock-preview:':'dkip2027-basic-v1:';
   const profileKeys=['name','position','department'];
   const profileLabels=['ФИО преподавателя','Должность','Кафедра / лаборатория'];
   const get=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(prefix+key))??fallback;}catch{return fallback;}};
   const put=(key,value)=>{try{localStorage.setItem(prefix+key,JSON.stringify(value));}catch{}};
+  const stack=(params.get('stack')??get('stack','mysql'))==='postgresql'?'postgresql':'mysql';
+  const deck=TEACHER_DECKS[stack];
   const audience=params.has('audience'), printable=params.has('print');
   const chapters=Object.fromEntries(deck.chapters.map(x=>[x.id,x.label]));
   let profile=Object.fromEntries(profileKeys.map(key=>[key,get('teacher-'+key,'')]));
@@ -42,12 +44,12 @@
     }
     const head='<header class="slide-head"><span>09.02.07 · Информационные системы и программирование</span><span>ДЭ 2027 <img src="deck-mark.png" alt="Синергия"></span></header>';
     const title=(slide.eyebrow?'<p class="eyebrow">'+esc(slide.eyebrow)+'</p>':'')+'<h1>'+esc(slide.title)+'</h1>';
-    const note=slide.note?'<p class="slide-note">'+esc(slide.note)+'</p>':'';
+    const source=slide.source?'<p class="slide-note">'+esc(slide.source)+'</p>':'';
     const why=slide.body?'<p class="body">'+esc(slide.body)+'</p>':'';
     const paragraphs=(slide.paragraphs||[]).map(text=>'<p class="paragraph">'+esc(text)+'</p>').join('');
     const refs=slide.resources?.length?'<p class="resources">Откройте: '+slide.resources.map(esc).join(' · ')+'</p>':'';
     const subtitle=slide.heading?'<h2>'+esc(slide.heading)+'</h2>':'';
-    const prose=why+paragraphs+actionList(slide.actions)+check(slide)+note+refs+drawLinks(slide,interactive);
+    const prose=why+paragraphs+actionList(slide.actions)+check(slide)+source+refs+drawLinks(slide,interactive);
     let body=subtitle+prose;
     if(slide.image){
       const image=picture(slide,interactive);
@@ -71,7 +73,7 @@
     by('progress').max=deck.slides.length;
     by('progress').value=index+1;
     const speaker=by('speaker');
-    speaker.innerHTML='<h2>Сценарий преподавателя</h2><h3>'+esc(slide.title)+'</h3>'+
+    if(!audience)speaker.innerHTML='<h2>Сценарий преподавателя</h2><h3>'+esc(slide.title)+'</h3>'+
       (slide.body?'<p>'+esc(slide.body)+'</p>':'')+(slide.actions?.length?'<p><strong>Покажите группе</strong></p>'+actionList(slide.actions):'')+
       (slide.note?'<p>'+esc(slide.note)+'</p>':'')+(slide.check?'<p class="speaker-check"><strong>Что проверить:</strong> '+esc(slide.check)+'</p>':'')+
       (deck.slides[index+1]?'<p><strong>Далее:</strong> '+esc(deck.slides[index+1].title)+'</p>':'');
@@ -132,7 +134,7 @@
     printPages();
     return;
   }
-  if(preview)by('back').href='./_mock-preview/?section=work&mode=teacher';
+  by('back').href=(preview?'./_mock-preview/':'./')+'?section=work&mode=teacher&stack='+stack;
   updateTheme();
   if(audience){
     document.body.classList.add('audience');
@@ -185,6 +187,7 @@
     if(!('BroadcastChannel' in window)){announce('Этот браузер не поддерживает синхронизацию окон. Используйте обычный показ.');return;}
     channelId='dkip-show-'+(crypto.randomUUID?.()||Date.now());
     const url=new URL(location.href);
+    url.searchParams.set('stack',stack);
     url.searchParams.set('audience',channelId);
     target=window.open(url,'dkip-audience','popup,width=1152,height=648');
     if(!target){announce('Разрешите открытие отдельного окна и нажмите «Режим показа» ещё раз.');return;}

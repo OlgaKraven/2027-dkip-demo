@@ -36,9 +36,10 @@ npm run preview
 
 ## Презентация для занятия
 
-[Открыть презентацию](https://olgakraven.github.io/2027-dkip-demo/deck.html) · [Скачать PDF](materials/presentation-dkip2027-winforms.pdf)
+- [Windows Forms + MySQL / MariaDB](https://olgakraven.github.io/2027-dkip-demo/deck.html?stack=mysql) · [PDF](materials/presentation-dkip2027-winforms.pdf)
+- [WPF + PostgreSQL](https://olgakraven.github.io/2027-dkip-demo/deck.html?stack=postgresql) · [PDF](materials/presentation-dkip2027-wpf.pdf)
 
-Условия КИМ, все шаги маршрута Windows Forms + MySQL / MariaDB и показ готового примера. В разделе «Преподавателю» впишите ФИО, должность и кафедру. «Режим показа» открывает отдельное окно для аудитории. Для PDF с вашими данными выберите «Ещё» → «Печать / сохранить PDF».
+Условия КИМ, все шаги выбранного маршрута и показ готового примера. В разделе «Преподавателю» впишите ФИО, должность и кафедру. «Режим показа» открывает отдельное окно для аудитории. Для PDF с вашими данными выберите «Ещё» → «Печать / сохранить PDF».
 
 ## Источники и устройство
 

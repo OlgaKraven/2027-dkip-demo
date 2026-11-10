@@ -60,7 +60,7 @@ for(const {id} of variants){
  const folder=`content/variants/${id}`;
  const publicFolder=`variant-files/${id}`;
  fs.mkdirSync(`${out}/${publicFolder}/Пазл`,{recursive:true});
- const brief=fs.readFileSync(`${folder}/Задание.md`,'utf8').replace(/^#{1,3} /gm,'');
+ const brief=fs.readFileSync(`${folder}/Задание.md`,'utf8').replaceAll('\r\n','\n').replace(/^#{1,3} /gm,'');
  const files={'Задание.txt':'\ufeff'+brief};
  const publish=(name,relative=name,archive=relative)=>{
   const bytes=fs.readFileSync(`${folder}/${relative}`);
@@ -98,7 +98,8 @@ const basic={};walk('materials/basic',(p,b)=>basic[p.slice('materials/basic/'.le
 const codeDescriptions=Object.fromEntries(Object.keys(code).map(file=>[file,describeExampleFile(file)]));
 const data={stages:{mysql:stagesFor('mysql'),postgresql:stagesFor('postgresql')},tasks,criteria,code,codeDescriptions,exampleAccounts,exampleLaunch,variants,variantFiles,official:read('content/official.json'),kimAssignments:read('content/kim-assignments.json'),kimPreviewPages,previews:read('content/previews.json'),sources,screens};
 fs.writeFileSync(out+'/content.js','globalThis.COURSE='+JSON.stringify(data)+';');fs.writeFileSync(out+'/downloads/source-manifest.json',JSON.stringify(sources,null,2));fs.writeFileSync(out+'/.nojekyll','');
-fs.writeFileSync(out+'/deck-data.js','globalThis.TEACHER_DECK='+JSON.stringify(teacherDeck(data))+';');
+const decks=Object.fromEntries(Object.keys(data.stages).map(stack=>[stack,teacherDeck(data,stack)]));
+fs.writeFileSync(out+'/deck-data.js','globalThis.TEACHER_DECKS='+JSON.stringify(decks)+';');
 console.log('Built 2027-dkip-demo: both routes, 6 modules, '+data.stages.mysql.reduce((n,s)=>n+s.steps.length,0)+' microsteps per route.');
 // A browser may retain an earlier GitHub Pages asset after a new deployment.
 for(const page of ['index.html','deck.html']){

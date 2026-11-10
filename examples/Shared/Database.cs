@@ -55,13 +55,16 @@ public static class Database
     }
     public static decimal OrderCost(int id)
     {
+        const string incompleteCost = "Недостаточно норм или цен для полного расчёта. Заполните спецификацию и цены на дату заказа.";
         // Missing prices must not silently produce an understated SUM.
         var incomplete = Convert.ToInt32(Scalar("SELECT COUNT(*) FROM customer_order_line l LEFT JOIN specification s ON s.product_id=l.product_id WHERE l.order_id=@p0 AND (s.id IS NULL OR NOT EXISTS (SELECT 1 FROM specification_component c WHERE c.specification_id=s.id))", id));
         incomplete += Convert.ToInt32(Scalar("SELECT COUNT(*) FROM customer_order o JOIN customer_order_line l ON l.order_id=o.id JOIN specification s ON s.product_id=l.product_id JOIN specification_component c ON c.specification_id=s.id WHERE o.id=@p0 AND NOT EXISTS(SELECT 1 FROM price p WHERE p.item_id=c.item_id AND p.valid_from<=o.doc_date)", id));
         if (incomplete != 0)
-            throw new InvalidOperationException("Недостаточно норм или цен для полного расчёта. Заполните спецификацию и цены на дату заказа.");
+            throw new InvalidOperationException(incompleteCost);
         var value = Scalar("SELECT total_cost FROM order_cost WHERE order_id=@p0", id);
-        if (value is null || value == DBNull.Value)
+        if (value == DBNull.Value)
+            throw new InvalidOperationException(incompleteCost);
+        if (value is null)
             throw new InvalidOperationException("Заказ не найден или не содержит строк.");
         return Convert.ToDecimal(value);
     }
