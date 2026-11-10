@@ -2,13 +2,14 @@
 const D=COURSE,C=ExamCore,E=C.escape,root=document.getElementById('app'),prefix='dkip2027-basic-v1:';let memory={},storageOK=true,mockBrief=false;
 function get(k,f=null){try{return JSON.parse(localStorage.getItem(prefix+k))??f;}catch{storageOK=false;return memory[k]??f;}}
 function set(k,v){memory[k]=v;try{localStorage.setItem(prefix+k,JSON.stringify(v));}catch{storageOK=false;}}
-const p=new URLSearchParams(location.search),modes=[['overview','Обзор'],['learn','Обучение'],['training','Тренировка'],['mock','Пробный экзамен'],['examples','Примеры'],['teacher','Преподавателю']];
+const p=new URLSearchParams(location.search),modes=[['learn','Обучение'],['training','Тренировка'],['mock','Пробный экзамен'],['examples','Примеры'],['criteria','Критерии'],['teacher','Преподавателю']];
+const isMode = value => value==='overview' || modes.some(([id])=>id===value);
 const modeIcons = {
-  overview: 'M12 2.5 2 11h3v9a1 1 0 0 0 1 1h3.5v-6h5v6H18a1 1 0 0 0 1-1v-9h3z',
   learn: 'M6 4a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm3.5 2h6a4 4 0 0 1 0 8H9a2 2 0 1 0 0 4h7.2l-2-2 1.4-1.4L20 19l-4.4 4.4-1.4-1.4 2-2H9a4 4 0 1 1 0-8h6.5a2 2 0 0 0 0-4h-6z',
   training: 'M9 1h6v3H9zM11 4h2v1h-2zM19 7l1.8-1.8 1.4 1.4-1.8 1.8zM21 14a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-10-5h2v4.5l2.2 2.2-1.4 1.4-2.8-2.8z',
   mock: 'M9 3a3 3 0 0 1 6 0h3a2 2 0 0 1 2 2v15a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm1 1.2v2h4v-2zm-2 9.1 3.1 3.1 5.5-5.5-1.4-1.4-4.1 4.1-1.7-1.7z',
   examples: 'M2 6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zm2 2h16V7H4zm5.4 2.6L6 14l3.4 3.4 1.2-1.2L8.4 14l2.2-2.2zm5.2 0-1.2 1.2 2.2 2.2-2.2 2.2 1.2 1.2L18 14z',
+  criteria: 'M3 4h18v16H3zm2 2v3h14V6zm0 5v3h9v-3zm11 0v3h3v-3zM5 16v2h9v-2zm11 0v2h3v-2z',
   teacher: 'M2 3h20v14h-9v2h4v2H7v-2h4v-2H2zm4.2 9 1.3 1.3 3-3 3 1.5 4.3-4.3-1.3-1.3-3.3 3.3-3-1.5z'
 };
 const toolIcons = {
@@ -16,14 +17,14 @@ const toolIcons = {
   sun: 'M17.5 12a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0ZM11 1h2v3h-2zm0 19h2v3h-2zM1 11h3v2H1zm19 0h3v2h-3zM3.5 4.9l1.4-1.4L7 5.6 5.6 7zm13.5 13.5 1.4-1.4 2.1 2.1-1.4 1.4zm0-12.8 2.1-2.1 1.4 1.4L18.4 7zM3.5 19.1 5.6 17 7 18.4l-2.1 2.1z',
   tour: 'M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20Zm4.7 5.3-7 2.4-2.4 7 7-2.4z'
 };
-let mode=p.get('mode')||get('mode','overview'),stack=p.get('stack')||get('stack','mysql'),stage=p.get('module')||p.get('stage')||get('stage','documents'),task=0,variant=p.get('variant')||get('variant','V01'),dark=get('dark',false);
-if(!D.stages[stack])stack='mysql';if(mode==='criteria')mode='overview';if(!modes.some(m=>m[0]===mode))mode='learn';if(!D.stages[stack].some(s=>s.id===stage))stage='documents';if(!D.variants.some(v=>v.id===variant))variant='V01';
+let mode=location.hash==='#criteria'?'criteria':p.get('mode')||get('mode','overview'),stack=p.get('stack')||get('stack','mysql'),stage=p.get('module')||p.get('stage')||get('stage','documents'),task=0,variant=p.get('variant')||get('variant','V01'),dark=get('dark',false);
+if(!D.stages[stack])stack='mysql';if(!isMode(mode))mode='learn';if(!D.stages[stack].some(s=>s.id===stage))stage='documents';if(!D.variants.some(v=>v.id===variant))variant='V01';
 const exampleStackFrom = query => query.get('exampleStack') || query.get('stack');
 let exampleStack = mode==='examples' ? exampleStackFrom(p) || get('example-stack') : get('example-stack');
 const selectedExampleStack = () => Object.hasOwn(D.exampleLaunch,exampleStack) ? exampleStack : stack;
-const lessonViews = [['brief','Условие и файлы'],['steps','Шаги'],['help','Справка']];
+const lessonTabs = [['brief','Условие и файлы'],['steps','Шаги']];
 const resultStepTitle = 'Что сохранить';
-const isLessonView = view => lessonViews.some(([id])=>id===view);
+const isLessonView = view => view==='help' || lessonTabs.some(([id])=>id===view);
 let learningView = isLessonView(p.get('view')) ? p.get('view')
   : !p.has('view') && (p.has('module') || p.has('stage')) ? 'steps' : 'map';
 const stageProgressKey = () => 'learning-stage:' + stack;
@@ -45,10 +46,13 @@ function overview() {
         <li><span>Время экзамена</span> <time datetime="PT${hours}H${minutes}M">${hours} ч ${minutes} мин</time></li>
       </ul>
       <p class="lead">В шести практических заданиях вы спроектируете базу данных, рассчитаете стоимость заказа, создадите приложение и оформите документацию API.</p>
-      <div class="button-row">${btn('Открыть маршрут обучения →','data-mode="learn" data-lesson-view="map"',true)}${btn('Материалы задания','id="materials-open"')}</div>
+      <div class="button-row">${btn('Открыть маршрут обучения →','data-mode="learn" data-lesson-view="map"',true)}</div>
     </div>
-    <div class="banner-mascot"><img src="mascot-exam.png" alt="Носорог-студент увидел в календаре «Демка завтра»"></div>
-  </section>${criteria()}`;
+    <div class="banner-resources">
+      <div class="banner-mascot"><img src="mascot-exam.png" alt="Носорог-студент увидел в календаре «Демка завтра»"></div>
+      ${btn('Материалы задания','id="materials-open"')}
+    </div>
+  </section>`;
 }
 
 function resultFiles(id) {
@@ -178,7 +182,7 @@ function iconButton(title,path,attributes) {
 }
 function siteNavigation() {
   return `<nav class="site-nav" aria-label="Основные разделы">${modes.map(([id,title])=>
-    iconButton(title,modeIcons[id],`data-mode="${id}" ${mode===id?'aria-current="page"':''}`)
+    iconButton(title,modeIcons[id],`data-mode="${id}" ${id==='examples'?'data-nav-secondary':''} ${mode===id?'aria-current="page"':''}`)
   ).join('')}</nav>`;
 }
 function siteTools() {
@@ -496,11 +500,14 @@ function learn() {
       ${stageNavigation()}
       <section class="route-content lesson-card${lesson.id==='M1'?' lesson-card-er':''}${lesson.id==='M2'?' lesson-card-db':''}${learningView==='help'?' lesson-card-with-help':''}" aria-labelledby="lesson-title">
         <header class="lesson-card-heading">
-          <h2 id="lesson-title">${E(lesson.title)}</h2>
+          <div class="lesson-title-row">
+            <h2 id="lesson-title">${E(lesson.title)}</h2>
+            ${btn('Гид по разбору',`type="button" data-lesson-tab="help" ${learningView==='help'?'aria-current="page"':''}`)}
+          </div>
           <p class="task-meta">${E(lesson.module)}</p>
         </header>
         <nav class="lesson-tabs" aria-label="Разделы этапа">
-          ${lessonViews.map(([view,title])=>
+          ${lessonTabs.map(([view,title])=>
             btn(title,`type="button" data-lesson-tab="${view}" ${learningView===view?'aria-current="page"':''}`)
           ).join('')}
         </nav>
@@ -788,7 +795,7 @@ function examples() {
 }
 function criteria() {
   return `<section id="criteria" class="route-panel overview-criteria" aria-labelledby="criteria-title">
-    <header class="criteria-heading"><h2 id="criteria-title">Критерии оценки</h2><span>75 баллов</span></header>
+    <header class="criteria-heading"><h1 id="criteria-title">Критерии оценки</h1><span>75 баллов</span></header>
     <p class="criteria-source">КИМ ${E(D.official.code)} · таблица 7</p>
     <div class="criteria-table-wrap">
       <table class="criteria-table" aria-labelledby="criteria-title">
@@ -995,12 +1002,12 @@ function tour(){
  const original={mode,stage,learningView,scroll:window.scrollY};
  const step=(mode,title,text,target,view='map')=>({mode,title,text,target,view});
  const items=[
-  step('overview','Обзор · материалы задания','Откройте официальный КИМ и приложения к шести заданиям. Критерии и баллы приведены ниже на странице.','#materials-open'),
+  step('overview','Обзор · материалы задания','Откройте официальный КИМ и приложения к шести заданиям.','#materials-open'),
   step('learn','Обучение · выберите стек','Выберите Windows Forms с MySQL или WPF с PostgreSQL. Шаги, файлы и снимки подстроятся под этот выбор.','#stack'),
   step('learn','Выберите этап маршрута','Начните с документов. Нажмите на этап, прочитайте его описание и откройте задание. Цветная отметка показывает завершённые этапы.','.map-node[aria-pressed="true"]'),
   step('learn','Прочитайте условие и откройте файлы','В этой вкладке находится полный текст задания из КИМ. Приложения можно просмотреть и скачать перед переходом к шагам.','.lesson-tabs [aria-current="page"]','brief'),
   step('learn','Выполните шаги и сохраните файлы','Здесь можно выбрать любой шаг этапа. В задании 1 шаг «Сверьте свою ER-диаграмму» открывает интерактивную схему. Последний шаг каждого этапа перечисляет файлы для сохранения.','#lesson-steps','steps'),
-  step('learn','Откройте справку','На каждом этапе есть своё объяснение, пример и подсказки на случай ошибки. При возврате к шагам откроется тот же шаг.','#lesson-help-title','help'),
+  step('learn','Откройте «Гид по разбору»','Кнопка рядом с названием этапа открывает объяснение, примеры и подсказки на случай ошибки. При возврате к шагам откроется тот же шаг.','[data-lesson-tab="help"]','help'),
   step('training','Тренировка · откройте образец КИМ','Прочитайте условие о кухонном столе «Самобранка» и скачайте приложения.','#training-sample'),
   step('training','Управляйте временем тренировки','Верхний таймер показывает время на всю тренировку, нижний — на выбранное задание. «Пауза» останавливает оба отсчёта.','.training-timer-top'),
   step('training','Выполните и отметьте задание','Выберите одно из шести заданий, прочитайте условие и при необходимости откройте подсказку. Отметьте пункты самопроверки и поставьте «Задание выполнено».','.stage-nav [aria-current="step"]'),
@@ -1010,6 +1017,7 @@ function tour(){
   step('mock','Выполните задания и проверьте себя','Выберите задание в списке. Откройте его файлы под условием и отметьте выполненные пункты самопроверки.','.stage-nav [data-task]'),
   step('examples','Примеры · выберите стек и скачайте проект','Выберите Windows Forms или WPF. Архив, инструкция по запуску и исходники откроются для выбранного стека.','.example-stacks'),
   step('examples','Посмотрите исходный код','Выберите файл по пути и нажмите «Открыть файл». В окне можно прочитать и скопировать весь код. Сохраняйте исходные имена и пути файлов.','#example-file'),
+  step('criteria','Критерии · проверьте распределение баллов','Таблица показывает баллы за каждый критерий. Полные формулировки доступны по ссылке на КИМ.','.criteria-heading'),
   step('teacher','Преподавателю · подготовьте занятие','Заполните данные преподавателя и откройте презентацию. Она показывает весь маршрут для выбранного стека.','#deck-open')
  ];
  let i=0;
@@ -1182,7 +1190,7 @@ function render({preserveScroll=true}={}){const previousScroll=window.scrollY;ta
    set(stageProgressKey(),stage);
    set(lessonViewKey(stage),learningView);
   }
-  history.replaceState(null,'',pageUrl(mode)+(mode==='overview'&&(p.get('mode')==='criteria'||location.hash==='#criteria')?'#criteria':''));}root.innerHTML=`<div class="shell"><header class="top"><a class="brand" href="${pageUrl('overview')}"><span class="brand-emblem">ДЭ</span><span><strong>09.02.07 · Информационные системы и программирование</strong><small>Специалист по информационным системам · 2027</small></span></a>${siteTools()}</header>${siteNavigation()}<main id="main">${storageOK?'':'<p class="notice">Браузер не сможет сохранить прогресс после закрытия страницы.</p>'}${mode==='overview'?overview():mode==='learn'?(learningView==='map'?learningMap():learn()):['training','mock'].includes(mode)?practice():mode==='examples'?examples():teacher()}</main></div>`;bind();tick();if(preserveScroll)window.scrollTo(0,previousScroll);}
+  history.replaceState(null,'',pageUrl(mode)+(mode==='criteria'&&location.hash==='#criteria'?'#criteria':''));}root.innerHTML=`<div class="shell"><header class="top"><a class="brand" href="${pageUrl('overview')}"><span class="brand-emblem">ДЭ</span><span><strong>09.02.07 · Информационные системы и программирование</strong><small>Специалист по информационным системам · 2027</small></span></a>${siteTools()}</header>${siteNavigation()}<main id="main">${storageOK?'':'<p class="notice">Браузер не сможет сохранить прогресс после закрытия страницы.</p>'}${mode==='overview'?overview():mode==='learn'?(learningView==='map'?learningMap():learn()):['training','mock'].includes(mode)?practice():mode==='examples'?examples():mode==='criteria'?criteria():teacher()}</main></div>`;bind();tick();if(preserveScroll)window.scrollTo(0,previousScroll);}
 function openLessonView(view) {
  if(view===learningView)return;
  if(view==='steps')set(stepKey(),stepIndex());
@@ -1211,7 +1219,7 @@ function navigate(next) {
 window.addEventListener('popstate',()=>{
  ExamErGuide.closeExpanded();
  const q=new URLSearchParams(location.search);
- mode=modes.some(([id])=>id===q.get('mode'))?q.get('mode'):'overview';
+ mode=location.hash==='#criteria'?'criteria':isMode(q.get('mode'))?q.get('mode'):'overview';
  stack=D.stages[q.get('stack')]?q.get('stack'):'mysql';
  if (mode==='examples') exampleStack=exampleStackFrom(q);
  stage=S().some(s=>s.id===q.get('module'))?q.get('module'):'documents';
