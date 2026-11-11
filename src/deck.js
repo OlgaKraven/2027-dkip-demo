@@ -27,9 +27,9 @@
   function check(slide){
     return slide.check?'<div class="callout"><strong>Что проверить</strong>'+esc(slide.check)+'</div>':'';
   }
-  function actionList(actions,start=1){
-    return actions?.length?'<ol class="slide-actions" role="list" start="'+start+'">'+actions.map((text,index)=>
-      '<li><span class="slide-action-number" aria-hidden="true">'+(start+index)+'</span><span>'+esc(text)+'</span></li>'
+  function actionList(actions){
+    return actions?.length?'<ol class="slide-actions" role="list">'+actions.map((text,index)=>
+      '<li><span class="slide-action-number" aria-hidden="true">'+(index+1)+'</span><span>'+esc(text)+'</span></li>'
     ).join('')+'</ol>':'';
   }
   function picture(slide,interactive){
@@ -51,9 +51,7 @@
     const paragraphs=(slide.paragraphs||[]).map(text=>'<p class="paragraph">'+esc(text)+'</p>').join('');
     const refs=slide.resources?.length?'<p class="resources">Откройте: '+slide.resources.map(esc).join(' · ')+'</p>':'';
     const subtitle=slide.heading?'<h2>'+esc(slide.heading)+'</h2>':'';
-    const explanation=why+paragraphs+actionList(slide.actions,slide.actionStart);
-    const after=check(slide)+source+refs+drawLinks(slide,interactive);
-    const prose=explanation+after;
+    const prose=why+paragraphs+actionList(slide.actions)+check(slide)+source+refs+drawLinks(slide,interactive);
     let body=subtitle+prose;
     if(slide.image){
       const image=picture(slide,interactive);
@@ -61,8 +59,7 @@
     }
     if(slide.facts)body='<div class="facts-grid">'+slide.facts.map(([value,label])=>'<div class="fact"><strong>'+esc(value)+'</strong><span>'+esc(label)+'</span></div>').join('')+'</div>'+prose;
     if(slide.rows)body='<table class="'+(slide.rows.length>7?'compact-table':'')+'"><thead><tr>'+slide.columns.map(x=>'<th scope="col">'+esc(x)+'</th>').join('')+'</tr></thead><tbody>'+slide.rows.map(([label,value])=>'<tr><th scope="row">'+esc(label)+'</th><td>'+esc(value)+'</td></tr>').join('')+'</tbody></table>'+prose;
-    if(slide.code)body=subtitle+explanation+(interactive?'<button class="copy-code" type="button">Копировать код</button>':'')+
-      '<pre><code>'+esc(slide.code)+'</code></pre>'+after;
+    if(slide.code)body=(interactive?'<button class="copy-code" type="button">Копировать код</button>':'')+'<pre><code>'+esc(slide.code)+'</code></pre>';
     return '<article class="slide slide-'+slide.kind+'">'+head+(slide.kind==='section'?'<i class="chevron" aria-hidden="true"></i>':'')+'<div class="slide-content">'+title+body+'</div>'+foot+'</article>';
   }
   function printPages(){
@@ -79,7 +76,7 @@
     by('progress').value=index+1;
     const speaker=by('speaker');
     if(!audience)speaker.innerHTML='<h2>Сценарий преподавателя</h2><h3>'+esc(slide.title)+'</h3>'+
-      (slide.body?'<p>'+esc(slide.body)+'</p>':'')+(slide.actions?.length?'<p><strong>Покажите группе</strong></p>'+actionList(slide.actions,slide.actionStart):'')+
+      (slide.body?'<p>'+esc(slide.body)+'</p>':'')+(slide.actions?.length?'<p><strong>Покажите группе</strong></p>'+actionList(slide.actions):'')+
       (slide.note?'<p>'+esc(slide.note)+'</p>':'')+(slide.check?'<p class="speaker-check"><strong>Что проверить:</strong> '+esc(slide.check)+'</p>':'')+
       (deck.slides[index+1]?'<p><strong>Далее:</strong> '+esc(deck.slides[index+1].title)+'</p>':'');
     frame.querySelector('[data-picture]')?.addEventListener('click',()=>{

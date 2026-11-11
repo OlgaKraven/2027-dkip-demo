@@ -195,7 +195,7 @@ function siteTools() {
   </div>`;
 }
 const S=()=>D.stages[stack],current=()=>S().find(s=>s.id===stage),key=()=>`${stack}:${mode}:${mode==='mock'?variant+':domains-v2':'sample'}`;
-const stepKey=(id=stage)=>`step:${stack}:${id}${{M1:':v4',M2:':v2',M3:':v2',M4:':v3',M6:':v2'}[id]||''}`;
+const stepKey=(id=stage)=>`step:${stack}:${id}${{M1:':v4',M2:':v2',M3:':v2',M4:':v4',M6:':v2'}[id]||''}`;
 function savedStep(lesson) {
   const saved=get(stepKey(lesson.id));
   if (saved!==null) return saved;
@@ -208,6 +208,12 @@ function savedStep(lesson) {
     const previous=get(`step:${stack}:M3`);
     // The old join step is now the first of three query-building steps.
     return previous>=4?previous+2:previous;
+  }
+  if (lesson.id==='M4') {
+    const previous=get(`step:${stack}:M4:v3`);
+    const firstSql=lesson.steps.findIndex(step=>step.group==='SQL-запросы');
+    const added=lesson.steps.filter(step=>step.group==='SQL-запросы'&&step.explainFirst).length;
+    return previous===null || previous<firstSql ? previous : previous+added;
   }
   if (lesson.id!=='M1') return saved;
   const recent=get(`step:${stack}:M1:v3`);
@@ -284,6 +290,7 @@ function dbTableGuide(creating) {
 }
 function explain(step, withEr) {
   const screenshot=shotFor(step);
+  const reason=`<p class="lesson-reason"><strong>Зачем это нужно.</strong> ${E(step.why)}</p>`;
   const resources = (step.resources || []).map(resource => {
     if (resource === 'kim') return `<li>${link('КИМ · стр. 30', 'materials/kim-2027.pdf#page=30')}</li>`;
     if (resource === 'archive') return '<li><a href="downloads/basic-inputs.zip" download>Приложения · ZIP</a></li>';
@@ -293,6 +300,7 @@ function explain(step, withEr) {
   }).join('');
   return `<section class="lesson-explanation">
     ${resources||step.links?.length?`${withEr?'<h3>Материалы шага</h3>':''}<ul class="lesson-resources" aria-label="Материалы шага">${resources}${(step.links??[]).map(([title,url])=>`<li>${link(title,url)}</li>`).join('')}</ul>`:''}
+    ${step.explainFirst?reason:''}
     <h3>Что сделать</h3>
     ${step.actionGroups
       ? step.actionGroups.map(group=>`<section class="lesson-action-group"><h4>${E(group.title)}</h4>${lessonActions(group.actions)}${group.shot?shot(group):''}</section>`).join('')
@@ -304,7 +312,7 @@ function explain(step, withEr) {
       ? (step.showExampleShot&&screenshot ? btn('Открыть снимок примера',`data-image="${E(screenshot.file)}" aria-haspopup="dialog"`) : '')
       : shot(step,false,true)}
     <div class="build-check"><strong>Как проверить результат</strong><p>${E(step.check)}</p></div>
-    <p class="lesson-reason"><strong>Зачем это нужно.</strong> ${E(step.why)}</p>
+    ${step.explainFirst?'':reason}
   </section>`;
 }
 function flatTabs(items, active, prefix, sharedPanel) {
@@ -325,7 +333,7 @@ function bindFlatTabs(list, activate) {
   };
 }
 function lessonHelp(foundation) {
-  const {title,summary,exampleTitle,example,termsTitle,diagnosticsTitle,csvExport,sqlQueries}=foundation.guide;
+  const {title,summary,exampleTitle,example,termsTitle,diagnosticsTitle,csvExport}=foundation.guide;
   const procedure = steps=>lessonActions(steps,([heading,action,screenshot])=>
     `<strong>${E(heading)}</strong><p>${E(action)}</p>${screenshot?shot({shot:screenshot}):''}`);
   const glossary = entries=>`<dl class="lesson-glossary">${entries.map(([term,definition])=>
@@ -333,15 +341,6 @@ function lessonHelp(foundation) {
   const topics = [
     ['summary','Объяснение',`<h3 id="lesson-help-title">${E(title)}</h3><p class="lesson-help-intro">${E(summary)}</p>`],
     ['example','Пример',`<h3>${E(exampleTitle)}</h3>${example.split('\n').map(line=>`<p>${E(line)}</p>`).join('')}`],
-    ...(sqlQueries ? [['sql-queries','SQL-запросы',`<h3>${E(sqlQueries.title)}</h3><p>${E(sqlQueries.intro)}</p>
-      ${sqlQueries.examples.map(example=>`<section>
-        <h4 class="lesson-help-procedure-heading">${E(example.title)}</h4>
-        ${lessonActions(example.actions)}
-        ${example.codeBlocks.map(lessonCodeBlock).join('')}
-        <div class="build-check"><strong>Как проверить результат</strong><p>${E(example.check)}</p></div>
-      </section>`).join('')}
-      <h4 class="lesson-help-procedure-heading">Как выбрать операцию для своего запроса</h4>
-      ${glossary(sqlQueries.choices)}`]] : []),
     ...(csvExport ? [['csv-export','CSV через Excel',`<h3>${E(csvExport.title)}</h3><p>${E(csvExport.intro)}</p>
       ${procedure(csvExport.steps)}
       <h4 class="lesson-help-procedure-heading">${E(csvExport.importTitle)}</h4>
