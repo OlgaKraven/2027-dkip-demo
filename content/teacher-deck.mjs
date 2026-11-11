@@ -47,7 +47,7 @@ function blocks(items,maxLength=610,maxItems=4) {
 }
 
 function codePages(code) {
-  const lines=code.trimEnd().split('\n'),pages=[];
+  const lines=code.trimEnd().split(/\r?\n/),pages=[];
   let part=[],rows=0;
   for(const line of lines){
     const height=Math.max(1,Math.ceil(line.length/95));
@@ -71,7 +71,7 @@ export function teacherDeck(data,stack) {
   };
   const image=key=>key?screens[key]:undefined;
   const add=(kind,chapter,title,props={})=>slides.push({kind,chapter,title,...props});
-  const start=(id,label)=>chapters.push({id,label,index:slides.length});
+  const start=(id,label)=>chapters.push({id,label,index:slides.length,sections:[]});
   start('intro','Введение');
   add('cover','intro','Демонстрационный экзамен 2027');
   const duration=data.official.minutes, points=data.official.points;
@@ -87,6 +87,8 @@ export function teacherDeck(data,stack) {
   });
   const contentsPage=slides.length;
   add('table','intro','Содержание',{columns:['Раздел','Слайд']});
+  const applicationContentsPage=slides.length;
+  add('table','intro','Содержание · Информационная система',{columns:['Блок задания 4','Слайд']});
   add('text','intro','Что открыть перед занятием',{
     actions:[
       'Откройте КИМ на страницах 30–32 и скачайте приложения к официальному образцу. Проверьте, что открываются Excel, JSON, PDF и шаблон DOCX.',
@@ -115,6 +117,8 @@ export function teacherDeck(data,stack) {
       }));
     }
     s.steps.forEach((step,i)=>{
+      const sections=chapters.at(-1).sections;
+      if(step.group&&sections.at(-1)?.label!==step.group)sections.push({label:step.group,index:slides.length});
       const stepKey=s.id+':'+(i+1);
       const segments=(step.actionGroups||[{actions:step.actions,shot:step.shot}]).flatMap(group=>{
         const shot=image(group.deckShot||group.shot);
@@ -190,6 +194,8 @@ export function teacherDeck(data,stack) {
     note:'Итого '+points+' баллов. Формулировки и распределение сверяйте по таблице 7 КИМ.',
     links:[['Открыть КИМ · стр. 13','materials/kim-2027.pdf#page=13']]
   });
-  slides[contentsPage].rows=chapters.slice(1).map(({label,index})=>[label,String(index+1)]);
+  const contentsRows=entries=>entries.map(({label,index})=>[label,String(index+1),index]);
+  slides[contentsPage].rows=contentsRows(chapters.slice(1));
+  slides[applicationContentsPage].rows=contentsRows(chapters.find(chapter=>chapter.id==='M4').sections);
   return {stackName,code:data.official.code,duration,points,slides,chapters};
 }

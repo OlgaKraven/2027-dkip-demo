@@ -176,6 +176,14 @@
       "file": "materials/screenshots/windows-guide/mysql-login-native.png",
       "caption": "Исходное изображение и четыре переставляемых фрагмента в работающем приложении. Маршрут: Windows Forms / XAMPP MySQL."
     },
+    "puzzle-first-click": {
+      "file": "materials/screenshots/mysql/puzzle-first-click.png",
+      "caption": "Windows Forms: верхняя левая часть выделена рамкой, фрагменты остались на местах."
+    },
+    "puzzle-second-click": {
+      "file": "materials/screenshots/mysql/puzzle-second-click.png",
+      "caption": "Windows Forms: верхние фрагменты поменялись местами, рамки больше нет."
+    },
     "login-error": {
       "file": "materials/screenshots/windows-guide/mysql-error-native.png",
       "caption": "Ошибка сборки пазла: приложение сообщает о двух оставшихся попытках."
@@ -457,6 +465,14 @@
     "puzzle": {
       "file": "materials/screenshots/windows-guide/postgresql-login-native.png",
       "caption": "Исходное изображение и четыре переставляемых фрагмента в работающем приложении. Маршрут: WPF / PostgreSQL."
+    },
+    "puzzle-first-click": {
+      "file": "materials/screenshots/postgresql/puzzle-first-click.png",
+      "caption": "WPF: верхняя левая часть выделена рамкой, фрагменты остались на местах."
+    },
+    "puzzle-second-click": {
+      "file": "materials/screenshots/postgresql/puzzle-second-click.png",
+      "caption": "WPF: верхние фрагменты поменялись местами, рамки больше нет."
     },
     "login-error": {
       "file": "materials/screenshots/windows-guide/postgresql-error-native.png",

@@ -163,7 +163,9 @@ function showLessonSteps() {
 }
 
 function goToStep(index, pointer=false) {
+  const previous=stepIndex();
   set(stepKey(),index);
+  if(index!==previous)history.pushState(null,'',pageUrl(mode));
   render();
   focusLessonHeading(pointer);
 }
@@ -226,6 +228,13 @@ function savedStep(lesson) {
   return original>=7?12:original===6?10:original+2;
 }
 const stepIndex=(lesson=current())=>Math.min(Math.max(0,savedStep(lesson)??0),lesson.steps.length);
+const lessonStepId=(step)=>step?.linkId??step?.title??'result';
+function applyLessonStep(query) {
+  if(mode!=='learn'||learningView!=='steps'||!query.has('step'))return;
+  const requested=query.get('step'), lesson=current();
+  const index=requested==='result'?lesson.steps.length:lesson.steps.findIndex(step=>lessonStepId(step)===requested);
+  if(index>=0)set(stepKey(),index);
+}
 function del(k){delete memory[k];try{localStorage.removeItem(prefix+k);}catch{storageOK=false;}}
 function header(title,text){return `<div class="route-heading"><h1>${E(title)}</h1>${text?`<p>${E(text)}</p>`:''}</div>`;}
 function sources(){return `<div class="button-row"><a class="btn" href="materials/kim-2027.pdf#page=30" target="_blank">КИМ · PDF</a><a class="btn" href="downloads/basic-inputs.zip" download>Приложения · ZIP</a></div>`;}
@@ -1253,7 +1262,8 @@ on('theme',()=>{dark=!dark;set('dark',dark);render();document.getElementById('th
 function pageUrl(pageMode) {
  const examples = pageMode==='examples' ? '&exampleStack='+selectedExampleStack() : '';
  const presentation = pageMode==='teacher' ? '&deckStack='+selectedDeckStack() : '';
- return '?section=work&mode='+pageMode+'&module='+stage+'&stack='+stack+'&variant='+variant+'&view='+learningView+examples+presentation;
+ const step = pageMode==='learn'&&learningView==='steps'?'&step='+encodeURIComponent(lessonStepId(current().steps[stepIndex()])):'';
+ return '?section=work&mode='+pageMode+'&module='+stage+'&stack='+stack+'&variant='+variant+'&view='+learningView+examples+presentation+step;
 }
 function render({preserveScroll=true,criteriaAnchor=mode==='overview'&&isCriteriaLink(new URLSearchParams(location.search))}={}){const previousScroll=window.scrollY;task=Math.min(D.tasks.length-1,Math.max(0,get('task:'+key(),0)));document.body.classList.toggle('dark',dark);if(!document.querySelector('.tour-dialog[open]')){set('mode',mode);set('stage',stage);
   if(mode==='learn'&&isLessonView(learningView)){
@@ -1300,6 +1310,7 @@ window.addEventListener('popstate',()=>{
  stage=S().some(s=>s.id===q.get('module'))?q.get('module'):'documents';
  variant=D.variants.some(v=>v.id===q.get('variant'))?q.get('variant'):'V01';
  learningView=isLessonView(q.get('view'))?q.get('view'):'map';
+ applyLessonStep(q);
  render();
  if(location.hash==='#criteria')document.getElementById('criteria')?.scrollIntoView();
 });
@@ -1317,6 +1328,7 @@ window.addEventListener('keydown',event=>{
 for(const st of ['mysql','postgresql'])for(const scope of [st+':training:sample',...D.variants.map(v=>st+':mock:'+v.id+':domains-v2')]){
  for(const t of D.tasks)del('notes:'+scope+':'+t.id);
 }
+applyLessonStep(p);
 render();
 if(location.hash==='#criteria')document.getElementById('criteria')?.scrollIntoView();
 setInterval(tick,1000);

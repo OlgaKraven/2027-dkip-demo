@@ -127,6 +127,7 @@ dialog h2{margin:0;font-size:1.28rem}
 #profile input{border:1px solid var(--line);border-radius:8px;background:var(--surface);color:inherit;font:inherit;padding:8px 10px;min-width:0}
 .more-tools{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
 #chapters button{justify-content:flex-start}
+.chapter-sections{display:grid;gap:7px;margin-inline-start:18px;padding-inline-start:10px;border-inline-start:1px solid currentColor}
 #visual{width:min(1080px,94vw)}
 #visual figure{margin:0}
 #visual img{display:block;max-width:100%;max-height:69dvh;margin:auto;object-fit:contain}

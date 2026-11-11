@@ -1,0 +1,10 @@
+{
+  "mysql": {
+    "presentation": "5d4e50aa3b771aec450935761c017ab60d484d4f73306208a16cf0d9c79dd49c",
+    "pdf": "d92e996978e24750887f3c7a3828c7651fdab8d6c05e36114e96adbd12845d39"
+  },
+  "postgresql": {
+    "presentation": "d4ca37aa97b2b166effd18e8ccd03ea242a743b37a83980700f039d763947bd5",
+    "pdf": "c1f79a231ba53abdd277352517fc096531e1f182f5f1815ad1251d3c3983a3ac"
+  }
+}

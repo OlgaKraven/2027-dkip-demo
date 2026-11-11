@@ -58,12 +58,16 @@
       body=slide.actions?.length||slide.body||slide.check?'<div class="visual-grid"><div>'+subtitle+prose+'</div>'+image+'</div>':subtitle+'<div class="visual-only">'+image+'</div>'+prose;
     }
     if(slide.facts)body='<div class="facts-grid">'+slide.facts.map(([value,label])=>'<div class="fact"><strong>'+esc(value)+'</strong><span>'+esc(label)+'</span></div>').join('')+'</div>'+prose;
-    if(slide.rows)body='<table class="'+(slide.rows.length>7?'compact-table':'')+'"><thead><tr>'+slide.columns.map(x=>'<th scope="col">'+esc(x)+'</th>').join('')+'</tr></thead><tbody>'+slide.rows.map(([label,value])=>'<tr><th scope="row">'+esc(label)+'</th><td>'+esc(value)+'</td></tr>').join('')+'</tbody></table>'+prose;
+    if(slide.rows)body='<table class="'+(slide.rows.length>7?'compact-table':'')+'"><thead><tr>'+slide.columns.map(x=>'<th scope="col">'+esc(x)+'</th>').join('')+'</tr></thead><tbody>'+slide.rows.map(([label,value,destination])=>{
+      const text=esc(label);
+      const name=destination===undefined||audience?text:'<a href="#slide-'+(destination+1)+'" data-contents-slide="'+destination+'">'+text+'</a>';
+      return '<tr><th scope="row">'+name+'</th><td>'+esc(value)+'</td></tr>';
+    }).join('')+'</tbody></table>'+prose;
     if(slide.code)body=(interactive?'<button class="copy-code" type="button">Копировать код</button>':'')+'<pre><code>'+esc(slide.code)+'</code></pre>';
     return '<article class="slide slide-'+slide.kind+'">'+head+(slide.kind==='section'?'<i class="chevron" aria-hidden="true"></i>':'')+'<div class="slide-content">'+title+body+'</div>'+foot+'</article>';
   }
   function printPages(){
-    by('print-pages').innerHTML=deck.slides.map((slide,i)=>'<div class="slide-frame">'+render(slide,i,false)+'</div>').join('');
+    by('print-pages').innerHTML=deck.slides.map((slide,i)=>'<div class="slide-frame" id="slide-'+(i+1)+'">'+render(slide,i,false)+'</div>').join('');
   }
   function sendState(){channel?.postMessage({kind:'state',index,dark,profile});}
   function draw(focus){
@@ -82,6 +86,9 @@
     frame.querySelector('[data-picture]')?.addEventListener('click',()=>{
       by('visual').querySelector('figure').innerHTML='<img src="'+esc(slide.image.file)+'" alt="'+esc(slide.image.caption)+'"><figcaption>'+esc(slide.image.caption)+'</figcaption>';
       open('visual');
+    });
+    frame.querySelectorAll('[data-contents-slide]').forEach(link=>link.onclick=event=>{
+      event.preventDefault();go(Number(link.dataset.contentsSlide),true);
     });
     frame.querySelector('.copy-code')?.addEventListener('click',async event=>{
       const button=event.currentTarget;
@@ -149,7 +156,10 @@
     dialog.onclose=()=>lastFocus?.focus({preventScroll:true});
   });
   by('contents-open').onclick=()=>open('contents');
-  by('chapters').innerHTML=deck.chapters.map(x=>'<button type="button" data-slide="'+x.index+'">'+esc(x.label)+'</button>').join('');
+  const chapterButton=(entry,subsection=false)=>'<button type="button"'+(subsection?' class="chapter-section"':'')+' data-slide="'+entry.index+'">'+esc(entry.label)+'</button>';
+  by('chapters').innerHTML=deck.chapters.map(chapter=>
+    chapterButton(chapter)+(chapter.sections.length?'<div class="chapter-sections" role="group" aria-label="'+esc(chapter.label)+'">'+chapter.sections.map(section=>chapterButton(section,true)).join('')+'</div>':'')
+  ).join('');
   by('chapters').querySelectorAll('button').forEach(button=>button.onclick=()=>{
     by('contents').close();go(Number(button.dataset.slide),true);
   });
