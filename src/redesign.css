@@ -247,7 +247,6 @@ code, pre, .lesson-code, .training-timer-top .training-clock { font-family: var(
 .map-stage-preview[inert] { visibility: hidden; }
 .map-stage-preview > .btn { justify-self: start; max-width: 100%; white-space: normal; }
 .map-detail h2 { margin-top: 4px; }
-.map-stage-content > p, .map-detail ul { max-width: 72ch; }
 .result-files { padding-inline-start: 20px; overflow-wrap: anywhere; }
 .result-files li + li { margin-top: 6px; }
 .map-detail .result-file-icon { display: none; }
@@ -630,15 +629,14 @@ body.dark .pause-symbol { color: var(--red); }
 }
 .lesson-code-toolbar .btn { margin: 0; }
 .lesson-code-block .lesson-code { margin: 0; border: 0; border-radius: 0 0 8px 8px; }
-.lesson-layout .lesson-reason { max-width: 70ch; color: var(--muted); margin-top: 16px; }
+.lesson-layout .lesson-reason { color: var(--muted); margin-top: 16px; }
 .lesson-layout .study-step-er .lesson-heading { margin-bottom: 0; }
 .lesson-layout .study-step-er > .lesson-reason { margin: 8px 0 12px; }
 .study-step-er .er-workspace { margin: 0; }
 .lesson-card-er :is(.lesson-action-group,.er-review) { margin-block: 16px; }
 .lesson-card-er :is(.lesson-action-group,.er-review) > h4 { margin-block: 0 8px; }
-.lesson-card-er .er-review > p { max-inline-size: 68ch; margin-block: 0; }
+.lesson-card-er .er-review > p { margin-block: 0; }
 .lesson-card-er .er-brief-outline {
-  max-inline-size: 69ch;
   margin-block-end: 24px;
   padding: 8px 14px;
   border-radius: 8px;
@@ -756,10 +754,9 @@ body.dark .pause-symbol { color: var(--red); }
 .sheet-table [data-align="center"] { text-align: center; }
 .sheet-table [data-align="right"] { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
 
-.lesson-brief p { max-width: 69ch; margin: 0 0 14px; overflow-wrap: anywhere; }
+.lesson-brief p { margin: 0 0 14px; overflow-wrap: anywhere; }
 .lesson-brief .task-source { margin-top: 14px; }
 .condition-text {
-  max-width: 70ch;
   font-size: var(--text-body);
   line-height: 1.6;
   white-space: normal;
@@ -774,7 +771,7 @@ body.dark .pause-symbol { color: var(--red); }
 .practice-condition { margin: 16px 0; min-width: 0; }
 .practice-condition h3 { margin: 0 0 8px; }
 .practice-condition .condition-text + h3 { margin-top: 16px; }
-.condition-document { max-width: 74ch; margin: 16px auto 0; }
+.condition-document { margin-top: 16px; }
 .condition-task-menu .btn[aria-pressed="true"] {
   border-color: var(--red);
   background: var(--stage-active);
@@ -800,9 +797,6 @@ body.dark .pause-symbol { color: var(--red); }
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
   gap: 8px;
-  inline-size: 100%;
-  max-width: 74ch;
-  margin: 0 auto;
 }
 .condition-task-menu .btn { min-width: 0; min-height: 44px; margin: 0; padding-inline: 8px; }
 .kim-viewer { display: grid; gap: 12px; }
@@ -869,7 +863,6 @@ body.dark .pause-symbol { color: var(--red); }
   .example-accounts table { font-size: var(--text-meta); }
   .example-accounts :is(th, td) { padding-inline: 4px; }
 }
-.example-instructions { max-inline-size: 74ch; margin-inline: auto; }
 .example-instructions h3 { margin-block: 0 8px; }
 .example-instructions section { margin-block-start: 24px; }
 .example-instructions h4 { margin-block: 0 8px; }
@@ -891,7 +884,7 @@ body.dark .pause-symbol { color: var(--red); }
 .lesson-help-pane:focus-visible, .materials-preview:focus-visible { outline: 2px solid var(--red); outline-offset: -2px; }
 .lesson-help-pane .lesson-help-intro { color: var(--muted); margin: 0; }
 .lesson-help-pane h3 { margin: 0 0 10px; }
-.lesson-help-pane > p { max-inline-size: 72ch; margin: 0 0 8px; }
+.lesson-help-pane > p { margin: 0 0 8px; }
 .lesson-glossary { margin: 0; }
 .lesson-glossary > div { display: grid; grid-template-columns: minmax(7rem, 1fr) minmax(0, 3fr); gap: 4px 14px; padding: 8px 0; }
 .lesson-glossary dt { font-weight: 650; }
@@ -900,7 +893,7 @@ body.dark .pause-symbol { color: var(--red); }
 .lesson-card-er .lesson-glossary dd > p + p { margin-block-start: 6px; }
 .lesson-help-errors { margin: 0; padding-inline-start: 20px; }
 .lesson-help-errors li + li { margin-top: 8px; }
-.lesson-help-procedure { max-inline-size: 72ch; margin-block: 14px 0; padding-inline-start: 1.5em; }
+.lesson-help-procedure { margin-block: 14px 0; padding-inline-start: 1.5em; }
 .lesson-help-procedure li + li { margin-block-start: 12px; }
 .lesson-help-procedure li p { margin-block: 3px 0; }
 .lesson-help-procedure-heading { margin-block: 22px 6px; }
