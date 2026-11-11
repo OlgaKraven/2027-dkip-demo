@@ -49,8 +49,8 @@ function overview() {
       <p class="lead">В шести практических заданиях вы спроектируете базу данных, рассчитаете стоимость заказа, создадите приложение и оформите документацию API.</p>
     </div>
     <div class="banner-mascot"><img src="mascot-exam.png" alt="Носорог-студент увидел в календаре «Демка завтра»"></div>
-    <div class="button-row">${btn('Открыть маршрут обучения →','data-mode="learn" data-lesson-view="map"',true)}</div>
-    <div class="button-row banner-resources">
+    <div class="button-row">
+      ${btn('Открыть маршрут обучения →','data-mode="learn" data-lesson-view="map"',true)}
       ${btn('Материалы задания','id="materials-open"')}
     </div>
   </section>${criteria()}`;

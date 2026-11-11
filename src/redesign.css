@@ -165,8 +165,13 @@ code, pre, .lesson-code, .training-timer-top .training-clock { font-family: var(
 .banner-facts span { color: var(--inverse-muted); font-weight: 400; }
 .banner-facts time { white-space: nowrap; }
 .hero.study-intro .lead { color: var(--inverse-muted); max-width: 58ch; margin: 0 0 12px; }
-.hero.study-intro .button-row { margin-block: 0; align-self: stretch; align-items: stretch; }
-.hero.study-intro .banner-resources { justify-content: center; }
+.hero.study-intro .button-row {
+  grid-column: 1 / -1;
+  margin: 0;
+  flex-wrap: nowrap;
+  align-items: stretch;
+}
+.hero.study-intro .button-row > .btn { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
 .hero.study-intro .banner-mascot {
   width: 100%;
   max-width: 290px;
@@ -360,10 +365,8 @@ code, pre, .lesson-code, .training-timer-top .training-clock { font-family: var(
   .learning-map { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 620px) {
-  .hero.study-intro { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .hero.study-intro :is(.banner-copy, .banner-mascot) { grid-column: 1 / -1; }
+  .hero.study-intro { grid-template-columns: minmax(0, 1fr); }
   .hero.study-intro .banner-mascot { max-width: 144px; }
-  .hero.study-intro .button-row > .btn { width: 100%; min-width: 0; white-space: normal; }
 }
 
 .hero.study-intro .btn.primary:not(.source-download) {
