@@ -165,8 +165,8 @@ code, pre, .lesson-code, .training-timer-top .training-clock { font-family: var(
 .banner-facts span { color: var(--inverse-muted); font-weight: 400; }
 .banner-facts time { white-space: nowrap; }
 .hero.study-intro .lead { color: var(--inverse-muted); max-width: 58ch; margin: 0 0 12px; }
-.hero.study-intro .button-row { margin-block: 0; }
-.banner-resources { display: grid; justify-items: center; gap: 12px; min-width: 0; }
+.hero.study-intro .button-row { margin-block: 0; align-self: stretch; align-items: stretch; }
+.hero.study-intro .banner-resources { justify-content: center; }
 .hero.study-intro .banner-mascot {
   width: 100%;
   max-width: 290px;
@@ -361,8 +361,10 @@ code, pre, .lesson-code, .training-timer-top .training-clock { font-family: var(
   .learning-map { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 620px) {
-  .hero.study-intro { grid-template-columns: minmax(0, 1fr); }
+  .hero.study-intro { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hero.study-intro :is(.banner-copy, .banner-mascot) { grid-column: 1 / -1; }
   .hero.study-intro .banner-mascot { max-width: 144px; }
+  .hero.study-intro .button-row > .btn { width: 100%; min-width: 0; white-space: normal; }
 }
 
 .hero.study-intro .btn.primary:not(.source-download) {
@@ -403,7 +405,7 @@ body.dark .pause-symbol { color: var(--red); }
   margin: 20px 0 36px;
 }
 .criteria-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
-.criteria-heading h1 { font-size: 1.5rem; margin: 0; }
+.criteria-heading h2 { font-size: 1.5rem; margin: 0; }
 .criteria-heading span { font-size: .875rem; font-weight: 650; color: var(--red); }
 .criteria-source { color: var(--muted); margin: 8px 0 16px; }
 .criteria-table-wrap { border: 1px solid var(--workspace-line); border-radius: 10px; overflow: hidden; }
