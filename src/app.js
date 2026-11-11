@@ -2,9 +2,10 @@
 const D=COURSE,C=ExamCore,E=C.escape,root=document.getElementById('app'),prefix='dkip2027-basic-v1:';let memory={},storageOK=true,mockBrief=false;
 function get(k,f=null){try{return JSON.parse(localStorage.getItem(prefix+k))??f;}catch{storageOK=false;return memory[k]??f;}}
 function set(k,v){memory[k]=v;try{localStorage.setItem(prefix+k,JSON.stringify(v));}catch{storageOK=false;}}
-const p=new URLSearchParams(location.search),modes=[['learn','Обучение'],['training','Тренировка'],['mock','Пробный экзамен'],['examples','Примеры'],['criteria','Критерии'],['teacher','Преподавателю']];
-const isMode = value => value==='overview' || modes.some(([id])=>id===value);
+const p=new URLSearchParams(location.search),modes=[['overview','Обзор'],['learn','Обучение'],['training','Тренировка'],['mock','Пробный экзамен'],['examples','Примеры'],['criteria','Критерии'],['teacher','Преподавателю']];
+const isMode = value => modes.some(([id])=>id===value);
 const modeIcons = {
+  overview: 'M12 2.5 2 11h3v9a1 1 0 0 0 1 1h3.5v-6h5v6H18a1 1 0 0 0 1-1v-9h3z',
   learn: 'M6 4a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm3.5 2h6a4 4 0 0 1 0 8H9a2 2 0 1 0 0 4h7.2l-2-2 1.4-1.4L20 19l-4.4 4.4-1.4-1.4 2-2H9a4 4 0 1 1 0-8h6.5a2 2 0 0 0 0-4h-6z',
   training: 'M9 1h6v3H9zM11 4h2v1h-2zM19 7l1.8-1.8 1.4 1.4-1.8 1.8zM21 14a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-10-5h2v4.5l2.2 2.2-1.4 1.4-2.8-2.8z',
   mock: 'M9 3a3 3 0 0 1 6 0h3a2 2 0 0 1 2 2v15a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm1 1.2v2h4v-2zm-2 9.1 3.1 3.1 5.5-5.5-1.4-1.4-4.1 4.1-1.7-1.7z',
