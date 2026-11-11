@@ -154,6 +154,25 @@ export function teacherDeck(data,stack) {
         links:[['ER-диаграмма · PDF','materials/er.pdf']]
       });
     });
+    const sqlGuide=s.foundation?.guide.sqlQueries;
+    if(sqlGuide){
+      sqlGuide.examples.forEach(({title,actions,codeBlocks,check},index)=>{
+        if(codeBlocks.length===1){
+          add('code',s.id,title,{
+            eyebrow:'Справка · SQL-запросы',
+            body:index===0?sqlGuide.intro:undefined,
+            actions,check,code:codeBlocks[0].code
+          });
+          return;
+        }
+        codeBlocks.forEach(({label,code},part)=>add('code',s.id,title,{
+          eyebrow:'Справка · SQL-запросы',heading:label.replace(/^\d+\.\s*/,''),code,
+          actions:[actions[part]],actionStart:part+1,check:part===codeBlocks.length-1?check:undefined
+        }));
+      });
+      blocks(sqlGuide.choices.map(([title,text])=>title+'. '+text),560,3).forEach(actions=>
+        add('text',s.id,sqlGuide.title,{eyebrow:'Справка · SQL-запросы',actions}));
+    }
     add('text',s.id,'Что должно остаться после этапа',{
       eyebrow:'Результат этапа',body:g.result,
       check:s.output,note:'Попросите открыть сохранённый результат, а не только назвать файл.'

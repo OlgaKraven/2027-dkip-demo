@@ -230,6 +230,12 @@ function lessonActions(actions, renderAction=E) {
     `<li><span class="lesson-action-number" aria-hidden="true">${index+1}</span><div>${renderAction(action)}</div></li>`
   ).join('')}</ol>`;
 }
+function lessonCodeBlock({label,code}) {
+  return `<div class="lesson-code-block">
+    <div class="lesson-code-toolbar"><span>${E(label||'Код')}</span>${btn('Копировать код','type="button" data-copy-lesson-code')}</div>
+    <pre class="lesson-code" tabindex="0">${E(code)}</pre>
+  </div>`;
+}
 function dbTableDetails(table, creating) {
  const mysql=stack==='mysql';
  const links=ER_GUIDE.stacks[stack].links.filter(link=>link.from===table.id);
@@ -291,10 +297,7 @@ function explain(step, withEr) {
     ${step.actionGroups
       ? step.actionGroups.map(group=>`<section class="lesson-action-group"><h4>${E(group.title)}</h4>${lessonActions(group.actions)}${group.shot?shot(group):''}</section>`).join('')
       : lessonActions(step.actions)}
-    ${(step.codeBlocks || (step.code ? [{label:step.codeLabel,code:step.code}] : [])).map(block=>`<div class="lesson-code-block">
-      <div class="lesson-code-toolbar"><span>${E(block.label||'Код')}</span>${btn('Копировать код','type="button" data-copy-lesson-code')}</div>
-      <pre class="lesson-code" tabindex="0">${E(block.code)}</pre>
-    </div>`).join('')}
+    ${(step.codeBlocks || (step.code ? [{label:step.codeLabel,code:step.code}] : [])).map(lessonCodeBlock).join('')}
     ${step.tableGuide?dbTableGuide(step.tableGuide==='create'):''}
     ${step.referenceFile?`<p>${btn(E(step.referenceLabel||'Открыть пример SQL'),`type="button" data-code="${E(step.referenceFile)}" aria-haspopup="dialog"`)}</p>`:''}
     ${withEr&&!step.preparation
@@ -322,7 +325,7 @@ function bindFlatTabs(list, activate) {
   };
 }
 function lessonHelp(foundation) {
-  const {title,summary,exampleTitle,example,termsTitle,diagnosticsTitle,csvExport}=foundation.guide;
+  const {title,summary,exampleTitle,example,termsTitle,diagnosticsTitle,csvExport,sqlQueries}=foundation.guide;
   const procedure = steps=>lessonActions(steps,([heading,action,screenshot])=>
     `<strong>${E(heading)}</strong><p>${E(action)}</p>${screenshot?shot({shot:screenshot}):''}`);
   const glossary = entries=>`<dl class="lesson-glossary">${entries.map(([term,definition])=>
@@ -330,6 +333,15 @@ function lessonHelp(foundation) {
   const topics = [
     ['summary','Объяснение',`<h3 id="lesson-help-title">${E(title)}</h3><p class="lesson-help-intro">${E(summary)}</p>`],
     ['example','Пример',`<h3>${E(exampleTitle)}</h3>${example.split('\n').map(line=>`<p>${E(line)}</p>`).join('')}`],
+    ...(sqlQueries ? [['sql-queries','SQL-запросы',`<h3>${E(sqlQueries.title)}</h3><p>${E(sqlQueries.intro)}</p>
+      ${sqlQueries.examples.map(example=>`<section>
+        <h4 class="lesson-help-procedure-heading">${E(example.title)}</h4>
+        ${lessonActions(example.actions)}
+        ${example.codeBlocks.map(lessonCodeBlock).join('')}
+        <div class="build-check"><strong>Как проверить результат</strong><p>${E(example.check)}</p></div>
+      </section>`).join('')}
+      <h4 class="lesson-help-procedure-heading">Как выбрать операцию для своего запроса</h4>
+      ${glossary(sqlQueries.choices)}`]] : []),
     ...(csvExport ? [['csv-export','CSV через Excel',`<h3>${E(csvExport.title)}</h3><p>${E(csvExport.intro)}</p>
       ${procedure(csvExport.steps)}
       <h4 class="lesson-help-procedure-heading">${E(csvExport.importTitle)}</h4>
@@ -820,9 +832,11 @@ function criteria() {
 function deckPath(){return (location.pathname.includes('/_mock-preview/')?'../deck.html?preview=1&':'deck.html?')+'stack='+selectedDeckStack();}
 function teacher(){
  const activeStack=selectedDeckStack(), pdf=activeStack==='postgresql'?'wpf':'winforms';
+ const pdfPath=`materials/presentation-dkip2027-${pdf}.pdf`;
+ const version=D.sources.find(source=>source.file===pdfPath).sha256.slice(0,12);
  return `<section class="training-page">${header('Преподавателю','Разбор официального образца ДЭ 2027 для занятия.')}
    ${stackButtons('deck',activeStack,'Стек презентации')}
-   <article class="route-panel"><h2>Презентация по демоэкзамену</h2><p>На слайдах — условия шести заданий, пошаговая демонстрация и готовый пример.</p><p>Перед показом впишите ФИО, должность и кафедру. В самой презентации можно открыть отдельное окно для аудитории или сохранить PDF с вашими данными.</p><div class="button-row">${btn('Данные преподавателя','id="teacher-settings"')}${btn('Открыть презентацию','id="deck-open"',true)}<a class="btn" href="materials/presentation-dkip2027-${pdf}.pdf" download>Скачать PDF</a></div></article></section>`;
+   <article class="route-panel"><h2>Презентация по демоэкзамену</h2><p>На слайдах — условия шести заданий, пошаговая демонстрация и готовый пример.</p><p>Перед показом впишите ФИО, должность и кафедру. В самой презентации можно открыть отдельное окно для аудитории или сохранить PDF с вашими данными.</p><div class="button-row">${btn('Данные преподавателя','id="teacher-settings"')}${btn('Открыть презентацию','id="deck-open"',true)}<a class="btn" href="${pdfPath}?v=${version}" download>Скачать PDF</a></div></article></section>`;
 }
 function modal(title){const d=document.createElement('dialog');d.className='course-dialog';d.setAttribute('aria-label',title);d.innerHTML=`<header class="modal-head"><h2>${E(title)}</h2>${btn('Закрыть','data-close')}</header><div class="modal-body"></div>`;document.body.append(d);d.querySelector('[data-close]').onclick=()=>d.close();d.addEventListener('close',()=>d.remove());d.showModal();return d;}
 function openCriteriaKim(event) {
