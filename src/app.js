@@ -796,6 +796,8 @@ function examples() {
     <div class="screenshot-index">${['login','m4-student','m4-admin','postman-tests'].map(x=>shot({shot:x},false,false,activeStack)).join('')}</div>
   </section>`;
 }
+const kimPdfPath = 'materials/kim-2027.pdf';
+const criteriaKimPage = 13;
 function criteria() {
   return `<section id="criteria" class="route-panel overview-criteria" aria-labelledby="criteria-title">
     <header class="criteria-heading"><h2 id="criteria-title">Критерии оценки</h2><span>75 баллов</span></header>
@@ -807,7 +809,7 @@ function criteria() {
         <tfoot><tr><th scope="row">Итого</th><td>75</td></tr></tfoot>
       </table>
     </div>
-    <p>${link('Полные формулировки в КИМ · стр. 13','materials/kim-2027.pdf#page=13')}</p>
+    <p><a id="criteria-kim" href="${kimPdfPath}#page=${criteriaKimPage}" aria-haspopup="dialog">Полные формулировки в КИМ · стр. ${criteriaKimPage}</a></p>
   </section>`;
 }
 function deckPath(){return (location.pathname.includes('/_mock-preview/')?'../deck.html?preview=1&':'deck.html?')+'stack='+stack;}
@@ -816,6 +818,34 @@ function teacher(){
  return `<section class="training-page">${header('Преподавателю','Разбор официального образца ДЭ 2027 для занятия.')}<article class="route-panel"><h2>Презентация по демоэкзамену</h2><p>${E(label())}. На слайдах — условия шести заданий, пошаговая демонстрация и готовый пример.</p><p>Перед показом впишите ФИО, должность и кафедру. В самой презентации можно открыть отдельное окно для аудитории или сохранить PDF с вашими данными.</p><div class="button-row">${btn('Данные преподавателя','id="teacher-settings"')}${btn('Открыть презентацию','id="deck-open"',true)}<a class="btn" href="materials/presentation-dkip2027-${pdf}.pdf" download>Скачать PDF</a></div></article></section>`;
 }
 function modal(title){const d=document.createElement('dialog');d.className='course-dialog';d.setAttribute('aria-label',title);d.innerHTML=`<header class="modal-head"><h2>${E(title)}</h2>${btn('Закрыть','data-close')}</header><div class="modal-body"></div>`;document.body.append(d);d.querySelector('[data-close]').onclick=()=>d.close();d.addEventListener('close',()=>d.remove());d.showModal();return d;}
+function openCriteriaKim(event) {
+  if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+  event.preventDefault();
+  const link = event.currentTarget;
+  const dialog = modal('Просмотр материала');
+  dialog.classList.add('kim-preview-dialog');
+  dialog.addEventListener('close',()=>link.focus({preventScroll:true}),{once:true});
+  const body = dialog.querySelector('.modal-body');
+  body.innerHTML = `<div class="kim-preview-heading">
+    <h3>КИМ ${E(D.official.code)} · стр. ${criteriaKimPage}</h3>
+    <a class="btn" href="${kimPdfPath}" download>Скачать файл</a>
+  </div>
+  <div class="kim-preview-content"></div>`;
+  const preview = body.querySelector('.kim-preview-content');
+  if (navigator.pdfViewerEnabled && !matchMedia('(max-width: 700px), (pointer: coarse)').matches) {
+    const frame = document.createElement('iframe');
+    frame.title = 'КИМ · формулировки критериев оценки';
+    frame.src = link.href;
+    preview.append(frame);
+    return;
+  }
+  const state = {page:criteriaKimPage,enlarged:false};
+  function draw() {
+    preview.innerHTML = kimPreview(state.page,state.enlarged,false);
+    bindKimPreview(preview,state,draw);
+  }
+  draw();
+}
 function openExampleInstructions() {
   const guide = D.exampleLaunch[selectedExampleStack()];
   const dialog = modal('Инструкция по запуску');
@@ -904,7 +934,7 @@ function documentPreview(file) {
   if (file.name.endsWith('.pdf')) return original+`<iframe title="${E(file.name)}" src="${E(file.path)}"></iframe>`;
   return original+`<p>Шаблон Word: скачайте оригинал для заполнения. ${link('Пример заполнения','docs/api-'+stack+'.docx')}</p>${shot({shot:'doc-template'})}`;
 }
-function kimPreview(page,enlarged) {
+function kimPreview(page,enlarged,showDownload=true) {
   const pages = D.kimPreviewPages;
   return `<div class="kim-viewer">
     <div class="kim-toolbar">
@@ -914,14 +944,33 @@ function kimPreview(page,enlarged) {
       </label>
       ${btn('→',`type="button" data-kim-direction="1" aria-label="Следующая страница" ${page===pages.length?'disabled':''}`)}
       ${btn(enlarged?'По ширине':'Увеличить',`type="button" id="kim-zoom" aria-pressed="${enlarged}"`)}
-      <a class="btn kim-download" href="materials/kim-2027.pdf" download aria-label="Скачать КИМ · PDF" title="Скачать КИМ · PDF">
+      ${showDownload?`<a class="btn kim-download" href="${kimPdfPath}" download aria-label="Скачать КИМ · PDF" title="Скачать КИМ · PDF">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M10 2h4v8h4l-6 6-6-6h4zm-7 14h3v3h12v-3h3v6H3z"/></svg>
-      </a>
+      </a>`:''}
     </div>
     <div class="kim-page-frame" tabindex="0" role="region" aria-label="Просмотр страницы ${page}" ${enlarged?'data-enlarged':''}>
       <img src="${E(pages[page-1])}" alt="КИМ · страница ${page}">
     </div>
   </div>`;
+}
+function bindKimPreview(host,state,draw) {
+  const select = host.querySelector('#kim-page');
+  if (!select) return;
+  function changePage(page,focus) {
+    state.page = page;
+    draw();
+    (host.querySelector(focus) || host.querySelector('#kim-page')).focus({preventScroll:true});
+  }
+  select.onchange = ()=>changePage(Number(select.value),'#kim-page');
+  host.querySelectorAll('[data-kim-direction]').forEach(button=>button.onclick=()=>{
+    const direction = button.dataset.kimDirection;
+    changePage(state.page+Number(direction),'[data-kim-direction="'+direction+'"]:not(:disabled)');
+  });
+  host.querySelector('#kim-zoom').onclick=()=>{
+    state.enlarged = !state.enlarged;
+    draw();
+    host.querySelector('#kim-zoom').focus({preventScroll:true});
+  };
 }
 function materials({initialTask=0,title='Материалы задания'}={}) {
   const dialog = modal(title);
@@ -931,14 +980,14 @@ function materials({initialTask=0,title='Материалы задания'}={})
   const documents = D.previews.filter(file=>!file.name.endsWith('.png'));
   const images = D.previews.filter(file=>file.name.endsWith('.png'));
   let tab = 'condition', selectedTask = initialTask, selectedDocument = 0;
-  let pdfPage = Math.min(30,D.kimPreviewPages.length), pdfEnlarged = false;
+  const pdf = {page:Math.min(30,D.kimPreviewPages.length),enlarged:false};
 
   function content() {
     switch(tab) {
       case 'condition':
         return sampleConditions(selectedTask);
       case 'kim':
-        return kimPreview(pdfPage,pdfEnlarged);
+        return kimPreview(pdf.page,pdf.enlarged);
       case 'documents':
         return `<label>Документ <select id="material-file">${documents.map((file,index)=>
           `<option value="${index}" ${index===selectedDocument?'selected':''}>${E(file.name)}</option>`).join('')}</select></label>
@@ -980,24 +1029,7 @@ function materials({initialTask=0,title='Материалы задания'}={})
       selectedDocument = Number(select.value);
       body.querySelector('#document-preview').innerHTML = documentPreview(documents[selectedDocument]);
     };
-    const pageSelect = body.querySelector('#kim-page');
-    if(pageSelect) {
-      pageSelect.onchange=()=>changePage(Number(pageSelect.value),'#kim-page');
-      body.querySelectorAll('[data-kim-direction]').forEach(button=>button.onclick=()=>{
-        const direction = button.dataset.kimDirection;
-        changePage(pdfPage+Number(direction),'[data-kim-direction="'+direction+'"]:not(:disabled)');
-      });
-      body.querySelector('#kim-zoom').onclick=()=>{
-        pdfEnlarged = !pdfEnlarged;
-        draw();
-        body.querySelector('#kim-zoom').focus({preventScroll:true});
-      };
-    }
-  }
-  function changePage(page,focus) {
-    pdfPage = page;
-    draw();
-    (body.querySelector(focus)||body.querySelector('#kim-page')).focus({preventScroll:true});
+    bindKimPreview(body,pdf,draw);
   }
   draw();
 }
@@ -1006,7 +1038,7 @@ function tour(){
  const step=(mode,title,text,target,view='map')=>({mode,title,text,target,view});
  const items=[
   step('overview','Обзор · материалы задания','Откройте официальный КИМ и приложения к шести заданиям.','#materials-open'),
-  step('overview','Обзор · критерии оценки','Таблица показывает баллы за каждый критерий. Полные формулировки доступны по ссылке на КИМ.','.criteria-heading'),
+ step('overview','Обзор · критерии оценки','Таблица показывает баллы за каждый критерий. Ссылка под таблицей открывает страницу 13 КИМ в окне просмотра.','.criteria-heading'),
   step('learn','Обучение · выберите стек','Выберите Windows Forms с MySQL или WPF с PostgreSQL. Шаги, файлы и снимки подстроятся под этот выбор.','#stack'),
   step('learn','Выберите этап маршрута','Начните с документов. Нажмите на этап, прочитайте его описание и откройте задание. Цветная отметка показывает завершённые этапы.','.map-node[aria-pressed="true"]'),
   step('learn','Прочитайте условие и откройте файлы','В этой вкладке находится полный текст задания из КИМ. Приложения можно просмотреть и скачать перед переходом к шагам.','.lesson-tabs [aria-current="page"]','brief'),
@@ -1177,6 +1209,7 @@ on('mock-brief',()=>{
  if(mockBrief&&innerWidth<=700)root.querySelector('.mock-brief-heading')?.scrollIntoView({block:'start'});
 });
 on('site-tour',tour);
+on('criteria-kim',openCriteriaKim);
 on('theme',()=>{dark=!dark;set('dark',dark);render();document.getElementById('theme')?.focus({preventScroll:true});});on('materials-open',()=>materials());on('lesson-steps',showLessonSteps);on('start-lesson',()=>openLessonView('steps'));root.querySelectorAll('[data-lesson-tab]').forEach(button=>button.onclick=()=>openLessonView(button.dataset.lessonTab));on('done',e=>{set('done:'+stack+':'+stage,e.target.checked);render();document.getElementById('done')?.focus({preventScroll:true});},'onchange');on('variant',e=>{variant=e.target.value;set('variant',variant);render();document.getElementById('variant')?.focus({preventScroll:true});},'onchange');on('teacher-settings',teacherSettings);on('deck-open',deck);bindImages(root);
  const workspace=document.getElementById('er-workspace');
  if(workspace){
