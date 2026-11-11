@@ -802,7 +802,6 @@ body.dark .pause-symbol { color: var(--red); }
   min-block-size: 0;
 }
 .materials-preview { flex: 1; min-block-size: 0; overflow: auto; scrollbar-gutter: stable; }
-.materials-preview:has(.kim-viewer) { overflow: hidden; scrollbar-gutter: auto; }
 :is(.materials-dialog, .kim-preview-dialog) .kim-viewer { display: flex; flex-direction: column; block-size: 100%; }
 :is(.materials-dialog, .kim-preview-dialog) .kim-page-frame { flex: 1; min-block-size: 0; max-height: none; }
 .kim-preview-heading {
@@ -825,7 +824,6 @@ body.dark .pause-symbol { color: var(--red); }
 .kim-viewer { display: grid; gap: 12px; }
 .kim-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .kim-toolbar .btn { margin: 0; }
-.kim-toolbar .kim-download { display: inline-grid; place-items: center; width: 44px; height: 44px; padding: 0; }
 .kim-toolbar label { display: flex; align-items: center; gap: 8px; font-size: var(--text-control); }
 .kim-page-frame {
   max-height: min(62dvh, 660px);

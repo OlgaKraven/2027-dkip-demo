@@ -825,23 +825,25 @@ function openCriteriaKim(event) {
   const dialog = modal('Просмотр материала');
   dialog.classList.add('kim-preview-dialog');
   dialog.addEventListener('close',()=>link.focus({preventScroll:true}),{once:true});
-  const body = dialog.querySelector('.modal-body');
-  body.innerHTML = `<div class="kim-preview-heading">
-    <h3>КИМ ${E(D.official.code)} · стр. ${criteriaKimPage}</h3>
+  mountKimPreview(dialog.querySelector('.modal-body'),criteriaKimPage,`КИМ ${D.official.code} · стр. ${criteriaKimPage}`);
+}
+function mountKimPreview(host,initialPage,title) {
+  host.innerHTML = `<div class="kim-preview-heading">
+    <h3>${E(title)}</h3>
     <a class="btn" href="${kimPdfPath}" download>Скачать файл</a>
   </div>
   <div class="kim-preview-content"></div>`;
-  const preview = body.querySelector('.kim-preview-content');
+  const preview = host.querySelector('.kim-preview-content');
   if (navigator.pdfViewerEnabled && !matchMedia('(max-width: 700px), (pointer: coarse)').matches) {
     const frame = document.createElement('iframe');
-    frame.title = 'КИМ · формулировки критериев оценки';
-    frame.src = link.href;
+    frame.title = title;
+    frame.src = `${kimPdfPath}#page=${initialPage}`;
     preview.append(frame);
     return;
   }
-  const state = {page:criteriaKimPage,enlarged:false};
+  const state = {page:initialPage,enlarged:false};
   function draw() {
-    preview.innerHTML = kimPreview(state.page,state.enlarged,false);
+    preview.innerHTML = kimPreview(state.page,state.enlarged);
     bindKimPreview(preview,state,draw);
   }
   draw();
@@ -934,7 +936,7 @@ function documentPreview(file) {
   if (file.name.endsWith('.pdf')) return original+`<iframe title="${E(file.name)}" src="${E(file.path)}"></iframe>`;
   return original+`<p>Шаблон Word: скачайте оригинал для заполнения. ${link('Пример заполнения','docs/api-'+stack+'.docx')}</p>${shot({shot:'doc-template'})}`;
 }
-function kimPreview(page,enlarged,showDownload=true) {
+function kimPreview(page,enlarged) {
   const pages = D.kimPreviewPages;
   return `<div class="kim-viewer">
     <div class="kim-toolbar">
@@ -944,9 +946,6 @@ function kimPreview(page,enlarged,showDownload=true) {
       </label>
       ${btn('→',`type="button" data-kim-direction="1" aria-label="Следующая страница" ${page===pages.length?'disabled':''}`)}
       ${btn(enlarged?'По ширине':'Увеличить',`type="button" id="kim-zoom" aria-pressed="${enlarged}"`)}
-      ${showDownload?`<a class="btn kim-download" href="${kimPdfPath}" download aria-label="Скачать КИМ · PDF" title="Скачать КИМ · PDF">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M10 2h4v8h4l-6 6-6-6h4zm-7 14h3v3h12v-3h3v6H3z"/></svg>
-      </a>`:''}
     </div>
     <div class="kim-page-frame" tabindex="0" role="region" aria-label="Просмотр страницы ${page}" ${enlarged?'data-enlarged':''}>
       <img src="${E(pages[page-1])}" alt="КИМ · страница ${page}">
@@ -980,14 +979,20 @@ function materials({initialTask=0,title='Материалы задания'}={})
   const documents = D.previews.filter(file=>!file.name.endsWith('.png'));
   const images = D.previews.filter(file=>file.name.endsWith('.png'));
   let tab = 'condition', selectedTask = initialTask, selectedDocument = 0;
-  const pdf = {page:Math.min(30,D.kimPreviewPages.length),enlarged:false};
+  body.innerHTML = `<nav class="lesson-tabs materials-tabs" role="tablist" aria-label="Разделы материалов"></nav>
+    <div class="materials-panel" id="materials-panel" role="tabpanel">
+      <div class="materials-panel" data-materials-content></div>
+      <div class="materials-panel" data-kim-content hidden></div>
+    </div>`;
+  const tabList = body.querySelector('.materials-tabs');
+  const panel = body.querySelector('#materials-panel');
+  const materialsContent = panel.querySelector('[data-materials-content]');
+  const kimContent = panel.querySelector('[data-kim-content]');
 
   function content() {
     switch(tab) {
       case 'condition':
         return sampleConditions(selectedTask);
-      case 'kim':
-        return kimPreview(pdf.page,pdf.enlarged);
       case 'documents':
         return `<label>Документ <select id="material-file">${documents.map((file,index)=>
           `<option value="${index}" ${index===selectedDocument?'selected':''}>${E(file.name)}</option>`).join('')}</select></label>
@@ -1004,14 +1009,17 @@ function materials({initialTask=0,title='Материалы задания'}={})
   }
 
   function draw() {
-    body.innerHTML = `<nav class="lesson-tabs materials-tabs" role="tablist" aria-label="Разделы материалов">
-      ${flatTabs(tabs,tab,'materials','materials-panel')}
-    </nav>
-    <div class="materials-panel" id="materials-panel" role="tabpanel" aria-labelledby="materials-tab-${tab}">
-      ${tab==='condition'?conditionTaskMenu(selectedTask):''}
-      <div class="materials-preview" role="region" aria-label="Содержимое материалов" tabindex="0">${content()}</div>
-    </div>`;
-    bindFlatTabs(body.querySelector('.materials-tabs'), button=>{
+    tabList.innerHTML = flatTabs(tabs,tab,'materials','materials-panel');
+    panel.setAttribute('aria-labelledby','materials-tab-'+tab);
+    kimContent.hidden = tab !== 'kim';
+    materialsContent.hidden = tab === 'kim';
+    if (tab === 'kim') {
+      if (!kimContent.firstElementChild) mountKimPreview(kimContent,Math.min(30,D.kimPreviewPages.length),`КИМ ${D.official.code} · PDF`);
+    } else {
+      materialsContent.innerHTML = `${tab==='condition'?conditionTaskMenu(selectedTask):''}
+        <div class="materials-preview" role="region" aria-label="Содержимое материалов" tabindex="0">${content()}</div>`;
+    }
+    bindFlatTabs(tabList, button=>{
       if(tab===button.dataset.tab)return;
       tab = button.dataset.tab;
       draw();
@@ -1029,7 +1037,6 @@ function materials({initialTask=0,title='Материалы задания'}={})
       selectedDocument = Number(select.value);
       body.querySelector('#document-preview').innerHTML = documentPreview(documents[selectedDocument]);
     };
-    bindKimPreview(body,pdf,draw);
   }
   draw();
 }
