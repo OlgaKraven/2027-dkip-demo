@@ -133,6 +133,9 @@ code, pre, .lesson-code, .training-timer-top .training-clock { font-family: var(
 .hero.study-intro {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(152px, 30%);
+  grid-template-areas:
+    "copy mascot"
+    "actions mascot";
   padding: clamp(20px, 3vw, 36px);
   gap: clamp(14px, 2vw, 26px);
   background: var(--inverse-surface);
@@ -141,6 +144,7 @@ code, pre, .lesson-code, .training-timer-top .training-clock { font-family: var(
   border-bottom: 4px solid var(--accent-fill);
 }
 .hero.study-intro::after { content: none; }
+.hero.study-intro .banner-copy { grid-area: copy; }
 .hero.study-intro h1 { margin: 0; }
 .hero.study-intro .banner-facts {
   display: flex;
@@ -166,17 +170,19 @@ code, pre, .lesson-code, .training-timer-top .training-clock { font-family: var(
 .banner-facts time { white-space: nowrap; }
 .hero.study-intro .lead { color: var(--inverse-muted); max-width: 58ch; margin: 0 0 12px; }
 .hero.study-intro .button-row {
-  grid-column: 1 / -1;
+  grid-area: actions;
   margin: 0;
   flex-wrap: nowrap;
   align-items: stretch;
 }
 .hero.study-intro .button-row > .btn { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
 .hero.study-intro .banner-mascot {
+  grid-area: mascot;
   width: 100%;
   max-width: 290px;
   height: auto;
   aspect-ratio: 1;
+  align-self: center;
   justify-self: center;
   border-radius: 50%;
 }
@@ -365,7 +371,10 @@ code, pre, .lesson-code, .training-timer-top .training-clock { font-family: var(
   .learning-map { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 620px) {
-  .hero.study-intro { grid-template-columns: minmax(0, 1fr); }
+  .hero.study-intro {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "copy" "mascot" "actions";
+  }
   .hero.study-intro .banner-mascot { max-width: 144px; }
 }
 
