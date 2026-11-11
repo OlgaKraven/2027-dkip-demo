@@ -23,6 +23,8 @@ if(!D.stages[stack])stack='mysql';if(!isMode(mode))mode=mode==='criteria'?'overv
 const exampleStackFrom = query => query.get('exampleStack') || query.get('stack');
 let exampleStack = mode==='examples' ? exampleStackFrom(p) || get('example-stack') : get('example-stack');
 const selectedExampleStack = () => Object.hasOwn(D.exampleLaunch,exampleStack) ? exampleStack : stack;
+let deckStack = mode==='teacher' ? p.get('deckStack') || p.get('stack') || get('deck-stack') : get('deck-stack');
+const selectedDeckStack = () => Object.hasOwn(D.exampleLaunch,deckStack) ? deckStack : stack;
 const lessonTabs = [['brief','Условие и файлы'],['steps','Шаги'],['help','Справка']];
 const resultStepTitle = 'Что сохранить';
 const isLessonView = view => lessonTabs.some(([id])=>id===view);
@@ -174,7 +176,7 @@ function focusLessonHeading(pointer=false) {
   workspaceStep?.scrollIntoView({block:'start',behavior:'instant'});
 }
 
-const btn=(t,a='',primary=false)=>`<button class="btn${primary?' primary':''}" ${a}>${t}</button>`,link=(t,url)=>`<a href="${E(url)}" target="_blank" rel="noopener">${E(t)}</a>`,label=()=>stack==='mysql'?'Windows Forms + XAMPP (MySQL)':'WPF + PostgreSQL';
+const btn=(t,a='',primary=false)=>`<button class="btn${primary?' primary':''}" ${a}>${t}</button>`,link=(t,url)=>`<a href="${E(url)}" target="_blank" rel="noopener">${E(t)}</a>`;
 function iconButton(title,path,attributes) {
   return btn(
     `<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" fill-rule="evenodd" aria-hidden="true"><path d="${path}"/></svg><span class="icon-tooltip" aria-hidden="true">${E(title)}</span>`,
@@ -761,6 +763,11 @@ function exampleAccountsBlock(noteId) {
     </table>
   </div>`;
 }
+function stackButtons(scope,activeStack,label) {
+  return `<div class="example-stacks" role="group" aria-label="${E(label)}">
+    ${Object.entries(D.exampleLaunch).map(([id,option])=>btn(E(option.name),`type="button" data-${scope}-stack="${id}" aria-pressed="${id===activeStack}"`)).join('')}
+  </div>`;
+}
 function examples() {
   const activeStack = selectedExampleStack();
   const guide = D.exampleLaunch[activeStack];
@@ -768,9 +775,7 @@ function examples() {
   const firstFile = activeStack==='mysql' ? 'examples/mysql/LoginForm.cs' : 'examples/postgresql/LoginWindow.xaml.cs';
   return `<section class="training-page example-page">
     ${header('Готовый пример','Выберите стек и скачайте рабочий проект с учебными данными.')}
-    <div class="example-stacks" role="group" aria-label="Стек готового примера">
-      ${Object.entries(D.exampleLaunch).map(([id,option])=>btn(E(option.name),`type="button" data-example-stack="${id}" aria-pressed="${id===activeStack}"`)).join('')}
-    </div>
+    ${stackButtons('example',activeStack,'Стек готового примера')}
     <div class="example-grid">
       <article class="route-panel">
         <h2>${E(desktop)} и ${E(guide.database)}</h2>
@@ -812,10 +817,12 @@ function criteria() {
     <p><a id="criteria-kim" href="${kimPdfPath}#page=${criteriaKimPage}" aria-haspopup="dialog">Полные формулировки в КИМ · стр. ${criteriaKimPage}</a></p>
   </section>`;
 }
-function deckPath(){return (location.pathname.includes('/_mock-preview/')?'../deck.html?preview=1&':'deck.html?')+'stack='+stack;}
+function deckPath(){return (location.pathname.includes('/_mock-preview/')?'../deck.html?preview=1&':'deck.html?')+'stack='+selectedDeckStack();}
 function teacher(){
- const pdf=stack==='postgresql'?'wpf':'winforms';
- return `<section class="training-page">${header('Преподавателю','Разбор официального образца ДЭ 2027 для занятия.')}<article class="route-panel"><h2>Презентация по демоэкзамену</h2><p>${E(label())}. На слайдах — условия шести заданий, пошаговая демонстрация и готовый пример.</p><p>Перед показом впишите ФИО, должность и кафедру. В самой презентации можно открыть отдельное окно для аудитории или сохранить PDF с вашими данными.</p><div class="button-row">${btn('Данные преподавателя','id="teacher-settings"')}${btn('Открыть презентацию','id="deck-open"',true)}<a class="btn" href="materials/presentation-dkip2027-${pdf}.pdf" download>Скачать PDF</a></div></article></section>`;
+ const activeStack=selectedDeckStack(), pdf=activeStack==='postgresql'?'wpf':'winforms';
+ return `<section class="training-page">${header('Преподавателю','Разбор официального образца ДЭ 2027 для занятия.')}
+   ${stackButtons('deck',activeStack,'Стек презентации')}
+   <article class="route-panel"><h2>Презентация по демоэкзамену</h2><p>На слайдах — условия шести заданий, пошаговая демонстрация и готовый пример.</p><p>Перед показом впишите ФИО, должность и кафедру. В самой презентации можно открыть отдельное окно для аудитории или сохранить PDF с вашими данными.</p><div class="button-row">${btn('Данные преподавателя','id="teacher-settings"')}${btn('Открыть презентацию','id="deck-open"',true)}<a class="btn" href="materials/presentation-dkip2027-${pdf}.pdf" download>Скачать PDF</a></div></article></section>`;
 }
 function modal(title){const d=document.createElement('dialog');d.className='course-dialog';d.setAttribute('aria-label',title);d.innerHTML=`<header class="modal-head"><h2>${E(title)}</h2>${btn('Закрыть','data-close')}</header><div class="modal-body"></div>`;document.body.append(d);d.querySelector('[data-close]').onclick=()=>d.close();d.addEventListener('close',()=>d.remove());d.showModal();return d;}
 function openCriteriaKim(event) {
@@ -1060,7 +1067,7 @@ function tour(){
   step('mock','Выполните задания и проверьте себя','Выберите задание в списке. Откройте его файлы под условием и отметьте выполненные пункты самопроверки.','.stage-nav [data-task]'),
   step('examples','Примеры · выберите стек и скачайте проект','Выберите Windows Forms или WPF. Архив, инструкция по запуску и исходники откроются для выбранного стека.','.example-stacks'),
   step('examples','Посмотрите исходный код','Выберите файл по пути и нажмите «Открыть файл». В окне можно прочитать и скопировать весь код. Сохраняйте исходные имена и пути файлов.','#example-file'),
-  step('teacher','Преподавателю · подготовьте занятие','Заполните данные преподавателя и откройте презентацию. Она показывает весь маршрут для выбранного стека.','#deck-open')
+  step('teacher','Преподавателю · подготовьте занятие','Выберите стек презентации, заполните данные преподавателя и откройте показ.','#deck-open')
  ];
  let i=0;
  const d=modal('Тур по сайту');
@@ -1199,6 +1206,12 @@ root.querySelectorAll('[data-example-stack]').forEach(button=>button.onclick=()=
  navigate({exampleStack:nextStack});
  root.querySelector(`[data-example-stack="${nextStack}"]`).focus({preventScroll:true});
 });
+root.querySelectorAll('[data-deck-stack]').forEach(button=>button.onclick=()=>{
+ const nextStack = button.dataset.deckStack;
+ if (nextStack===selectedDeckStack()) return;
+ navigate({deckStack:nextStack});
+ root.querySelector(`[data-deck-stack="${nextStack}"]`).focus({preventScroll:true});
+});
 on('example-launch',openExampleInstructions);
 on('example-file',event=>{
  document.getElementById('example-file-description').textContent=D.codeDescriptions[event.target.value];
@@ -1226,7 +1239,8 @@ on('theme',()=>{dark=!dark;set('dark',dark);render();document.getElementById('th
 }
 function pageUrl(pageMode) {
  const examples = pageMode==='examples' ? '&exampleStack='+selectedExampleStack() : '';
- return '?section=work&mode='+pageMode+'&module='+stage+'&stack='+stack+'&variant='+variant+'&view='+learningView+examples;
+ const presentation = pageMode==='teacher' ? '&deckStack='+selectedDeckStack() : '';
+ return '?section=work&mode='+pageMode+'&module='+stage+'&stack='+stack+'&variant='+variant+'&view='+learningView+examples+presentation;
 }
 function render({preserveScroll=true,criteriaAnchor=mode==='overview'&&isCriteriaLink(new URLSearchParams(location.search))}={}){const previousScroll=window.scrollY;task=Math.min(D.tasks.length-1,Math.max(0,get('task:'+key(),0)));document.body.classList.toggle('dark',dark);if(!document.querySelector('.tour-dialog[open]')){set('mode',mode);set('stage',stage);
   if(mode==='learn'&&isLessonView(learningView)){
@@ -1251,6 +1265,10 @@ function navigate(next) {
    exampleStack=next.exampleStack;
    set('example-stack',exampleStack);
  }
+ if (next.deckStack) {
+   deckStack=next.deckStack;
+   set('deck-stack',deckStack);
+ }
  render({preserveScroll:false,criteriaAnchor:false});
  window.scrollTo(0,0);
  const target=location.href;
@@ -1265,6 +1283,7 @@ window.addEventListener('popstate',()=>{
  mode=isCriteriaLink(q)?'overview':isMode(q.get('mode'))?q.get('mode'):'overview';
  stack=D.stages[q.get('stack')]?q.get('stack'):'mysql';
  if (mode==='examples') exampleStack=exampleStackFrom(q);
+ if (mode==='teacher') deckStack=q.get('deckStack') || q.get('stack');
  stage=S().some(s=>s.id===q.get('module'))?q.get('module'):'documents';
  variant=D.variants.some(v=>v.id===q.get('variant'))?q.get('variant'):'V01';
  learningView=isLessonView(q.get('view'))?q.get('view'):'map';

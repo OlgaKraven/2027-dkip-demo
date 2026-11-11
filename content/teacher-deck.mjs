@@ -117,7 +117,7 @@ export function teacherDeck(data,stack) {
     s.steps.forEach((step,i)=>{
       const stepKey=s.id+':'+(i+1);
       const segments=(step.actionGroups||[{actions:step.actions,shot:step.shot}]).flatMap(group=>{
-        const shot=image(group.shot);
+        const shot=image(group.deckShot||group.shot);
         return blocks(group.actions,shot?520:550,shot?3:4).map((actions,j)=>({actions,heading:group.title,image:j===0?shot:undefined}));
       });
       const mainImage=image(step.shot);
@@ -145,9 +145,12 @@ export function teacherDeck(data,stack) {
         const pages=codePages(code);
         pages.forEach((text,j)=>add('code',s.id,step.title,{eyebrow:'Шаг '+(i+1)+' · '+label+(pages.length>1?' · '+(j+1)+'/'+pages.length:''),code:text,stepKey}));
       }
+      for(const [title,shot] of step.deckVisuals||[]) add('step',s.id,title,{
+        eyebrow:'Шаг '+(i+1)+' · фрагмент схемы',stepKey,image:image(shot)
+      });
       if(step.erWorkspace)add('step',s.id,'Общая ER-диаграмма',{
         eyebrow:'Шаг '+(i+1)+' · схема',stepKey,
-        image:image('er'),
+        image:image('er-overview'),
         links:[['ER-диаграмма · PDF','materials/er.pdf']]
       });
     });

@@ -40,6 +40,46 @@
       "file": "materials/screenshots/mysql/er.png",
       "caption": "Поэтапный разбор ER: отдельное поле, исходный документ и объяснение справа. Маршрут: Windows Forms / XAMPP MySQL."
     },
+    "er-counterparty": {
+      "file": "materials/screenshots/common/er-counterparty.png",
+      "caption": "Таблица counterparty. Выделено поле name из «Заказчики.json»."
+    },
+    "er-prices": {
+      "file": "materials/screenshots/common/er-prices.png",
+      "caption": "Цена ссылается на номенклатуру. Ключ price состоит из item_id и valid_from."
+    },
+    "er-specification": {
+      "file": "materials/screenshots/common/er-specification.png",
+      "caption": "Спецификация, номенклатура и состав. Выделена связь specification_component.specification_id → specification.id."
+    },
+    "er-customer-order": {
+      "file": "materials/screenshots/common/er-customer-order.png",
+      "caption": "Контрагенты, заказ покупателя и его строки. Выделена связь customer_order_line.order_id → customer_order.id."
+    },
+    "er-production-order": {
+      "file": "materials/screenshots/common/er-production-order.png",
+      "caption": "Заказ на производство, продукция к выпуску и план ресурсов. Выделена связь production_resource.production_id → production_order.id."
+    },
+    "er-users": {
+      "file": "materials/screenshots/common/er-users.png",
+      "caption": "Таблица users с логином, хешем пароля, ролью и полями блокировки."
+    },
+    "er-notes": {
+      "file": "materials/screenshots/common/er-notes.png",
+      "caption": "Связь notes.id_user → users.id. У каждой заметки один автор."
+    },
+    "er-component-item": {
+      "file": "materials/screenshots/common/er-component-item.png",
+      "caption": "Норма qty хранится в составе, а название ресурса — в item. Выделена связь specification_component.item_id → item.id."
+    },
+    "er-customer-phone": {
+      "file": "materials/screenshots/common/er-customer-phone.png",
+      "caption": "Заказ ссылается на покупателя по customer_id. Поле phone находится в counterparty."
+    },
+    "er-overview": {
+      "file": "materials/screenshots/common/er-overview.png",
+      "caption": "Готовая схема с 12 таблицами, полями, ключами и связями."
+    },
     "db-start": {
       "file": "materials/screenshots/mysql/db-start.png",
       "caption": "XAMPP Control Panel: запущены Apache и MySQL (MariaDB). Маршрут: Windows Forms / XAMPP MySQL."
@@ -277,6 +317,46 @@
     "er": {
       "file": "materials/screenshots/postgresql/er.png",
       "caption": "Поэтапный разбор ER: отдельное поле, исходный документ и объяснение справа. Маршрут: WPF / PostgreSQL."
+    },
+    "er-counterparty": {
+      "file": "materials/screenshots/common/er-counterparty.png",
+      "caption": "Таблица counterparty. Выделено поле name из «Заказчики.json»."
+    },
+    "er-prices": {
+      "file": "materials/screenshots/common/er-prices.png",
+      "caption": "Цена ссылается на номенклатуру. Ключ price состоит из item_id и valid_from."
+    },
+    "er-specification": {
+      "file": "materials/screenshots/common/er-specification.png",
+      "caption": "Спецификация, номенклатура и состав. Выделена связь specification_component.specification_id → specification.id."
+    },
+    "er-customer-order": {
+      "file": "materials/screenshots/common/er-customer-order.png",
+      "caption": "Контрагенты, заказ покупателя и его строки. Выделена связь customer_order_line.order_id → customer_order.id."
+    },
+    "er-production-order": {
+      "file": "materials/screenshots/common/er-production-order.png",
+      "caption": "Заказ на производство, продукция к выпуску и план ресурсов. Выделена связь production_resource.production_id → production_order.id."
+    },
+    "er-users": {
+      "file": "materials/screenshots/common/er-users.png",
+      "caption": "Таблица users с логином, хешем пароля, ролью и полями блокировки."
+    },
+    "er-notes": {
+      "file": "materials/screenshots/common/er-notes.png",
+      "caption": "Связь notes.id_user → users.id. У каждой заметки один автор."
+    },
+    "er-component-item": {
+      "file": "materials/screenshots/common/er-component-item.png",
+      "caption": "Норма qty хранится в составе, а название ресурса — в item. Выделена связь specification_component.item_id → item.id."
+    },
+    "er-customer-phone": {
+      "file": "materials/screenshots/common/er-customer-phone.png",
+      "caption": "Заказ ссылается на покупателя по customer_id. Поле phone находится в counterparty."
+    },
+    "er-overview": {
+      "file": "materials/screenshots/common/er-overview.png",
+      "caption": "Готовая схема с 12 таблицами, полями, ключами и связями."
     },
     "db-start": {
       "file": "materials/screenshots/postgresql/db-start.png",

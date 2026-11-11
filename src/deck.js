@@ -134,7 +134,7 @@
     printPages();
     return;
   }
-  by('back').href=(preview?'./_mock-preview/':'./')+'?section=work&mode=teacher&stack='+stack;
+  by('back').href=(preview?'./_mock-preview/':'./')+'?section=work&mode=teacher&deckStack='+stack;
   updateTheme();
   if(audience){
     document.body.classList.add('audience');
