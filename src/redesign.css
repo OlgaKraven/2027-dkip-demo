@@ -621,6 +621,31 @@ body.dark .pause-symbol { color: var(--red); }
 .lesson-layout .study-step { scroll-margin-top: 12px; }
 .lesson-layout .lesson-heading { margin-top: 0; }
 .lesson-layout .lesson-explanation li { margin-block: 8px; }
+.lesson-actions {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+}
+.lesson-layout .lesson-actions > li {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  margin: 0;
+  padding: 9px 0;
+  overflow-wrap: anywhere;
+}
+.lesson-actions > li + li { border-top: 1px solid var(--line); }
+.lesson-action-number {
+  display: grid;
+  place-items: center;
+  height: 28px;
+  border-radius: 7px;
+  background: var(--route-active);
+  color: var(--red);
+  font-size: .8125rem;
+  font-weight: 700;
+}
 .lesson-resources { margin: 8px 0 16px; padding-inline-start: 1.4em; overflow-wrap: anywhere; }
 .lesson-layout .lesson-explanation .lesson-resources li { margin-block: 4px; }
 .lesson-code-block {
@@ -914,11 +939,9 @@ body.dark .pause-symbol { color: var(--red); }
 .lesson-card-er .lesson-glossary dd > p + p { margin-block-start: 6px; }
 .lesson-help-errors { margin: 0; padding-inline-start: 20px; }
 .lesson-help-errors li + li { margin-top: 8px; }
-.lesson-help-procedure { margin-block: 14px 0; padding-inline-start: 1.5em; }
-.lesson-help-procedure li + li { margin-block-start: 12px; }
-.lesson-help-procedure li p { margin-block: 3px 0; }
+.lesson-help-pane .lesson-actions p { margin-block: 3px 0; }
 .lesson-help-procedure-heading { margin-block: 22px 6px; }
-.lesson-help-procedure .microshot { margin-block: 8px 12px; }
+.lesson-help-pane .lesson-actions .microshot { margin-block: 8px 12px; }
 .lesson-db-structure { margin-block: 20px; padding-block-start: 16px; border-block-start: 1px solid var(--line); }
 .lesson-db-structure label { display: block; margin-block-end: 6px; font-weight: 650; }
 .lesson-db-structure select { inline-size: 100%; }

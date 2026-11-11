@@ -225,10 +225,10 @@ function header(title,text){return `<div class="route-heading"><h1>${E(title)}</
 function sources(){return `<div class="button-row"><a class="btn" href="materials/kim-2027.pdf#page=30" target="_blank">КИМ · PDF</a><a class="btn" href="downloads/basic-inputs.zip" download>Приложения · ZIP</a></div>`;}
 function shotFor(s,screenStack=stack){return D.screens[screenStack]?.[s.shot];}
 function shot(s,full=false,example=false,screenStack=stack){const a=shotFor(s,screenStack);if(!a)return '';return `<figure class="microshot"><button class="image-open" data-image="${E(a.file)}" aria-label="Увеличить скриншот: ${E(a.caption)}"><img src="${E(a.file)}" alt="${E(a.caption)}" ${full?'':'loading="lazy"'}></button><figcaption>${example?'На снимке: ':''}${E(a.caption)}</figcaption></figure>`;}
-function lessonActions(actions, withEr) {
-  return `<ol${withEr?' class="er-lesson-actions" role="list"':''}>${actions.map((action,index)=>withEr
-    ? `<li><span class="er-lesson-action-number" aria-hidden="true">${index+1}</span><span>${E(action)}</span></li>`
-    : `<li>${E(action)}</li>`).join('')}</ol>`;
+function lessonActions(actions, renderAction=E) {
+  return `<ol class="lesson-actions" role="list">${actions.map((action,index)=>
+    `<li><span class="lesson-action-number" aria-hidden="true">${index+1}</span><div>${renderAction(action)}</div></li>`
+  ).join('')}</ol>`;
 }
 function dbTableDetails(table, creating) {
  const mysql=stack==='mysql';
@@ -289,8 +289,8 @@ function explain(step, withEr) {
     ${resources||step.links?.length?`${withEr?'<h3>Материалы шага</h3>':''}<ul class="lesson-resources" aria-label="Материалы шага">${resources}${(step.links??[]).map(([title,url])=>`<li>${link(title,url)}</li>`).join('')}</ul>`:''}
     <h3>Что сделать</h3>
     ${step.actionGroups
-      ? step.actionGroups.map(group=>`<section class="lesson-action-group"><h4>${E(group.title)}</h4>${lessonActions(group.actions,withEr)}${group.shot?shot(group):''}</section>`).join('')
-      : lessonActions(step.actions,withEr)}
+      ? step.actionGroups.map(group=>`<section class="lesson-action-group"><h4>${E(group.title)}</h4>${lessonActions(group.actions)}${group.shot?shot(group):''}</section>`).join('')
+      : lessonActions(step.actions)}
     ${(step.codeBlocks || (step.code ? [{label:step.codeLabel,code:step.code}] : [])).map(block=>`<div class="lesson-code-block">
       <div class="lesson-code-toolbar"><span>${E(block.label||'Код')}</span>${btn('Копировать код','type="button" data-copy-lesson-code')}</div>
       <pre class="lesson-code" tabindex="0">${E(block.code)}</pre>
@@ -323,8 +323,8 @@ function bindFlatTabs(list, activate) {
 }
 function lessonHelp(foundation) {
   const {title,summary,exampleTitle,example,termsTitle,diagnosticsTitle,csvExport}=foundation.guide;
-  const procedure = steps=>`<ol class="lesson-help-procedure">${steps.map(([heading,action,screenshot])=>
-    `<li><strong>${E(heading)}</strong><p>${E(action)}</p>${screenshot?shot({shot:screenshot}):''}</li>`).join('')}</ol>`;
+  const procedure = steps=>lessonActions(steps,([heading,action,screenshot])=>
+    `<strong>${E(heading)}</strong><p>${E(action)}</p>${screenshot?shot({shot:screenshot}):''}`);
   const glossary = entries=>`<dl class="lesson-glossary">${entries.map(([term,definition])=>
     `<div><dt>${E(term)}</dt><dd>${Array.isArray(definition)?definition.map(line=>`<p>${E(line)}</p>`).join(''):E(definition)}</dd></div>`).join('')}</dl>`;
   const topics = [
@@ -529,7 +529,7 @@ function learn() {
             <section class="lesson-explanation er-review">
               <h4>Что сверить</h4>
               <p>${E(step.why)}</p>
-              ${lessonActions(step.actions,true)}
+              ${lessonActions(step.actions)}
             </section>
             <section class="er-workspace" id="er-workspace" aria-labelledby="er-title"></section>
           ` : step ? `
