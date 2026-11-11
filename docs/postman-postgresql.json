@@ -11,6 +11,10 @@
     {
       "key": "error_url",
       "value": "http://127.0.0.1:5282"
+    },
+    {
+      "key": "expected_note",
+      "value": "{\"id\":1,\"title_user\":\"Заметка 1 - student\",\"content\":\"Содержание заметки 1\",\"formatted_date\":\"15.03.2027\"}"
     }
   ],
   "item": [
@@ -46,6 +50,19 @@
             "type": "text/javascript",
             "exec": [
               "pm.test(\"Обработанные поля\", function () { const rows=pm.response.json(); pm.expect(rows.length).to.be.at.least(3); rows.forEach(n=>{pm.expect(n).to.have.all.keys(\"id\",\"title_user\",\"content\",\"formatted_date\");pm.expect(n.title_user).to.include(\" - \");pm.expect(n.formatted_date).to.match(/^\\d{2}\\.\\d{2}\\.\\d{4}$/);}); });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Контрольная заметка совпадает со строкой БД\", function () {",
+              "  const expected = JSON.parse(pm.collectionVariables.get(\"expected_note\"));",
+              "  const actual = pm.response.json().find(note => note.id === expected.id);",
+              "  pm.expect(actual).to.deep.equal(expected);",
+              "});"
             ]
           }
         }

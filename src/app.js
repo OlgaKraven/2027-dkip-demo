@@ -283,7 +283,7 @@ function explain(step, withEr) {
     return file ? documentItems([file]) : '';
   }).join('');
   return `<section class="lesson-explanation">
-    ${resources?`${withEr?'<h3>Материалы шага</h3>':''}<ul class="lesson-resources" aria-label="Материалы шага">${resources}</ul>`:''}
+    ${resources||step.links?.length?`${withEr?'<h3>Материалы шага</h3>':''}<ul class="lesson-resources" aria-label="Материалы шага">${resources}${(step.links??[]).map(([title,url])=>`<li>${link(title,url)}</li>`).join('')}</ul>`:''}
     <h3>Что сделать</h3>
     ${step.actionGroups
       ? step.actionGroups.map(group=>`<section class="lesson-action-group"><h4>${E(group.title)}</h4>${lessonActions(group.actions,withEr)}${group.shot?shot(group):''}</section>`).join('')

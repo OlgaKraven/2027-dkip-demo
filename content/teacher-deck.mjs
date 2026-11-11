@@ -128,7 +128,8 @@ export function teacherDeck(data,stack) {
       const details=segments.map((segment,j)=>({
         ...segment,body:j===0?step.why:undefined,
         check:j===segments.length-1?step.check:undefined,source:step.source,
-        resources:j===segments.length-1?step.resources?.filter(s=>s!=='kim'):undefined
+        resources:j===segments.length-1?step.resources?.filter(s=>s!=='kim'):undefined,
+        links:j===segments.length-1?step.links:undefined
       })).flatMap(detail=>{
         const size=[...(detail.actions||[]),detail.body,detail.check,detail.source,...(detail.resources||[])].filter(Boolean).join(' ').length;
         if(!detail.image||size<=480||!detail.actions.length)return [detail];

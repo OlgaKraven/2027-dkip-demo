@@ -9,7 +9,11 @@ fs.cpSync('materials',out+'/materials',{recursive:true});fs.mkdirSync(out+'/docs
 const teachingDoc=f=>/^(DECISIONS\.md|api-(mysql|postgresql)\.(md|pdf|docx)|openapi\.json|postman-(mysql|postgresql)\.json)$/.test(f);
 for(const f of fs.readdirSync(out+'/docs'))if(!teachingDoc(f))fs.rmSync(out+'/docs/'+f,{recursive:true,force:true});
 for(const f of fs.readdirSync('docs'))if(teachingDoc(f))fs.copyFileSync('docs/'+f,out+'/docs/'+f);fs.mkdirSync(out+'/downloads',{recursive:true});
-for(const stack of ['mysql','postgresql'])fs.cpSync('examples/'+stack+'/Sql',out+'/code/examples/'+stack+'/Sql',{recursive:true});
+for(const stack of ['mysql','postgresql']){
+ fs.cpSync('examples/'+stack+'/Sql',out+'/code/examples/'+stack+'/Sql',{recursive:true});
+ const starter='examples/starter/'+stack+'/Database.cs';
+ fs.cpSync(starter,out+'/code/'+starter);
+}
 const read=f=>JSON.parse(fs.readFileSync(f,'utf8'));
 const kimPreviewDir='materials/kim-preview';
 const kimPreviewPages=fs.readdirSync(kimPreviewDir)
