@@ -53,7 +53,8 @@ for(const [stack,app] of [['mysql','Dkip.WinForms'],['postgresql','Dkip.Wpf']]){
   if(teachingDoc(name)&&!name.startsWith('api-'+otherStack+'.')&& !name.startsWith('postman-'+otherStack+'.'))files[p]=b;
  });
  walk('materials/basic',(p,b)=>{files[p]=b;});
- files['examples/README.md']=exampleLaunch[stack].readme;
+ files['README.md']=exampleLaunch[stack].readme;
+ files['examples/README.md']='Откройте [README.md в корне распакованного ZIP](../README.md).\n';
  for(const f of fs.readdirSync('examples/Api/wwwroot'))files['examples/Api/wwwroot/'+f]=fs.readFileSync('examples/Api/wwwroot/'+f);
  const projects=[desktop,'examples/Api/Dkip.Api.csproj','examples/Shared/Dkip.Core.csproj','examples/Tools/Dkip.Tools.csproj'];
  files['Dkip.Example.slnx']='<Solution>\n'+projects.map(project=>`  <Project Path="${project}" />`).join('\n')+'\n</Solution>\n';
