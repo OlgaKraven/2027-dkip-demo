@@ -59,10 +59,10 @@ export const exampleLaunch = Object.fromEntries(Object.entries(stacks).map(([sta
       'В Проводнике нажмите правой кнопкой по ZIP → «Извлечь всё». Откройте получившуюся папку. Внутри должны быть `examples`, `docs` и `materials`.',
       ...setup.prepare
     ]},
-    {title:'Загрузите данные в Visual Studio', steps:[
-      'Откройте «Файл» → «Открыть» → «Проект или решение». Выберите `examples/Tools/Dkip.Tools.csproj` и дождитесь загрузки зависимостей.',
-      `В Обозревателе решений выделите проект. Откройте «Отладка» → «Свойства отладки Dkip.Tools». В разделе Environment variables задайте ${code('DKIP_STACK')} со значением ${code(stack)} и ${code('DKIP_CONNECTION')} со строкой подключения ниже.\n${code(setup.connection)}\n${connectionHint}`,
-      'В поле «Аргументы командной строки» введите `seed`, затем пробел и полный путь к `materials/basic/Задание 1/Заказчики.json` в двойных кавычках. Нажмите Ctrl+F5 и дождитесь сообщения о загрузке. Если запуск прервался, повторите его с теми же настройками и файлом в этой учебной базе. Для контрольной проверки замените аргументы запуска на `check` и снова нажмите Ctrl+F5.'
+    {title:'Импортируйте учебные данные', steps:[
+      `В той же базе выполните ${code('examples/'+stack+'/Sql/02-demo-data.sql')}. В базе появятся шесть заказчиков из исходного JSON, данные для расчёта, два пользователя и пять заметок.`,
+      'В корне ZIP откройте `preparation.html`. Команды для EXE даны в разделе «Проверьте запуск готового примера», восстановление NuGet и сборка — в разделе разработки.',
+      `Для отладки в Visual Studio восстановите пакеты из ZIP, откройте ${code('Dkip.Example.slnx')} и задайте ${code('DKIP_STACK')} со значением ${code(stack)} и ${code('DKIP_CONNECTION')} со строкой ниже.\n${code(setup.connection)}\n${connectionHint}`
     ]},
     {title:'Запустите настольное приложение', steps:[
       `В Visual Studio откройте ${code(setup.project)}. В свойствах отладки этого проекта задайте те же ${code('DKIP_STACK')} и ${code('DKIP_CONNECTION')}, затем нажмите Ctrl+F5.`,

@@ -433,6 +433,7 @@ function lessonBrief(lesson) {
   if(taskIndex<0){
     const files=taskDocuments(0);
     return `${conditionText(taskParagraphs(lesson.goal))}
+      <p><a href="preparation.html">0. Установка и настройка программ</a> · <a href="preparation.html#faq">ЧаВО об экзамене</a></p>
       <section class="task-files"><h3>Исходные документы</h3><ul>${documentItems(files)}</ul></section>
       ${sources()}`;
   }
@@ -445,6 +446,7 @@ function lessonBrief(lesson) {
     <div><dt>Что сдать</dt><dd>PDF, в котором читаются таблицы, поля, ключи и связи. Типы данных можно уточнить на следующем этапе.</dd></div>
   </dl><h3>Формулировка КИМ</h3>`:''}
     ${conditionText(original.paragraphs)}
+    ${['M4','M5','M6'].includes(lesson.id)?'<p><a href="preparation.html#development">Библиотеки и сборка без интернета</a></p>':''}
     <section class="task-files"><h3>Приложения</h3>
       <ul><li>${assignmentAttachment(taskIndex,original.attachment)}</li>
         ${documentItems(taskDocuments(taskIndex))}</ul>
@@ -804,6 +806,9 @@ function examples() {
           <a class="btn primary" href="downloads/dkip2027-${activeStack}.zip" download>Скачать ZIP · ${E(desktop)}</a>
           ${btn('Инструкция по запуску','type="button" id="example-launch" aria-haspopup="dialog"')}
         </div>
+        <h3>Проверьте запуск готового примера</h3>
+        <p>Импортируйте <code>examples/${activeStack}/Sql/01-schema.sql</code> и <code>02-demo-data.sql</code> из того же каталога. После настройки подключения откройте EXE из папки <code>Windows/Desktop</code> и проверьте вход под обеими ролями.</p>
+        <p><a href="preparation.html#launch">Команды запуска приложения и API</a></p>
         ${exampleAccountsBlock('example-accounts-note')}
         <p class="small">После запуска API откройте ${link('GET /notes',guide.baseUrl+'/notes')} или отправьте запрос из Postman.</p>
         <p>${link('Коллекция Postman','docs/postman-'+activeStack+'.json')} · ${link('Заполненный DOCX','docs/api-'+activeStack+'.docx')} · ${link('OpenAPI JSON','docs/openapi.json')}</p>

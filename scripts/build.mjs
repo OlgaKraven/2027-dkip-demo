@@ -3,6 +3,7 @@ import {stagesFor,tasks,criteria} from '../content/course.mjs';import {buildErLa
 import {describeExampleFile} from '../content/example-files.mjs';
 import {exampleAccounts,exampleLaunch} from '../content/example-launch.mjs';
 import {teacherDeck} from '../content/teacher-deck.mjs';
+import {offlinePackages,publishExample} from './offline-windows.mjs';
 const out='site';fs.mkdirSync(out,{recursive:true});
 for(const f of fs.readdirSync('src'))fs.copyFileSync('src/'+f,out+'/'+f);
 fs.cpSync('materials',out+'/materials',{recursive:true});fs.mkdirSync(out+'/docs',{recursive:true});
@@ -31,13 +32,18 @@ for(const [stack,{links}] of Object.entries(er.stacks)){
  }
 }
 er.layouts=await buildErLayouts(er);fs.writeFileSync(out+'/er-data.js','globalThis.ER_GUIDE='+JSON.stringify(er)+';');
-const code={};function walk(dir,fn,rel=dir+'/'){for(const f of fs.readdirSync(dir,{withFileTypes:true})){if(['bin','obj','wwwroot','.vs','.runtime'].includes(f.name))continue;const p=path.join(dir,f.name).replaceAll('\\','/');if(f.isDirectory())walk(p,fn);else fn(p,fs.readFileSync(p));}}
+const code={};function walk(dir,fn){for(const f of fs.readdirSync(dir,{withFileTypes:true})){if(['bin','obj','.vs','.runtime'].includes(f.name)||f.name==='wwwroot'&&dir==='examples/Api')continue;const p=path.join(dir,f.name).replaceAll('\\','/');if(f.isDirectory())walk(p,fn);else fn(p,fs.readFileSync(p));}}
 for(const dir of ['examples','docs'])walk(dir,(p,b)=>{if(/\.(cs|csproj|xaml|sql|json|md|ps1)$/.test(p)&&(!p.startsWith('docs/')||teachingDoc(path.basename(p))))code[p]=b.toString('utf8');});
 const screens=fs.existsSync('content/screens.json')?read('content/screens.json'):{};
 for(const entries of Object.values(screens))for(const screen of Object.values(entries))screen.file+='?v='+createHash('sha256').update(fs.readFileSync(screen.file)).digest('hex').slice(0,12);
 const variants=read('content/variants.json');const sources=[];walk('materials',(p,b)=>{if(/\.(pdf|docx|xlsx|json|rar)$/.test(p))sources.push({file:p,sha256:createHash('sha256').update(b).digest('hex')});});
-for(const stack of ['mysql','postgresql']){
- const files={};
+const published='output/windows';
+publishExample('examples/Api/Dkip.Api.csproj',`${published}/api`);
+const packages=await offlinePackages();
+for(const [stack,app] of [['mysql','Dkip.WinForms'],['postgresql','Dkip.Wpf']]){
+ const desktop=`examples/${stack}/${app}.csproj`;
+ publishExample(desktop,`${published}/${stack}`);
+ const files={...packages,'preparation.html':fs.readFileSync('src/preparation.html')};
  const otherStack=stack==='mysql'?'postgresql':'mysql';
  walk('examples',(p,b)=>{
   if(!p.startsWith('examples/'+otherStack+'/')&&!p.startsWith('examples/starter/'+otherStack+'/'))files[p]=b;
@@ -49,6 +55,12 @@ for(const stack of ['mysql','postgresql']){
  walk('materials/basic',(p,b)=>{files[p]=b;});
  files['examples/README.md']=exampleLaunch[stack].readme;
  for(const f of fs.readdirSync('examples/Api/wwwroot'))files['examples/Api/wwwroot/'+f]=fs.readFileSync('examples/Api/wwwroot/'+f);
+ const projects=[desktop,'examples/Api/Dkip.Api.csproj','examples/Shared/Dkip.Core.csproj','examples/Tools/Dkip.Tools.csproj'];
+ files['Dkip.Example.slnx']='<Solution>\n'+projects.map(project=>`  <Project Path="${project}" />`).join('\n')+'\n</Solution>\n';
+ for(const [kind,folder] of [['Desktop',stack],['Api','api']]){
+  const release=`${published}/${folder}`;
+  walk(release,(p,b)=>{files[`Windows/${kind}/${p.slice(release.length+1)}`]=b;});
+ }
  fs.writeFileSync(`${out}/downloads/dkip2027-${stack}.zip`,ExamCore.zip(files));
 }
 const variantPreviews=read('content/variant-previews.json');
