@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ru">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Подготовка к ДЭ · Специалист по информационным системам</title>
+<style>
+  body { max-width: 60rem; margin: 2rem auto; padding: 0 1.25rem; font: 1rem/1.65 system-ui, sans-serif; color-scheme: light dark; }
+  section { margin-block: 2rem; }
+  pre { white-space: pre-wrap; }
+  code { overflow-wrap: anywhere; }
+  summary { cursor: pointer; font-weight: 600; }
+</style>
+<main>
+  <h1>0. Установка и настройка программ</h1>
+  <ol>
+    <li>Скачайте <a href="https://aka.ms/vs/stable/vs_community.exe">установщик Visual Studio Community</a>. Выберите «Разработка классических приложений .NET» и «ASP.NET и разработка веб-приложений». Для Windows Forms, WPF и API из ZIP нужны Visual Studio 2026 и <a href="https://aka.ms/dotnet/10.0/dotnet-sdk-win-x64.exe">.NET 10 SDK для Windows x64</a>. Проверьте <code>dotnet --list-sdks</code> в PowerShell.</li>
+    <li>Для маршрута Windows Forms скачайте <a href="https://sourceforge.net/projects/xampp/files/XAMPP%20Windows/8.2.12/xampp-windows-x64-8.2.12-0-VS16-installer.exe/download">XAMPP</a>. Оставьте MySQL, Apache и phpMyAdmin. В XAMPP Control Panel запустите MySQL и Apache. Проверьте вход в <code>http://localhost/phpmyadmin</code>.</li>
+    <li>Для WPF скачайте <a href="https://www.postgresql.org/download/windows/">PostgreSQL с pgAdmin для Windows</a>. Выберите сервер, pgAdmin 4 и Command Line Tools. Запишите пароль <code>postgres</code> и порт, обычно 5432. Откройте в pgAdmin ветку Databases.</li>
+    <li>Установите <a href="https://github.com/jgraph/drawio-desktop/releases/latest">diagrams.net Desktop</a> (Windows installer), проверьте экспорт ER в PDF. Для API скачайте <a href="https://dl.pstmn.io/download/latest/win64">Postman для Windows x64</a> и проверьте импорт локальной коллекции. Если Postman требует вход в аккаунт, для домашней офлайн-проверки используйте <code>Invoke-RestMethod</code>.</li>
+    <li>Проверьте, что открываются DOCX, XLSX, PDF и RAR. Если не хватает программ, скачайте <a href="https://www.libreoffice.org/download/?lang=en-US">LibreOffice</a> или <a href="https://www.7-zip.org/download.html">7-Zip</a> для Windows x64.</li>
+  </ol>
+  <section id="development">
+    <h2>Библиотеки и разработка без интернета</h2>
+    <h3>Подключите пакеты в новом проекте</h3>
+    <p>Заранее скачайте набор NuGet-пакетов <a href="downloads/nuget-mysql.zip" download>для MySQL</a> или <a href="downloads/nuget-postgresql.zip" download>для PostgreSQL</a>. Поместите <code>nuget-packages</code> и <code>NuGet.Config</code> в папку своего решения. Отдельные драйверы можно скачать по ссылкам <a href="https://www.nuget.org/api/v2/package/MySqlConnector/2.6.1">MySqlConnector 2.6.1</a> и <a href="https://www.nuget.org/api/v2/package/Npgsql/10.0.1">Npgsql 10.0.1</a>. Оставьте файлы <code>.nupkg</code> целыми и используйте зависимости из набора.</p>
+    <p>В Visual Studio выберите проект с кодом БД → «Управление пакетами NuGet» → «Обзор» → источник «Пакеты из архива». Установите драйвер выбранной СУБД и соберите решение без сети. При <code>NU1101</code> или <code>NU1102</code> сверьте имя и версию отсутствующего пакета с содержимым папки.</p>
+    <p>В PowerShell из папки своего решения выполните команды ниже. Первая использует только локальный NuGet-источник, вторая собирает проект с уже восстановленными пакетами.</p>
+    <button type="button" data-copy-command>Копировать команды</button>
+    <pre tabindex="0"><code>dotnet restore --configfile NuGet.Config --no-http-cache
+dotnet build --no-restore</code></pre>
+    <p>В обозревателе решений Visual Studio назначьте стартовым свой оконный проект или Api. Для API заполните переменные подключения в профиле отладки, как показано в карточке. Запустите F5 и проверьте созданную базу.</p>
+    <h3>Если на стенде .NET 9</h3>
+    <p>.NET 10 — LTS. .NET 9 завершил поддержку 10 ноября 2026 года. Для стенда с .NET 9 используйте <a href="https://dotnet.microsoft.com/en-us/download/dotnet/9.0">.NET 9 SDK</a> и Visual Studio 2022 17.12 или новее. Для <code>.slnx</code> используйте VS 2022 17.14 и SDK 9.0.2xx или новее.</p>
+    <p>В отдельной копии в <code>.csproj</code> настольного проекта замените <code>net10.0-windows</code> на <code>net9.0-windows</code>. В проектах <code>Shared</code>, <code>Api</code>, <code>Tools</code> и импортёре замените <code>net10.0</code> на <code>net9.0</code>. Версии драйверов сохраняются. Для Npgsql под .NET 9 нужны <code>Microsoft.Extensions.Logging.Abstractions</code> и <code>Microsoft.Extensions.DependencyInjection.Abstractions</code> версии 9.0.0. Оба пакета входят в набор для PostgreSQL. Повторите <code>dotnet restore</code> и <code>dotnet build</code>, затем выполните F5 с прежними настройками СУБД.</p>
+    <p><a href="https://learn.microsoft.com/en-us/dotnet/core/porting/versioning-sdk-msbuild-vs">Совместимость Visual Studio и .NET</a></p>
+  </section>
+  <section id="faq">
+    <h2>ЧаВО об экзамене</h2>
+    <details><summary>Какие задания на базовом уровне?</summary><p>КИМ 09.02.07-5-2027 отводит 210 минут на шесть заданий. В курсе разбираются ER, база и импорт, расчёт стоимости, формы и роли, API и его документация.</p></details>
+    <details><summary>Будет ли доступ к сайтам и пакетам?</summary><p>На с. 22 КИМ указана локальная сеть без доступа в интернет. Для домашней репетиции заранее установите ПО и подготовьте пакеты, затем проверьте всё без внешней сети. Список разрешённых программ, файлов и локальной справки уточните на инструктаже.</p></details>
+    <details><summary>Что уточнить перед началом?</summary><p>Сверьте версии .NET, доступную СУБД, путь к исходным файлам, папку сдачи и допустимый способ проверки API. Если комплект или рабочее место не открываются, сообщите эксперту номер места и текст ошибки.</p></details>
+    <details><summary>Что проверить перед сдачей?</summary><p>Откройте PDF, проверьте SQL и данные в отдельной базе, запустите приложение под обеими ролями. Проверьте ответы API и сохраните проект с документацией в папке сдачи.</p></details>
+  </section>
+</main>
+<script>
+  document.querySelectorAll('[data-copy-command]').forEach(button=>{
+    const code=button.nextElementSibling;
+    button.onclick=async()=>{
+      try {
+        await navigator.clipboard.writeText(code.textContent);
+        button.textContent='Скопировано';
+      } catch {
+        const range=document.createRange();
+        range.selectNodeContents(code);
+        const selection=window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        button.textContent='Нажмите Ctrl+C, чтобы скопировать';
+      }
+    };
+  });
+</script>
+</html>

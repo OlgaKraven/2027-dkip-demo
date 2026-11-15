@@ -429,10 +429,10 @@ WHERE o.doc_no = '1';`}
   {group:'Окно входа',codeLabel:'Одна строка внутри Click',code:'MessageBox.Show("Кнопка работает");'}),
  step('Подключите проект к своей базе',
   'Перед проверкой входа убедитесь, что приложение видит таблицу users из задания 2.', [
-   'Правой кнопкой по MyApp → «Добавить» → «Класс». Введите Database.cs. Вставьте полный код из кнопки «Открыть Database.cs», заменив содержимое созданного файла. Проверьте namespace MyApp в начале файла.',
+   'Правой кнопкой по MyApp → «Добавить» → «Класс». Введите Database.cs. Раскройте «Подключение к базе · Database.cs». Скопируйте код и замените им содержимое созданного файла. Проверьте namespace MyApp в начале файла.',
    'Дважды щёлкните «Войти» в конструкторе. Внутри Click замените старую строку кодом ниже. Нажмите Ctrl+S и Ctrl+F5. Сравните число с количеством строк users в редакторе базы.'
   ], 'По нажатию кнопки выводится число строк таблицы users, включая 0 для пустой таблицы.',
-  {group:'Учётные записи',referenceFile:`examples/starter/${stack}/Database.cs`,referenceLabel:'Открыть Database.cs',codeLabel:'Временная проверка подключения',code:'MessageBox.Show(Database.Scalar("SELECT COUNT(*) FROM users")?.ToString());'}),
+  {group:'Учётные записи',referenceFile:`examples/starter/${stack}/Database.cs`,referenceLabel:'Подключение к базе · Database.cs',codeLabel:'Временная проверка подключения',code:'MessageBox.Show(Database.Scalar("SELECT COUNT(*) FROM users")?.ToString());'}),
  step('Заполните пустую таблицу двумя учебными записями',
   'Для проверки нужны обе роли. Две строки можно добавить в редакторе базы и сразу приступить к окнам.', [
    mysql?'В phpMyAdmin выберите свою учебную базу и откройте вкладку SQL.':'В pgAdmin выберите свою учебную базу, затем «Инструменты» → Query Tool.',
@@ -589,10 +589,10 @@ JOIN users u ON u.id = n.id_user
 ORDER BY n.id;`}
  ]}),
  step('Преобразуйте поля ответа','SQL возвращает пять исходных значений, а контракт требует четыре поля JSON. Класс Note задаёт имена, а Notes.Read преобразует каждую строку.', [
-  'В проект Api добавьте Database.cs из заготовки своего стека и задайте namespace Api. Создайте Notes.cs. В первый блок входят using, namespace и record Note. Атрибуты JsonPropertyName задают имена полей в ответе.',
+  'В проекте Api создайте Database.cs. Вставьте код подключения из блока «Подключение к базе · Database.cs» и замените namespace MyApp на Api. Создайте Notes.cs. В первый блок входят using, namespace и record Note. Атрибуты JsonPropertyName задают имена полей в ответе.',
   'В том же файле ниже добавьте второй блок. SQL берёт те же поля, которые вы проверили в редакторе. Цикл читает их слева направо с индекса 0. В новом Note id и content сохраняются, title и login склеиваются через « - », а дата форматируется как dd.MM.yyyy.',
   'Соберите решение. По контрольной строке заранее составьте ожидаемый JSON. Для «Заметка 1» получатся title_user «Заметка 1 - student» и formatted_date «15.03.2027». Подставьте id из своей БД.'
- ],'Проект компилируется, а четыре ожидаемых поля контрольной заметки можно вывести из SQL-строки.',{shot:'notes-code',links:[['Скачать заготовку Database.cs',`code/examples/starter/${stack}/Database.cs`]],codeBlocks:[
+ ],'Проект компилируется, а четыре ожидаемых поля контрольной заметки можно вывести из SQL-строки.',{shot:'notes-code',referenceFile:`examples/starter/${stack}/Database.cs`,referenceLabel:'Подключение к базе · Database.cs',codeBlocks:[
   {label:'1. Объявление ответа в Notes.cs',code:notesSource.slice(0,notesClassStart).trimEnd()},
   {label:'2. Класс чтения и преобразования строк',code:notesSource.slice(notesClassStart).trimEnd()},
   {label:'Ожидаемый элемент JSON для контрольной строки',code:JSON.stringify(sampleNote,null,2)}

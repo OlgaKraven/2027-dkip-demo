@@ -314,9 +314,12 @@ function explain(step, withEr) {
     ${step.actionGroups
       ? step.actionGroups.map(group=>`<section class="lesson-action-group"><h4>${E(group.title)}</h4>${lessonActions(group.actions)}${group.shot?shot(group):''}</section>`).join('')
       : lessonActions(step.actions)}
+    ${step.referenceFile && D.code[step.referenceFile]
+      ? `<details><summary>${E(step.referenceLabel||step.referenceFile.split('/').at(-1))}</summary>
+          <p>${E(D.codeDescriptions[step.referenceFile] || step.why)}</p>
+          ${lessonCodeBlock({label:step.referenceFile.split('/').at(-1),code:D.code[step.referenceFile]})}</details>` : ''}
     ${(step.codeBlocks || (step.code ? [{label:step.codeLabel,code:step.code}] : [])).map(lessonCodeBlock).join('')}
     ${step.tableGuide?dbTableGuide(step.tableGuide==='create'):''}
-    ${step.referenceFile?`<p>${btn(E(step.referenceLabel||'Открыть пример SQL'),`type="button" data-code="${E(step.referenceFile)}" aria-haspopup="dialog"`)}</p>`:''}
     ${withEr&&!step.preparation
       ? (step.showExampleShot&&screenshot ? btn('Открыть снимок примера',`data-image="${E(screenshot.file)}" aria-haspopup="dialog"`) : '')
       : shot(step,false,true)}
@@ -433,7 +436,7 @@ function lessonBrief(lesson) {
   if(taskIndex<0){
     const files=taskDocuments(0);
     return `${conditionText(taskParagraphs(lesson.goal))}
-      <p><a href="preparation.html">0. Установка и настройка программ</a> · <a href="preparation.html#faq">ЧаВО об экзамене</a></p>
+      <p><a href="learning-preparation.html">0. Установка и настройка программ</a> · <a href="learning-preparation.html#faq">ЧаВО об экзамене</a></p>
       <section class="task-files"><h3>Исходные документы</h3><ul>${documentItems(files)}</ul></section>
       ${sources()}`;
   }
@@ -446,7 +449,7 @@ function lessonBrief(lesson) {
     <div><dt>Что сдать</dt><dd>PDF, в котором читаются таблицы, поля, ключи и связи. Типы данных можно уточнить на следующем этапе.</dd></div>
   </dl><h3>Формулировка КИМ</h3>`:''}
     ${conditionText(original.paragraphs)}
-    ${['M4','M5','M6'].includes(lesson.id)?'<p><a href="preparation.html#development">Библиотеки и сборка без интернета</a></p>':''}
+    ${['M4','M5','M6'].includes(lesson.id)?'<p><a href="learning-preparation.html#development">Библиотеки и сборка без интернета</a></p>':''}
     <section class="task-files"><h3>Приложения</h3>
       <ul><li>${assignmentAttachment(taskIndex,original.attachment)}</li>
         ${documentItems(taskDocuments(taskIndex))}</ul>

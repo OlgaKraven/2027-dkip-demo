@@ -43,6 +43,7 @@ const packages=await offlinePackages();
 for(const [stack,app] of [['mysql','Dkip.WinForms'],['postgresql','Dkip.Wpf']]){
  const desktop=`examples/${stack}/${app}.csproj`;
  publishExample(desktop,`${published}/${stack}`);
+ fs.writeFileSync(`${out}/downloads/nuget-${stack}.zip`,ExamCore.zip(packages));
  const files={...packages,'preparation.html':fs.readFileSync('src/preparation.html')};
  const otherStack=stack==='mysql'?'postgresql':'mysql';
  walk('examples',(p,b)=>{
