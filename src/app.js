@@ -2,7 +2,7 @@
 const D=COURSE,C=ExamCore,E=C.escape,root=document.getElementById('app'),prefix='dkip2027-basic-v1:';let memory={},storageOK=true,mockBrief=false;
 function get(k,f=null){try{return JSON.parse(localStorage.getItem(prefix+k))??f;}catch{storageOK=false;return memory[k]??f;}}
 function set(k,v){memory[k]=v;try{localStorage.setItem(prefix+k,JSON.stringify(v));}catch{storageOK=false;}}
-const p=new URLSearchParams(location.search),modes=[['overview','Обзор'],['learn','Обучение'],['training','Тренировка'],['mock','Пробный экзамен'],['examples','Примеры'],['teacher','Преподавателю']];
+const p=new URLSearchParams(location.search),modes=[['overview','Обзор'],['learn','Обучение'],['training','Тренировка'],['mock','Пробный экзамен'],['faq','ЧаВО'],['examples','Примеры'],['teacher','Преподавателю']];
 const isMode = value => modes.some(([id])=>id===value);
 const isCriteriaLink = query => query.get('mode')==='criteria' || location.hash==='#criteria';
 const modeIcons = {
@@ -10,6 +10,7 @@ const modeIcons = {
   learn: 'M6 4a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm3.5 2h6a4 4 0 0 1 0 8H9a2 2 0 1 0 0 4h7.2l-2-2 1.4-1.4L20 19l-4.4 4.4-1.4-1.4 2-2H9a4 4 0 1 1 0-8h6.5a2 2 0 0 0 0-4h-6z',
   training: 'M9 1h6v3H9zM11 4h2v1h-2zM19 7l1.8-1.8 1.4 1.4-1.8 1.8zM21 14a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-10-5h2v4.5l2.2 2.2-1.4 1.4-2.8-2.8z',
   mock: 'M9 3a3 3 0 0 1 6 0h3a2 2 0 0 1 2 2v15a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm1 1.2v2h4v-2zm-2 9.1 3.1 3.1 5.5-5.5-1.4-1.4-4.1 4.1-1.7-1.7z',
+  faq: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16zm0 2a3.5 3.5 0 0 0-3.5 3.5h2a1.5 1.5 0 1 1 2.6 1c-1 .9-2.1 1.7-2.1 3.5h2c0-1 1-1.6 1.6-2.2A3.5 3.5 0 0 0 12 6zm-1 10v2h2v-2z',
   examples: 'M2 6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zm2 2h16V7H4zm5.4 2.6L6 14l3.4 3.4 1.2-1.2L8.4 14l2.2-2.2zm5.2 0-1.2 1.2 2.2 2.2-2.2 2.2 1.2 1.2L18 14z',
   teacher: 'M2 3h20v14h-9v2h4v2H7v-2h4v-2H2zm4.2 9 1.3 1.3 3-3 3 1.5 4.3-4.3-1.3-1.3-3.3 3.3-3-1.5z'
 };
@@ -265,8 +266,9 @@ function dbTableDetails(table, creating) {
   <table class="lesson-db-fields" aria-label="${E(table.id)} · Поля">
    <thead><tr><th scope="col">Поле</th><th scope="col">Тип</th><th scope="col">Ограничения</th></tr></thead>
    <tbody>${table.fields.map(field=>{
+    const baseType=field.type.replace(/\s+(?:UNIQUE|REF)\b.*$/,'');
     const type=field.type==='IDENTITY'?(mysql?'INT · A_I':'integer · Identity (By default)'):
-      field.type.replace(/\s+(?:UNIQUE|REF)\b.*$/,'');
+      mysql&&baseType==='BOOLEAN'?'TINYINT(1)':baseType;
     const flags=[field.pk?'PK':'',field.unique?'UNIQUE':'',field.nullable?'NULL':'NOT NULL'].filter(Boolean).join(' · ');
     return `<tr><th scope="row"><code>${E(field.id)}</code><small>${E(field.title)}</small></th><td>${E(type)}</td><td>${E(flags)}</td></tr>`;
    }).join('')}</tbody>
@@ -290,7 +292,7 @@ function dbTableGuide(creating) {
    <p>${stack==='mysql'?'В VARCHAR введите число из скобок в поле длины. A_I включает автоматическую нумерацию.':
       'Для VARCHAR выберите character varying, для DECIMAL — numeric. Числа в скобках задают длину текста или точность и масштаб числа.'}
       NOT NULL запрещает отсутствующее значение.
-      ${stack==='mysql'?'Для поля с UNIQUE выберите индекс UNIQUE.':'Для поля с UNIQUE откройте Constraints → Unique и добавьте это поле.'}</p>
+      ${stack==='mysql'?'Для PK из одного поля выберите PRIMARY у этого поля. Для поля с UNIQUE выберите индекс UNIQUE. В окне «Добавить индекс» проверьте столбец и нажмите «Вперёд».':'Для поля с UNIQUE откройте Constraints → Unique и добавьте это поле.'}</p>
    <label for="db-table-example">Выберите таблицу</label>
    <select id="db-table-example" aria-controls="db-table-details"${creating?' data-create-tables':''}>${tables.map((table,index)=>
      `<option value="${E(table.id)}">${index+1}. ${E(table.title)} · ${E(table.id)}</option>`).join('')}</select>
@@ -303,8 +305,12 @@ function explain(step, withEr) {
   const resources = (step.resources || []).map(resource => {
     if (resource === 'kim') return `<li>${link('КИМ · стр. 30', 'materials/kim-2027.pdf#page=30')}</li>`;
     if (resource === 'archive') return '<li><a href="downloads/basic-inputs.zip" download>Приложения · ZIP</a></li>';
+    if (resource === 'setup') return '<li><a href="learning-preparation.html">Установка и настройка программ</a></li>';
+    if (resource === 'development') return '<li><a href="learning-preparation.html#development">Библиотеки и разработка без интернета</a></li>';
     if (resource === 'drawio') return `<li>${link('Открыть draw.io','https://app.diagrams.net/')}</li>`;
-    const file = (stage==='M2' ? taskDocuments(1) : D.previews).find(item=>item.name===resource);
+    const file = stage==='M2' && resource==='Заказчики.json'
+      ? taskDocuments(1)[0]
+      : D.previews.find(item=>item.name===resource);
     return file ? documentItems([file]) : '';
   }).join('');
   return `<section class="lesson-explanation">
@@ -436,7 +442,7 @@ function lessonBrief(lesson) {
   if(taskIndex<0){
     const files=taskDocuments(0);
     return `${conditionText(taskParagraphs(lesson.goal))}
-      <p><a href="learning-preparation.html">0. Установка и настройка программ</a> · <a href="learning-preparation.html#faq">ЧаВО об экзамене</a></p>
+      <p><a href="learning-preparation.html">0. Установка и настройка программ</a> · <a href="${pageUrl('faq')}">ЧаВО об экзамене</a></p>
       <section class="task-files"><h3>Исходные документы</h3><ul>${documentItems(files)}</ul></section>
       ${sources()}`;
   }
@@ -844,6 +850,21 @@ function criteria() {
     </div>
     <p><a id="criteria-kim" href="${kimPdfPath}#page=${criteriaKimPage}" aria-haspopup="dialog">Полные формулировки в КИМ · стр. ${criteriaKimPage}</a></p>
   </section>`;
+}
+function faq(){
+ const answers=[
+   ['Сколько времени выделено на базовый уровень?', 'КИМ 09.02.07-5-2027 отводит 210 минут. В задании 1 — 20 минут, в задании 2 — 30, в задании 3 — 20, в заданиях 4 и 5 — по 60, в задании 6 — 20.'],
+   ['Что проверить перед началом?', 'Уточните СУБД, версию .NET, папку сдачи и параметры учебного сервера. Откройте исходные приложения к заданию. Если файл или программа недоступны, сообщите эксперту номер места и текст ошибки.'],
+   ['Будет ли интернет для загрузки пакетов?', 'В КИМ указана локальная сеть без доступа в интернет. Для тренировки заранее установите программы и подготовьте локальный источник NuGet. Разрешённые файлы и доступные программы уточните на инструктаже.'],
+   ['Задание 1. Что должно быть на ER-диаграмме?', 'Покажите сущности, атрибуты, первичные и внешние ключи и связи в третьей нормальной форме. Откройте экспортированный PDF и проверьте, что имена и связи читаются при увеличении.'],
+   ['Задание 2. Как убедиться, что данные импортированы?', 'Откройте таблицу контрагентов в клиенте СУБД, сверьте записи с исходным «Заказчики.json» и проверьте связи. В отдельной пустой базе проверьте, что ваша SQL-выгрузка восстанавливает структуру и данные.'],
+   ['Задание 3. От чего зависит полная стоимость заказа?', 'Для каждой позиции учтите количество продукции, нормы расхода материалов и трудоёмкость операций. Сверьте цену ресурса на нужную дату и контрольную сумму одного заказа.'],
+   ['Задание 4. Как проверить вход и роли?', 'Выполните вход под администратором и обычным пользователем, проверьте доступность действий для каждой роли. Отдельно проверьте неудачный вход и блокировку по правилам из приложения КИМ.'],
+   ['Задание 5. Что должно быть в коллекции Postman?', 'В ней нужны запросы к реализованным методам и тесты с проверкой кодов ответов, полей и значений после обработки. Сохраните коллекцию и проверьте её на локальном API.'],
+   ['Задание 6. Что записать о методах API?', 'По шаблону из приложения 3 укажите путь и HTTP-метод, входные параметры, коды, примеры запросов и фактических ответов. Сверьте документ с коллекцией и OpenAPI.']
+ ];
+ return `<section class="route-heading"><h1>ЧаВО об экзамене</h1></section>
+   ${answers.map(([question,answer])=>`<article class="route-panel"><h2>${E(question)}</h2><p>${E(answer)}</p></article>`).join('')}`;
 }
 function deckPath(){return (location.pathname.includes('/_mock-preview/')?'../deck.html?preview=1&':'deck.html?')+'stack='+selectedDeckStack();}
 function teacher(){
@@ -1278,7 +1299,7 @@ function render({preserveScroll=true,criteriaAnchor=mode==='overview'&&isCriteri
    set(stageProgressKey(),stage);
    set(lessonViewKey(stage),learningView);
   }
-  history.replaceState(null,'',pageUrl(mode)+(criteriaAnchor?'#criteria':''));}root.innerHTML=`<div class="shell"><header class="top"><a class="brand" href="${pageUrl('overview')}"><span class="brand-emblem">ДЭ</span><span><strong>09.02.07 · Информационные системы и программирование</strong><small>Специалист по информационным системам · 2027</small></span></a>${siteTools()}</header>${siteNavigation()}<main id="main">${storageOK?'':'<p class="notice">Браузер не сможет сохранить прогресс после закрытия страницы.</p>'}${mode==='overview'?overview():mode==='learn'?(learningView==='map'?learningMap():learn()):['training','mock'].includes(mode)?practice():mode==='examples'?examples():teacher()}</main></div>`;bind();tick();if(preserveScroll)window.scrollTo(0,previousScroll);}
+  history.replaceState(null,'',pageUrl(mode)+(criteriaAnchor?'#criteria':''));}root.innerHTML=`<div class="shell"><header class="top"><a class="brand" href="${pageUrl('overview')}"><span class="brand-emblem">ДЭ</span><span><strong>09.02.07 · Информационные системы и программирование</strong><small>Специалист по информационным системам · 2027</small></span></a>${siteTools()}</header>${siteNavigation()}<main id="main">${storageOK?'':'<p class="notice">Браузер не сможет сохранить прогресс после закрытия страницы.</p>'}${mode==='overview'?overview():mode==='learn'?(learningView==='map'?learningMap():learn()):['training','mock'].includes(mode)?practice():mode==='examples'?examples():mode==='faq'?faq():teacher()}</main></div>`;bind();tick();if(preserveScroll)window.scrollTo(0,previousScroll);}
 function openLessonView(view) {
  if(view===learningView)return;
  if(view==='steps')set(stepKey(),stepIndex());

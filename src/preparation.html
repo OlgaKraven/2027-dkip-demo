@@ -48,16 +48,12 @@ dotnet build Dkip.Example.slnx --no-restore</code></pre>
     <p>Пока есть интернет, скачайте ZIP и скопируйте папку <code>nuget-packages</code> и <code>NuGet.Config</code> к своему решению. Отдельные драйверы можно скачать по ссылкам <a href="https://www.nuget.org/api/v2/package/MySqlConnector/2.6.1">MySqlConnector 2.6.1</a> и <a href="https://www.nuget.org/api/v2/package/Npgsql/10.0.1">Npgsql 10.0.1</a>. Оставьте файлы <code>.nupkg</code> целыми и возьмите из ZIP их зависимости.</p>
     <p>В Visual Studio выберите проект с кодом БД → «Управление пакетами NuGet» → «Обзор» → источник «Пакеты из архива». Установите драйвер выбранной СУБД и соберите решение без сети. При <code>NU1101</code> или <code>NU1102</code> сверьте имя и версию отсутствующего пакета с содержимым папки.</p>
     <h3>Если на стенде .NET 9</h3>
-    <p>.NET 10 — LTS. .NET 9 завершил поддержку 10 ноября 2026 года. Для стенда с .NET 9 используйте <a href="https://dotnet.microsoft.com/en-us/download/dotnet/9.0">.NET 9 SDK</a> и Visual Studio 2022 17.12 или новее. Для <code>.slnx</code> используйте VS 2022 17.14 и SDK 9.0.2xx или новее.</p>
+    <p>.NET 10 — выпуск с долгосрочной поддержкой (LTS). Поддержка .NET 9 завершилась 10 ноября 2026 года. Если на стенде требуется .NET 9, заранее установите <a href="https://dotnet.microsoft.com/en-us/download/dotnet/9.0">.NET 9 SDK для Windows x64</a> и используйте Visual Studio 2026. Для решения <code>.slnx</code> нужен SDK 9.0.2xx или 9.0.3xx. Выберите установленный SDK через <code>global.json</code> по шагу 5 в <code>README.md</code> и проверьте <code>dotnet --version</code> из корня распакованной копии.</p>
     <p>В отдельной копии в <code>.csproj</code> настольного проекта замените <code>net10.0-windows</code> на <code>net9.0-windows</code>. В проектах <code>Shared</code>, <code>Api</code>, <code>Tools</code> и учебном <code>starter/&lt;стек&gt;/Import</code> замените <code>net10.0</code> на <code>net9.0</code>. Версии драйверов сохраняются. Для Npgsql под .NET 9 нужны <code>Microsoft.Extensions.Logging.Abstractions</code> и <code>Microsoft.Extensions.DependencyInjection.Abstractions</code> версии 9.0.0. Оба пакета уже входят в ZIP. Повторите <code>dotnet restore</code> и <code>dotnet build</code>, затем выполните F5 с прежними настройками СУБД. Готовые EXE из ZIP остаются сборками .NET 10.</p>
     <p><a href="https://learn.microsoft.com/en-us/dotnet/core/porting/versioning-sdk-msbuild-vs">Совместимость Visual Studio и .NET</a></p>
   </section>
   <section id="faq">
-    <h2>ЧаВО об экзамене</h2>
-    <details><summary>Какие задания на базовом уровне?</summary><p>КИМ 09.02.07-5-2027 отводит 210 минут на шесть заданий. В курсе разбираются ER, база и импорт, расчёт стоимости, формы и роли, API и его документация.</p></details>
-    <details><summary>Будет ли доступ к сайтам и пакетам?</summary><p>На с. 22 КИМ указана локальная сеть без доступа в интернет. Для домашней репетиции заранее установите ПО и подготовьте пакеты, затем проверьте всё без внешней сети. Список разрешённых программ, файлов и локальной справки уточните на инструктаже.</p></details>
-    <details><summary>Что уточнить перед началом?</summary><p>Сверьте версии .NET, доступную СУБД, путь к исходным файлам, папку сдачи и допустимый способ проверки API. Если комплект или рабочее место не открываются, сообщите эксперту номер места и текст ошибки.</p></details>
-    <details><summary>Что проверить перед сдачей?</summary><p>Откройте PDF, проверьте SQL и данные в отдельной базе, запустите приложение под обеими ролями. Проверьте ответы API и сохраните проект с документацией в папке сдачи.</p></details>
+    <p><a href="index.html?mode=faq">ЧаВО об экзамене</a></p>
   </section>
 </main>
 </html>

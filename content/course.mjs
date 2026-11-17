@@ -14,6 +14,12 @@ export const tasks=[
 const step=(title,why,actions,check,extra={})=>({title,why,actions,check,...extra});
 const groupedStep=(title,why,actionGroups,check,extra)=>
  step(title,why,actionGroups.flatMap(group=>group.actions),check,{...extra,actionGroups});
+function codeBetween(text,start,end){
+ const first=text.indexOf(start);
+ const last=end===undefined?text.length:text.indexOf(end,first+start.length);
+ if(first<0||last<first)throw new Error('Не найден фрагмент кода: '+start);
+ return text.slice(first,last).trimEnd();
+}
 const costOrderRows=`FROM customer_order o
 JOIN customer_order_line l ON l.order_id = o.id`;
 const costResourceRows=`${costOrderRows}
@@ -28,10 +34,48 @@ const notesHandler=apiSource.slice(apiSource.indexOf('IResult ReadNotes('),apiSo
 const notesTry=notesHandler.indexOf('    try\n');
 export function stagesFor(stack){
  const mysql=stack==='mysql',db=mysql?'MySQL / MariaDB':'PostgreSQL',ui=mysql?'Windows Forms':'WPF',port=mysql?5271:5272,base=`http://127.0.0.1:${port}`,project=mysql?'examples/mysql/Dkip.WinForms.csproj':'examples/postgresql/Dkip.Wpf.csproj',editor=mysql?'phpMyAdmin':'pgAdmin',folder=`examples/${stack}`;
+ const foundations=foundationsFor(stack);
+ const databaseSource=readFileSync(new URL(`../examples/starter/${stack}/Database.cs`,import.meta.url),'utf8').replaceAll('\r\n','\n').trimEnd();
+ const databaseClass=databaseSource.indexOf('    public static DbConnection Open()');
+ const databaseOperations=databaseSource.indexOf('    public static int Execute(');
+ const accountsSource=readFileSync(new URL('../examples/Shared/Accounts.cs',import.meta.url),'utf8')
+  .replaceAll('\r\n','\n').replace('namespace Dkip;','namespace MyApp;').trimEnd();
+ const hashMethods=accountsSource.indexOf('    // Соль хранится');
+ const signInMethod=accountsSource.indexOf('    public static Account SignIn(');
+ const adminMethods=accountsSource.indexOf('    public static void RequireAdmin(');
  const connection=mysql?'Server=127.0.0.1;Database=dkip2027_course;User ID=root;Password=;Character Set=utf8mb4':'Host=127.0.0.1;Port=5432;Database=dkip2027_course;Username=postgres;Password=ВАШ_ПАРОЛЬ';
  const loginFile=folder+(mysql?'/LoginForm.cs':'/LoginWindow.xaml.cs');
  const workFile=folder+(mysql?'/MainForm.cs':'/MainWindow.xaml.cs');
  const loginSource=readFileSync(new URL('../'+loginFile,import.meta.url),'utf8').replaceAll('\r\n','\n');
+ const workSource=readFileSync(new URL('../'+workFile,import.meta.url),'utf8').replaceAll('\r\n','\n').trimEnd();
+ const workWindow=mysql?'MainForm':'MainWindow';
+ const firstWorkConstructor='    public '+workWindow+'()';
+ const runtimeWorkConstructor='    public '+workWindow+'(Account user)';
+ const workFields=codeBetween(workSource,'    private readonly Account actor',firstWorkConstructor);
+ const workStart=codeBetween(workSource,runtimeWorkConstructor,'    private void SelectUser(')
+  .replace('        actor = user;','        actor = user;\n        UserRole.SelectedIndex = 0;');
+ const workEvents=codeBetween(workSource.slice(0,-1),'    private void SelectUser(');
+ const puzzleSource=mysql?readFileSync(new URL('../'+folder+'/PuzzleControl.cs',import.meta.url),'utf8')
+  .replaceAll('\r\n','\n').replace('namespace Dkip;','namespace MyApp;').trimEnd():loginSource;
+ const puzzleBlocks=mysql?[
+  {label:'1. Начало файла PuzzleControl.cs',code:codeBetween(puzzleSource,'using System.ComponentModel;','    public PuzzleControl()')+'\n}'},
+  {label:'2. Конструктор и загрузка PNG внутри PuzzleControl',code:codeBetween(puzzleSource,'    public PuzzleControl()','    void SelectTile(')},
+  {label:'3. Выбор, обмен и отрисовка частей внутри PuzzleControl',code:codeBetween(puzzleSource.slice(0,-1),'    void SelectTile(')}
+ ]:[
+  {label:'1. Разметка пазла перед кнопкой «Войти»',code:[
+   '<Grid Height="204">',
+   '    <Grid.ColumnDefinitions>',
+   '        <ColumnDefinition/>',
+   '        <ColumnDefinition/>',
+   '    </Grid.ColumnDefinitions>',
+   '    <Image x:Name="Original" Width="200" Height="200"/>',
+   '    <UniformGrid x:Name="Puzzle" Grid.Column="1" Rows="2" Columns="2"/>',
+   '</Grid>'
+  ].join('\n')},
+  {label:'2. Поля и методы пазла внутри класса LoginWindow',code:codeBetween(puzzleSource,'    readonly int[] order','    public LoginWindow()')
+   +'\n\n'+codeBetween(puzzleSource,'    void LoadPuzzle()','    void SignIn(')},
+  {label:'3. Загрузка пазла внутри конструктора после InitializeComponent()',code:codeBetween(puzzleSource,'        try\n        {','\n    }\n\n    void LoadPuzzle()')}
+ ];
  const signInBody=loginSource
   .split(' void SignIn(')[1].split('\n    {\n')[1].split('\n    }')[0]
   .split('\n').map(line=>line.slice(8)).join('\n');
@@ -51,9 +95,6 @@ export function stagesFor(stack){
   '    MessageBox.Show("Проверьте запуск базы и DKIP_CONNECTION.");',
   '}'
  ].join('\n');
- const wpfPuzzleFile=mysql?'':loginSource.split('    void SignIn(')[0].replace('namespace Dkip;','namespace MyApp;')
-  +'    void SignInButton_Click(object sender, RoutedEventArgs e)\n    {\n'
-  +passwordCheck().split('\n').map(line=>'        '+line).join('\n')+'\n    }\n}';
  const postmanPath=`docs/postman-${stack}.json`;
  const postmanExample=JSON.parse(readFileSync(new URL('../'+postmanPath,import.meta.url),'utf8'));
  const sampleNote=JSON.parse(postmanExample.variable.find(variable=>variable.key==='expected_note').value);
@@ -104,22 +145,24 @@ export function stagesFor(stack){
   'Из одного документа могут получиться несколько таблиц. Сначала выясните, к чему относится каждое поле.', [
    'Откройте «Заказ покупателя.xlsx». Номер и дата в заголовке и имя покупателя относятся ко всему заказу. Название стола, количество и цена относятся к одной строке товара.',
    'Откройте «Заказчики.json». Дважды нажмите заголовок фигуры таблицы в draw.io и введите counterparty. По первой записи заполните строки. Отметьте id как PK, ниже добавьте name, inn, address, phone и party_type.',
-   'Если строк не хватает, нажмите правой кнопкой по существующей строке и выберите «Дублировать» (Duplicate). Затем измените название в новой строке.',
+   'Чтобы добавить две строки, найдите в библиотеке «Отношения сущностей» фигуру Table Row 1. Перетащите её на строку Row 3 вашей таблицы. Отпустите мышь, когда таблица подсветится. Повторите действие. Две новые строки появятся над Row 3. Дважды щёлкните по тексту в каждой строке и замените подписи на нужные поля.',
    'Сверьте имена с JSON. Поле addres соответствует address, а type — party_type. Значения, в том числе код с ведущими нулями и пустой ИНН, остаются в исходном файле.'
   ], 'В counterparty шесть полей. Ключ id обозначает одного контрагента. Вы можете показать, где в заказе шапка, а где строка товара.',
-  {er:true,shot:'er-counterparty',resources:['Заказ покупателя.xlsx','Заказчики.json']}),
+  {er:true,shot:'drawio-add-row',resources:['Заказ покупателя.xlsx','Заказчики.json']}),
  step('Добавьте номенклатуру и цены',
   'Один ресурс может встречаться в разных спецификациях. Его название хранится в номенклатуре, а цена может меняться со временем.', [
    'Откройте «Заказ на производство.xlsx». Найдите евровинт в разделе «Потребность в материалах» и его код ФР-00000027. Добавьте таблицу item с PK id и полями code, name, kind, unit.',
    'Поле kind различает изделие (product), материал (material) и операцию (operation). У стола вид product, у евровинта material, у сборки operation.',
-   'В «Цены.xlsx» найдите «Евровинт 6,5х5» и цену 595. Добавьте таблицу price с полями item_id, valid_from и amount. Проведите связь price.item_id → item.id.',
+   'В «Цены.xlsx» найдите «Евровинт 6,5х5» и цену 595. Добавьте таблицу price с полями item_id, valid_from и amount.',
+   'Если у price осталась четвёртая строка Row 3, выделите её щелчками внутри строки. На панели над холстом нажмите «Таблица» → «Удалить строку».',
+   'Из библиотеки «Отношения сущностей» перетащите на свободное место соединитель 1 Mandatory to Many Optional. Перенесите конец со стороны «1» на строку id в item. Другой конец перенесите на строку item_id в price. При выделенной линии зелёные маркеры показывают, что оба конца привязаны к строкам.',
    'Пометьте item_id и valid_from как части одного PK. Даты в прайсе нет. В учебном расчёте используем 01.04.2026 как дату начала действия цен.'
   ], 'У каждой цены есть ссылка на ресурс. Для одного ресурса можно записать цены с разными датами, и пара «ресурс + дата» уникальна.',
-  {er:true,shot:'er-prices',resources:['Заказ на производство.xlsx','Цены.xlsx']}),
+  {er:true,shot:'drawio-price-link',resources:['Заказ на производство.xlsx','Цены.xlsx']}),
  step('Добавьте спецификацию и состав',
   'Шапка описывает спецификацию целиком. В её составе каждая строка связывает спецификацию с одним материалом или операцией.', [
    'Откройте «Спецификация.xlsx». В шапке найдите изделие, изготовителя и название. Добавьте specification с PK id, полями name и output_qty. В примере нормы заданы на один стол.',
-   'Свяжите product_id → item.id и manufacturer_id → counterparty.id. Пометьте product_id как UNIQUE, чтобы у изделия могла быть максимум одна спецификация.',
+   'Свяжите product_id → item.id соединителем 1 Mandatory to 1 Optional. Пометьте product_id как UNIQUE, чтобы у изделия могла быть максимум одна спецификация. Для manufacturer_id → counterparty.id используйте 1 Mandatory to Many Optional.',
    'В разделе «Состав» найдите евровинт. Добавьте specification_component. Проведите связи specification_id → specification.id и item_id → item.id. Эти два поля вместе образуют PK.',
    'Добавьте qty для количества по норме и time_norm для нормы времени. Для «Сборки модулей» количество равно 1, норма времени — 0,75. Для материалов в примере используем множитель времени 1.'
   ], 'Строка с евровинтом относится к спецификации стола и ссылается на евровинт в item. В другой спецификации у того же евровинта может быть своё количество.',
@@ -182,8 +225,9 @@ export function stagesFor(stack){
   ]}),
  step('Экспорт в draw.io',
   'По итоговому PDF преподаватель проверяет таблицы, поля, ключи и связи. Типы данных на этом этапе необязательны.', [
-    'Сохраните редактируемую схему в папку «Результаты» под именем ER-диаграмма.drawio. Выберите «Файл» → «Экспортировать как» → PDF.',
-    'Если схема занимает несколько страниц, выберите экспорт всех страниц. Сохраните ER-диаграмма.pdf в папку «Результаты».',
+    'Сохраните редактируемую схему в папку «Результаты» под именем ER-диаграмма.drawio. В браузерной версии выберите «Файл» → «Сохранить», укажите имя, затем «Куда» → «Скачать» → OK. Переместите скачанный файл в «Результаты».',
+    'Для PDF выберите «Файл» → «Экспорт как» → PDF. Чтобы сохранить всю схему на одном листе по её границам, раскройте «Расширенные» и выберите «Обрезать». Оставьте «Только выделение» выключенным и нажмите «Экспорт».',
+    'Назовите файл ER-диаграмма.pdf. В браузерной версии выберите «Куда» → «Скачать» → OK. Поместите PDF в папку «Результаты».',
     'Откройте PDF. Увеличьте масштаб и проверьте, что все таблицы на месте, названия полей и ключей читаются, а обозначения связей видны полностью.'
   ], 'В папке «Результаты» открывается ER-диаграмма.pdf. В нём видны таблицы, поля, PK, FK и кратности.',
   {er:true,source:'КИМ, стр. 30'})]},
@@ -195,7 +239,7 @@ export function stagesFor(stack){
    'Если появится форма входа, используйте выданные вам данные для MariaDB.'
   ]:[
    'Откройте pgAdmin и раскройте Servers. Дважды нажмите настроенный учебный сервер. Введите пароль, если pgAdmin попросит.',
-   'Если подключения нет, нажмите правой кнопкой на Servers → Register → Server. На вкладке Connection укажите адрес, порт и имя пользователя, выданные для вашего сервера. Нажмите Save.',
+   'Если подключения нет, нажмите правой кнопкой на Servers → Register → Server. На вкладке General введите понятное имя, например «ДКИП 2027». На вкладке Connection укажите адрес, порт и имя пользователя своего учебного сервера. Введите пароль, если у сервера он задан, и нажмите Save. Если сообщение об обновлении перекрывает кнопку Save, закройте сообщение крестиком.',
    'Раскройте Databases. Убедитесь, что соединение открыто.'
   ],'Редактор показывает список баз данных. Теперь можно создать свою учебную базу.',{shot:'db-start'}),
  step('Создайте пустую учебную базу','Имя выбранной базы помогает проверить, куда попадут таблицы и данные.',
@@ -214,25 +258,28 @@ export function stagesFor(stack){
    ]},
    {title:'Добавьте поля',shot:'m2-counterparty-fields',actions:[
     'Создайте шесть полей в таком порядке: id (32), name (255), inn (20), address (500), phone (64), party_type (24). Число в скобках — длина текстового поля.',
-    mysql?'Для каждого поля выберите VARCHAR и введите его длину. Флажки NULL оставьте снятыми. У id выберите индекс PRIMARY. Движок таблицы — InnoDB.':'Нажимайте «+» в Columns для добавления строки. Для каждого поля выберите character varying и укажите Length. Включите Not NULL для всех полей и Primary key для id.',
+    mysql?'Для каждого поля выберите VARCHAR и введите его длину. Флажки NULL оставьте снятыми. Движок таблицы — InnoDB. У id в столбце «Индекс» выберите PRIMARY. В окне «Добавить индекс» оставьте id и нажмите «Вперёд».':'Нажимайте «+» в Columns для добавления строки. Для каждого поля выберите character varying и укажите Length. Включите Not NULL для всех полей и Primary key для id.',
     mysql?'Нажмите «Сохранить». Откройте «Структура» новой таблицы.':'Нажмите Save. При необходимости обновите Tables и раскройте counterparty → Columns.'
    ]}
   ],'В базе появилась пустая counterparty. Поле id имеет текстовый тип и отмечено как первичный ключ.'),
  groupedStep('Создайте остальные таблицы и связи','Таблицы для ссылок создают раньше таблиц с внешними ключами.',[
    {title:'Перенесите таблицы из ER',actions:[
     'Выбирайте таблицы в разборе ниже по порядку. Для каждой откройте форму создания, перенесите поля из карточки и сохраните таблицу. Начните с item, если counterparty уже создана на предыдущем шаге.',
-    mysql?'Для составного первичного ключа откройте «Структура» таблицы. Отметьте оба нужных поля и выберите действие PRIMARY. В specification_component это specification_id и item_id.':'Для составного ключа откройте Constraints → Primary Key в форме таблицы. Нажмите «+», откройте созданную строку карандашом и в Definition → Columns добавьте оба поля в один ключ. Для specification_component это specification_id и item_id.'
+    mysql?'Для составного первичного ключа откройте «Структура» таблицы. Отметьте оба нужных поля и под списком нажмите «С отмеченными» → «Первичный». В specification_component отметьте specification_id и item_id. В разделе «Индексы» оба поля должны оказаться в одном PRIMARY.':'Для составного ключа откройте Constraints → Primary Key в форме таблицы. Нажмите «+». Если поля настройки свернуты, откройте строку карандашом. В Definition → Columns добавьте оба поля в один ключ. Для specification_component это specification_id и item_id.',
+    ...(!mysql?['Если поле в карточке отмечено UNIQUE, откройте Constraints → Unique и нажмите «+». Введите имя ограничения, например uq_item_code для item.code. Если настройки свернуты, нажмите карандаш. В Definition → Columns выберите нужное поле. Для CHECK откройте Constraints → Check, нажмите «+» и в Definition вставьте условие из скобок CHECK.']:[])
    ]},
    {title:'Переведите одну строку состава в поля таблицы',actions:[
     `В разборе выберите specification_component. Поля specification_id и item_id получают тип ${mysql?'INT':'integer'}, как ключи specification.id и item.id. Сохраните их в одном PK. Каждое поле может повторяться в разных строках, их пара — уникальна.`,
     `Для qty и time_norm возьмите ${mysql?'DECIMAL(14,3)':'numeric(14,3)'}. Три знака после точки позволяют сохранить норму евровинтов 0,012. NOT NULL требует значение, а CHECK (qty > 0) и CHECK (time_norm > 0) проверяют положительную норму.`,
-    'Задайте два FK из карточки. Первый указывает, в какой спецификации находится строка. Второй указывает, какой ресурс используется. После восстановления выгрузки проверите составной ключ на двух строках.'
+    'Задайте два FK из карточки. Первый указывает, в какой спецификации находится строка. Второй указывает, какой ресурс используется. После восстановления выгрузки проверите, как работает составной ключ, на примере цен.'
    ]},
-   {title:'Проведите связи',actions:mysql?[
-    'Откройте «Структура» зависимой таблицы → «Связи» (Relation view). В блоке внешних ключей укажите поле текущей таблицы, свою базу, целевую таблицу и её поле. Например, для notes выберите id_user, свою базу, users и id. Сохраните. Повторите для каждой связи из карточки.',
+   {title:'Проведите связи',shot:mysql?'m2-relation-live':undefined,actions:mysql?[
+    'Откройте «Структура» зависимой таблицы → «Связи» (Relation view). В блоке ограничений укажите местный столбец. Если в списке «База данных» уже выбрана ваша база, оставьте её. Выберите целевую таблицу и дождитесь, пока справа появится список её столбцов. Например, для price выберите item_id → item.id.',
+    'Проверьте, что в строке заполнены оба столбца и целевая таблица. Если связей несколько, нажмите «Добавить ограничение» и заполните следующую строку. Нажмите «Сохранить».',
     'Если в меню базы есть «Дизайнер», откройте его, чтобы увидеть таблицы и линии между ними. Сверьте линии со своей ER.'
    ]:[
-    'В дереве зависимой таблицы нажмите правой кнопкой по Constraints → Create → Foreign Key. В General задайте имя ключа. В Columns для примера notes укажите Local column — id_user, References — users в своей схеме, Referencing — id. Нажмите «+» и Save. Повторите для каждой связи из карточки.',
+    'В дереве зависимой таблицы нажмите правой кнопкой по Constraints → Create → Foreign Key. В General задайте имя ключа. В Definition включите Validated. В Columns для примера notes укажите Local column — id_user, References — users в своей схеме, Referencing — id. Нажмите Add («+») и Save. Повторите для каждой связи из карточки.',
+    'Для уже сохранённой непроверенной связи выберите ключ под Constraints в дереве и нажмите Object → Validate foreign key.',
     'Выберите свою базу и откройте Tools → ERD For Database, если этот пункт доступен. Сверьте связи на схеме.'
    ]}
   ],'В редакторе видны таблицы с вашей ER-диаграммы и заданные связи. Учебный пример содержит 12 таблиц.',
@@ -245,19 +292,17 @@ export function stagesFor(stack){
    'Раскройте specification_component → Constraints. Откройте свойства Primary Key и проверьте столбцы specification_id и item_id.',
    'Раскройте Constraints в каждой зависимой таблице и откройте внешние ключи. Начните с notes.id_user → users.id. Сверьте поля каждой связи по карточкам таблиц.'
   ],'В примере 12 таблиц, у каждой есть первичный ключ. В каталоге внешних ключей должно быть 14 пар полей.',{tableGuide:true,shot:'db-keys'}),
- step('Подготовьте CSV с заказчиками','Каждый объект исходного JSON станет одной строкой CSV и затем одной строкой в counterparty.',
-  [
-   'Откройте «Заказчики.json» из папки «Исходные данные → Задание 2». В первой записи найдите код 000000001 и пустой ИНН.',
-   'Откройте «Справка» → «CSV через Excel». Загрузите JSON в Power Query, задайте полям тип «Текст» и сохраните «Заказчики.csv» в формате CSV UTF-8.',
-   'Откройте CSV в Блокноте. Проверьте порядок заголовков id, name, inn, address, phone, party_type. Запомните разделитель полей.'
-  ],'В «Заказчики.csv» есть заголовок и шесть записей. Первый код сохранился как 000000001.',{resources:['Заказчики.json']}),
+ groupedStep('Подготовьте CSV с заказчиками','Каждый объект исходного JSON станет одной строкой CSV и затем одной строкой в counterparty.',
+  foundations.M2.guide.csvExport.steps.map(([title,action,shot])=>({title,actions:[action],shot})),
+  'В «Заказчики.csv» есть заголовок и шесть записей. Первый код сохранился как 000000001.',{resources:['Заказчики.json']}),
  step('Импортируйте CSV в counterparty','Редактор базы переносит строки из подготовленного CSV в уже созданную таблицу.',
   mysql?[
    'Откройте пустую counterparty → «Импорт». Выберите «Заказчики.csv», формат CSV и кодировку utf-8.',
-   'Укажите пропуск первой строки и разделитель из файла. В полях обрамления и экранирования укажите двойную кавычку (").',
+   'Для пропуска заголовка в phpMyAdmin 5.2.1 введите 1 в поле «Пропустить указанное число запросов (для SQL)». Укажите разделитель из файла. В полях обрамления и экранирования укажите двойную кавычку (").',
    'Нажмите «Импорт». Подробные настройки по шагам показаны в «Справке» → «CSV через Excel».'
   ]:[
-   'Нажмите правой кнопкой по пустой counterparty → Import/Export Data. В General выберите Import, «Заказчики.csv», csv и UTF8.',
+   'Выберите пустую counterparty и откройте Tools → Import/Export Data. В General выберите Import, «Заказчики.csv», csv и UTF8.',
+   'Если появится Utility file not found, настройте путь к утилитам PostgreSQL по шагам из раздела 0 «Подготовка к обучению», затем снова откройте Import/Export Data.',
    'В Options включите Header, выберите разделитель из файла и двойную кавычку (") в Quote и Escape. В Columns добавьте inn в NOT NULL columns.',
    'Нажмите OK и дождитесь Process completed. Подробные настройки по шагам показаны в «Справке» → «CSV через Excel».'
   ],'Редактор завершил импорт. В counterparty должно быть шесть строк.',{shot:'m2-csv-file'}),
@@ -269,14 +314,18 @@ export function stagesFor(stack){
  step('Сохраните выгрузку','Выгрузка переносит структуру и загруженные данные в другую базу.',
   mysql?[
    'Выберите свою базу и откройте «Экспорт». Оставьте метод «Быстрый» и формат SQL, чтобы выгрузить структуру и данные всех таблиц. Нажмите «Экспорт».',
-   'Сохраните файл dkip2027-mysql.sql в папке «Результаты». Для восстановления в другую базу выгрузка не должна переключаться обратно на исходную базу командой USE.'
+   'Сохраните файл dkip2027-mysql.sql в папке «Результаты». Откройте его в Блокноте и найдите CREATE TABLE, FOREIGN KEY и CHECK. Запрос USE переключает базу при импорте, поэтому при наличии такой строки используйте команду ниже.',
+   'В быстром экспорте phpMyAdmin 5.2.1 могут пропасть проверки CHECK. Если в файле их нет, откройте PowerShell из папки «Результаты» и выполните команду ниже. Подставьте свой порт MariaDB, путь к XAMPP и имя учебной базы. Если у администратора есть пароль, добавьте -p перед именем базы и введите пароль по запросу.',
+   'Утилита mysqldump берёт структуру и данные из работающей MariaDB. Ключ --result-file записывает SQL в файл. После выгрузки ещё раз откройте файл и проверьте, что в нём есть CHECK.'
   ]:[
    'Нажмите правой кнопкой по своей базе → Backup. Если на учебном сервере вам выделили отдельную схему в общей базе, выберите Backup у своей схемы. В Filename укажите путь к dkip2027-postgresql.sql в папке «Результаты».',
    'Выберите Format → Plain. В Data Options оставьте выключенными Only data и Only schemas, чтобы в файл вошли структура и данные. Нажмите Backup и дождитесь статуса Finished в Processes.',
    'Откройте сохранённый .sql в Блокноте. Найдите CREATE TABLE и блок данных counterparty. Расширение файла само по себе не определяет его формат.'
-  ],'В папке «Результаты» есть SQL-файл со структурой и данными таблиц.',{shot:'db-export'}),
+  ],'В папке «Результаты» есть SQL-файл со структурой, ограничениями и данными таблиц.',
+  {shot:'db-export',...(mysql?{codeLabel:'Экспорт из XAMPP при отсутствии CHECK в файле',
+    code:String.raw`& 'C:\xampp\mysql\bin\mysqldump.exe' -h 127.0.0.1 -P 3306 -u root --default-character-set=utf8mb4 --single-transaction --skip-add-drop-table --result-file=dkip2027-mysql.sql dkip2027_course`}:{})}),
  groupedStep('Проверьте восстановление','В восстановленной копии можно проверить данные и убедиться, что ограничения действительно работают.',[
-  {title:'Восстановите структуру и данные',actions:mysql?[
+  {title:'Восстановите структуру и данные',shot:'db-restore',actions:mysql?[
    'Создайте пустую базу dkip2027_restore и выберите её слева.',
    'Откройте «Импорт», выберите свой файл SQL и запустите импорт.',
    'Во вкладке «Структура» сверяйте список с 12 таблицами учебного примера. Откройте «Связи» зависимых таблиц и проверьте 14 пар полей. В «Обзоре» counterparty сравните шесть строк с исходным файлом.'
@@ -285,42 +334,25 @@ export function stagesFor(stack){
    'Выберите формат Plain, укажите свой SQL-файл и запустите Restore. В Processes дождитесь статуса Finished. Если Restore не предлагает Plain, для проверки сделайте отдельный архив Backup в формате Custom с расширением .backup и выберите Custom в Restore.',
    'Обновите дерево восстановленной базы. Сверьте 12 таблиц и 14 внешних ключей в Constraints. Откройте counterparty → View/Edit Data → All Rows и сравните шесть строк с исходным файлом.'
   ]},
-  {title:'Проверьте составной ключ действием',actions:[
-   `Выберите восстановленную копию. Откройте ${mysql?'вкладку «SQL»':'Tools → Query Tool'}. Выполните первый блок один раз. Он добавит две тестовые спецификации и один общий ресурс.`,
-   'Выполните второй блок. Увидите две строки с одним item_id и разными specification_id. Значение qty = 0,012 сохранилось.',
-   'Выполните третий блок отдельно. База отклонит повтор той же пары ключей. Повторите выборку, чтобы увидеть те же две строки. Для задания 3 вернитесь к исходной учебной базе.'
+  {title:'Добавьте в копию два материала из исходников',actions:[
+   mysql
+    ? 'В dkip2027_restore откройте item → «Вставить». Заполните одну строку и нажмите «Вперёд». Повторите для второго материала. Поле id оставляйте пустым.'
+    : 'В dkip2027_restore нажмите правой кнопкой по item → View/Edit Data → All Rows. Нажмите Add row. Дважды щёлкайте по ячейкам новой строки вверху таблицы, вводите значения и нажимайте OK в редакторе. Оставьте [default] в поле id. Нажмите Save Data Changes и повторите для второго материала.',
+   'Поле kind для обеих строк — material. Для евровинта введите code = ФР-00000027, name = Евровинт 6,5х5 и unit = тыс. шт. Для второй строки введите code = ФР-00000013, name = Мебельная деталь 500х800 и unit = шт. Коды и названия взяты из D18, S18, D20, S20 заказа на производство, единицы — из J11 и J13 спецификации.',
+   `Откройте ${mysql?'«Обзор» таблицы item':'View/Edit Data → All Rows для item'} и запишите id, который база присвоила каждому материалу. Эти значения нужны для внешнего ключа price.item_id.`
+  ]},
+  {title:'Проверьте составной ключ цены',shot:'m2-price-key-live',actions:[
+   mysql
+    ? 'Откройте price → «Вставить». В item_id выберите id евровинта. В valid_from введите 2026-04-01, в amount — 595.00. Нажмите «Вперёд». Для второй цены повторите действия с id мебельной детали и суммой 95.00.'
+    : 'Откройте price → View/Edit Data → All Rows. Нажмите Add row и дважды щёлкайте по ячейкам новой строки вверху. Введите id евровинта в item_id, 2026-04-01 в valid_from и 595.00 в amount. Подтвердите числа клавишей Enter, дату — кнопкой OK. Нажмите Save Data Changes. Повторите с id мебельной детали и суммой 95.00.',
+   'Цены 595 и 95 взяты из D2 и D3 файла «Цены.xlsx». Для обеих строк действует допущение из задания 1: цены применяются с 01.04.2026. База принимает общую дату, поскольку item_id у материалов различаются.',
+   mysql
+    ? 'Снова откройте «Вставить» и попробуйте сохранить ту же строку евровинта с прежними item_id и valid_from. phpMyAdmin покажет ошибку #1062 по ключу PRIMARY. В «Обзоре» должны остаться две строки.'
+    : 'Попробуйте добавить ещё одну строку евровинта с прежними item_id и valid_from. При сохранении база сообщит о повторе первичного ключа. Закройте вкладку с несохранённой строкой, затем снова откройте All Rows. Должны остаться две строки.',
+   'Для задания 3 вернитесь к dkip2027_course. Восстановленная копия нужна для проверки выгрузки.'
   ]}
- ],'Выгрузка восстановила структуру и шесть исходных заказчиков. Один ресурс вошёл в две спецификации. Дубликат пары отклонён.',{
-  shot:'db-restore',codeBlocks:[
-   {label:'1. Две спецификации и общий ресурс в восстановленной копии',code:`INSERT INTO counterparty (id, name, inn, address, phone, party_type)
-VALUES ('PK-TEST', 'Учебный изготовитель', '', '', '', 'Производитель');
-
-INSERT INTO item (code, name, kind, unit) VALUES
-  ('PK-PRODUCT-A', 'Учебное изделие А', 'product', 'шт.'),
-  ('PK-PRODUCT-B', 'Учебное изделие Б', 'product', 'шт.'),
-  ('PK-MATERIAL', 'Учебный евровинт', 'material', 'тыс. шт.');
-
-INSERT INTO specification (product_id, name, output_qty, manufacturer_id)
-SELECT id, name, 1, 'PK-TEST'
-FROM item WHERE code IN ('PK-PRODUCT-A', 'PK-PRODUCT-B');
-
-INSERT INTO specification_component (specification_id, item_id, qty, time_norm)
-SELECT s.id, r.id, 0.012, 1
-FROM specification s
-JOIN item p ON p.id = s.product_id
-JOIN item r ON r.code = 'PK-MATERIAL'
-WHERE p.code IN ('PK-PRODUCT-A', 'PK-PRODUCT-B');`},
-   {label:'2. Выборка двух строк',code:`SELECT c.specification_id, c.item_id, c.qty
-FROM specification_component c JOIN item r ON r.id = c.item_id
-WHERE r.code = 'PK-MATERIAL'
-ORDER BY c.specification_id;`},
-   {label:'3. Попытка повторить первую пару',code:`INSERT INTO specification_component (specification_id, item_id, qty, time_norm)
-SELECT s.id, r.id, 0.024, 1
-FROM specification s
-JOIN item p ON p.id = s.product_id
-JOIN item r ON r.code = 'PK-MATERIAL'
-WHERE p.code = 'PK-PRODUCT-A';`}
-  ]
+ ],'Выгрузка восстановила структуру и шесть исходных заказчиков. В копии сохранены две цены на одну дату для разных материалов. Повтор пары item_id и valid_from отклонён.',{
+  resources:['Заказ на производство.xlsx','Спецификация.xlsx','Цены.xlsx']
  })]},
  {id:'M3',title:'Расчёт стоимости',module:'Задание 3 · 20 мин',goal:tasks[2].text,output:'Запрос SQL, результат и записанные допущения.',steps:[
  step('Посчитайте одну строку материала','Стоимость материала = количество изделий × норма × цена.', ['Найдите столешницу: 1 на стол, цена 3250.','Для 2 столов вычислите 2 × 1 × 3250.','Проверьте евровинт: 2 × 0,012 × 595.'],'Столешницы: 6500; евровинты: 14,28.',{code:'SELECT 2*1*3250 AS tabletops, 2*0.012*595 AS screws;',shot:'cost-lines'}),
@@ -356,7 +388,7 @@ LEFT JOIN price p ON p.item_id = r.id
 WHERE o.doc_no = '1'
 ORDER BY r.kind, r.code;`,shot:'cost-price-rows'}),
  step('Выберите цену на дату заказа','Дата 1 апреля в проверочном запросе относится к конкретному учебному прайсу. Для расчёта берём последнюю действующую цену каждого ресурса на дату заказа.',[
-  'В запросе с предыдущей карточки замените условие с фиксированной датой на подзапрос ниже. Добавьте o.doc_date и p.valid_from в SELECT, чтобы сверить дату заказа и дату найденной цены.',
+  'Скопируйте весь запрос из предыдущей карточки. Замените только блок LEFT JOIN price перед WHERE фрагментом ниже. В список полей SELECT после p.amount добавьте через запятую o.doc_date и p.valid_from. Запустите весь запрос, чтобы увидеть обе даты.',
   'В подзапросе p2.item_id = r.id ограничивает выбор ценами текущего ресурса. Условие p2.valid_from <= o.doc_date исключает будущие цены. MAX возвращает самую позднюю из оставшихся дат.',
   'Сохраните подзапрос в ON. Если допустимой даты нет, LEFT JOIN всё равно покажет ресурс, а поля цены будут NULL.'
  ],'Для заказа от 22.04.2026 запрос показывает восемь цен с датой 01.04.2026.',{
@@ -365,113 +397,192 @@ ORDER BY r.kind, r.code;`,shot:'cost-price-rows'}),
     SELECT MAX(p2.valid_from) FROM price p2
     WHERE p2.item_id = r.id AND p2.valid_from <= o.doc_date
   )`,shot:'cost-date-rows'}),
- step('Выполните итоговый запрос','Количество заказа делим на выпуск по спецификации. Затем умножаем на норму ресурса, норму времени и цену. SUM складывает вклады ресурсов, ROUND округляет итог.',[
+ groupedStep('Выполните итоговый запрос','Количество заказа делим на выпуск по спецификации. Затем умножаем на норму ресурса, норму времени и цену. SUM складывает вклады ресурсов, ROUND округляет итог.',[
+  {title:'Получите итог в SQL',actions:[
   `В ${editor} выполните первый блок. Он создаёт представление order_cost на ваших таблицах. В нём GROUP BY o.id собирает один итог на заказ, а CASE проверяет полноту данных.`,
-  'Выполните второй блок. Он находит ваш заказ по номеру 1 из Excel и показывает присвоенный order_id и рассчитанную стоимость.',
-  'Сверьте с ручной суммой. Материалы стоят 9 974,28, операции — 4 400.'
- ],'Нормативная стоимость двух столов — 14 374,28.',{explainFirst:true,codeBlocks:[
+  'Выполните второй блок. Он находит ваш заказ по номеру 1 из Excel и показывает присвоенный order_id и рассчитанную стоимость.'
+  ]},
+  {title:'Сверьте расчёт с исходными книгами',actions:[
+   'Для двух столов сложите по спецификации и прайсу пять сумм материалов: 6 500 + 380 + 1 120 + 14,28 + 1 960 = 9 974,28 руб. Прибавьте стоимость трёх операций 4 400 руб. Проверьте, что SQL показывает 14 374,28 руб.',
+   'В «Расчет стоимости.xlsx» проверьте D3, D9 и D13. Там указаны 3 948,12 руб. за материалы и 7 500 руб. за операции, всего 11 448,12 руб. Разница с нашим расчётом — 2 926,16 руб. Учебный расчёт опирается на нормы «Спецификация.xlsx» и цены «Цены.xlsx». Например, для распила тарифицируются 3 часа по 450 руб., что даёт 1 350 руб. В готовом расчёте D10 указано 900 руб.'
+  ],shot:'cost-result'}
+ ],'Нормативная стоимость двух столов по спецификации и прайсу — 14 374,28 руб.',{explainFirst:true,resources:['Расчет стоимости.xlsx','Спецификация.xlsx','Цены.xlsx'],codeBlocks:[
   {label:'Представление order_cost',code:'CREATE OR REPLACE VIEW order_cost AS'+readFileSync(new URL('../'+folder+'/Sql/01-schema.sql',import.meta.url),'utf8').split('CREATE OR REPLACE VIEW order_cost AS')[1].trimEnd()},
   {label:'Итог по заказу № 1',code:`SELECT v.order_id, v.total_cost
 FROM order_cost v
 JOIN customer_order o ON o.id = v.order_id
 WHERE o.doc_no = '1';`}
- ],shot:'cost-result'}),
- step('Обработайте неполные данные',
-  'SUM пропускает значения NULL и может вернуть частичную сумму. Поэтому представление order_cost проверяет, для всех ли строк есть действующие цены, прежде чем вернуть итог.', [
-   'LEFT JOIN для спецификации, её состава и действующих цен сохраняет строки с пропусками. COUNT(*) считает все строки, а COUNT(p.item_id) только строки с найденной ценой. При несовпадении счётчиков CASE в представлении оставляет total_cost равным NULL.',
-   'Выполните запрос ниже. Вместо 1 подставьте order_id, который получили на предыдущей карточке. Здесь CASE читает total_cost и выводит понятный статус в столбце cost_status.',
-   'В копии базы запишите исходную строку цены евровинта от 01.04.2026 и временно удалите её. Выполните тот же запрос, затем восстановите строку и выполните его ещё раз.'
-  ],'Без цены total_cost равен NULL, а статус сообщает о недостающих данных. После восстановления цены итог снова 14 374,28, статус — «Расчёт выполнен».',
-  {explainFirst:true,codeLabel:'Проверочный запрос по заказу',code:readFileSync(new URL('../'+folder+'/Sql/03-cost.sql',import.meta.url),'utf8').trimEnd()})]},
+ ]}),
+ groupedStep('Обработайте неполные данные',
+  'SUM пропускает значения NULL и может вернуть частичную сумму. Поэтому представление order_cost проверяет наличие действующих цен перед расчётом итога.',[
+  {title:'Подготовьте отдельную копию',actions:mysql?[
+   'В phpMyAdmin выберите dkip2027_course → «Операции» → «Скопировать базу данных в». Укажите новое имя dkip2027_cost_check. Выберите «Структура и данные», отметьте создание базы, добавление ограничений и переключение на копию. Поля «Добавить DROP TABLE / DROP VIEW» и «Настроить привилегии» оставьте выключенными. Нажмите «Вперёд».',
+   'Используйте эту копию для теста цены. В phpMyAdmin 5.2.1 при копировании могут потеряться CHECK. Для полной выгрузки со всеми ограничениями используйте mysqldump из задания 2.',
+   'Убедитесь, что вверху выбрана dkip2027_cost_check. Откройте «SQL» на уровне копии и заново выполните блок CREATE OR REPLACE VIEW из предыдущей карточки. Скопированное в phpMyAdmin представление может обращаться к таблицам исходной базы. Повторное создание в копии связывает запрос с её таблицами.'
+  ]:[
+   'В pgAdmin сохраните базу через Backup в формате Custom. Создайте отдельную базу dkip2027_cost_check и восстановите в неё архив через Restore. Дождитесь завершения восстановления.',
+   'Откройте Query Tool именно из dkip2027_cost_check и выполните блок CREATE OR REPLACE VIEW из предыдущей карточки, чтобы представление использовало таблицы копии.'
+  ]},
+  {title:'Проверьте неполный расчёт в копии',actions:[
+   'LEFT JOIN сохраняет строки с пропусками. COUNT(*) считает все строки, а COUNT(p.item_id) только строки с найденной ценой. При несовпадении счётчиков CASE в представлении оставляет total_cost равным NULL. Запрос ниже показывает понятный статус в cost_status. Выполните его в копии и проверьте исходный итог.',
+   mysql
+    ? 'В «Обзоре» item в копии найдите id евровинта по коду ФР-00000027. В «Обзоре» price запишите item_id, valid_from и amount для цены евровинта от 01.04.2026. В этой строке нажмите «Удалить». Если появится окно подтверждения, подтвердите удаление.'
+    : 'В копии откройте item через View/Edit Data → All Rows и найдите id евровинта по коду ФР-00000027. Так же откройте price, запишите item_id, valid_from и amount цены евровинта от 01.04.2026. Нажмите на номер этой строки слева, затем на значок корзины Delete и на Save Data Changes.',
+   `Снова выполните проверочный запрос в копии. Затем верните цену через ${mysql?'«Вставить» → «Вперёд»':'Add row → Save Data Changes'} с теми же item_id, valid_from и amount. Повторите запрос. После проверки выберите рабочую базу dkip2027_course.`
+  ],shot:mysql?undefined:'cost-missing-price'},
+  {title:'Сохраните запрос и сверку',actions:[
+   'Откройте Блокнот. Вставьте блок CREATE OR REPLACE VIEW из предыдущей карточки и проверочный SELECT из этой карточки на новой строке. Сохраните как 03-cost.sql в папке «Результаты». В диалоге сохранения выберите тип «Все файлы» и кодировку UTF-8.',
+   'В той же папке сохраните «Допущения.txt». Запишите итог SQL 14 374,28 руб., исходный итог 11 448,12 руб. и разницу 2 926,16 руб. Укажите дату прайса 01.04.2026, единицы материалов из спецификации, тариф операций в рублях за час и связь исполнителя заказа с изготовителем. Оставьте пометку, что оба исходных кода стола сохранены.'
+  ]}
+ ],'При удалённой цене итог NULL. После возврата цены итог 14 374,28 руб. и статус «Расчёт выполнен». В папке «Результаты» лежат 03-cost.sql и «Допущения.txt».',{
+  explainFirst:true,codeLabel:'Проверочный запрос по заказу № 1',code:`SELECT v.order_id, v.total_cost,
+       CASE WHEN v.total_cost IS NULL THEN 'Недостаточно норм или цен на дату заказа'
+            ELSE 'Расчёт выполнен'
+       END AS cost_status
+FROM order_cost v
+JOIN customer_order o ON o.id = v.order_id
+WHERE o.doc_no = '1';`
+ })]},
  {id:'M4',title:`Формы и ${ui}`,module:'Задание 4 · 60 мин',goal:tasks[3].text,output:`Проект ${ui}, работающий с ${db}.`,steps:[
  groupedStep('Создайте окно «Вход»',
   'Окно с именем LoginForm или LoginWindow легко найти в проекте. Назначьте его первым окном при запуске.',[
    {title:'Добавьте окно',shot:mysql?'m4-view-designer':undefined,actions:[
-    mysql?'В Обозревателе решений нажмите правой кнопкой на MyApp → «Добавить» → «Форма Windows Forms». Введите LoginForm.cs и нажмите «Добавить».':'В Обозревателе решений нажмите правой кнопкой на MyApp → «Добавить» → «Окно WPF». Введите LoginWindow.xaml и нажмите «Добавить».',
-    mysql?'Нажмите правой кнопкой по LoginForm.cs → «Просмотреть конструктор» (View Designer). Можно выделить файл и нажать Shift+F7. Щёлкните по пустому месту формы, нажмите F4, в Text введите «Вход», в Size задайте примерно 560 × 510.':'Дважды нажмите LoginWindow.xaml, выберите «Конструктор» и кликните по краю окна. Нажмите F4 и в Title введите «Вход», в Width — 540, в Height — 550.'
+    mysql?'Выделите проект MyApp в Обозревателе решений и нажмите Ctrl+Shift+A. Если открылась короткая форма с полем имени, нажмите «Показать все шаблоны». Выберите «Форма (Windows Forms)», введите LoginForm.cs и нажмите «Добавить».':'Выделите проект MyApp в Обозревателе решений и нажмите Ctrl+Shift+A. Если открылась короткая форма, нажмите «Показать все шаблоны». В категории «Элементы C#» выберите «Окно (WPF)», введите LoginWindow.xaml и нажмите «Добавить».',
+    mysql?'Нажмите правой кнопкой по LoginForm.cs → «Просмотреть конструктор» (View Designer). Можно выделить файл и нажать Shift+F7. Щёлкните по пустому месту формы, нажмите F4, в Text введите «Вход», в Size задайте примерно 560 × 510.':'Откройте LoginWindow.xaml и переключитесь на вкладку XAML. В открывающем теге Window замените свойства Title, Height и Width первым фрагментом. Title задаёт текст в заголовке, Height и Width — начальные размеры окна.'
    ]},
    {title:'Назначьте первое окно',actions:[
-    mysql?'Откройте Program.cs. Найдите Application.Run(new Form1()); и замените эту строку кодом ниже.':'Откройте App.xaml. Найдите StartupUri="MainWindow.xaml" и замените свойство значением из блока ниже.',
+    mysql?'Откройте Program.cs. Найдите Application.Run(new Form1()); и замените эту строку кодом ниже.':'Откройте App.xaml. Найдите StartupUri="MainWindow.xaml" и замените его вторым фрагментом. StartupUri выбирает, какое окно открывается при запуске.',
     'Нажмите Ctrl+S, затем Ctrl+F5. Убедитесь, что открылось окно с заголовком «Вход». Закройте его крестиком.',
     ...(mysql?['После проверки удалите пустую Form1.cs через Обозреватель решений. Теперь программа запускает LoginForm.']:[])
    ]}
   ],'При запуске открывается пустое окно «Вход». В проекте появился файл этого окна.',
-  {group:'Окно входа',codeLabel:mysql?'Строка в Program.cs':'Свойство окна в App.xaml',code:mysql?'Application.Run(new LoginForm());':'StartupUri="LoginWindow.xaml"'}),
+  {group:'Окно входа',...(mysql?{codeLabel:'Строка в Program.cs',code:'Application.Run(new LoginForm());'}:{codeBlocks:[
+   {label:'1. Свойства окна в LoginWindow.xaml',code:'Title="Вход" Height="550" Width="540"'},
+   {label:'2. Первое окно в App.xaml',code:'StartupUri="LoginWindow.xaml"'}
+  ]})}),
  groupedStep('Добавьте поля логина и пароля',
   'Элементы получают имена, по которым обработчик позже прочитает логин и пароль.',[
-   {title:'Откройте панель элементов',shot:'m4-toolbox',actions:[
-    'Откройте окно «Вход» в конструкторе. Нажмите Ctrl+Alt+X или выберите «Вид» → «Панель элементов» (Toolbox).',
-    mysql?'Если панель пуста, щёлкните по пустому месту формы. Разверните группу «Все формы Windows Forms» (All Windows Forms). Если нужный элемент не виден, введите его имя в Search Toolbox.':'В Toolbox откройте Common WPF Controls и найдите StackPanel. Перетащите его на макет. TextBlock и TextBox находятся там же, а PasswordBox можно найти через Search Toolbox. Размещайте элементы внутри StackPanel сверху вниз.'
+   {title:mysql?'Откройте панель элементов':'Добавьте разметку полей',shot:'m4-toolbox',actions:[
+    mysql?'Откройте окно «Вход» в конструкторе. Нажмите Ctrl+Alt+X или выберите «Вид» → «Панель элементов» (Toolbox).':'Откройте LoginWindow.xaml и переключитесь на вкладку XAML. Замените пустой блок <Grid>…</Grid> разметкой из этой карточки.',
+    mysql?'Если панель пуста, щёлкните по пустому месту формы. Разверните группу «Все формы Windows Forms» (All Windows Forms). Если нужный элемент не виден, введите его имя в Search Toolbox.':'StackPanel располагает элементы сверху вниз, а ScrollViewer даёт прокрутку, когда позже добавится пазл.'
    ]},
    {title:'Добавьте логин',actions:[
-    mysql?'Перетащите Label в верхнюю часть формы. Выделите его, нажмите F4 и в строке Text напишите «Логин». Под ним разместите TextBox.':'Перетащите TextBlock в StackPanel. В свойствах Text задайте «Логин». Ниже добавьте TextBox.',
-    mysql?'Выделите TextBox → F4 → в строке (Name) введите LoginInput и нажмите Enter. Увеличьте ширину поля правым маркером.':'Выделите TextBox → F4 → в поле Name введите LoginInput и нажмите Enter.'
+    mysql?'Перетащите Label в верхнюю часть формы. Выделите его, нажмите F4 и в строке Text напишите «Логин». Под ним разместите TextBox.':'Найдите в разметке TextBlock с подписью «Логин» и TextBox под ним. Первый показывает текст, второй позволяет его вводить.',
+    mysql?'Выделите TextBox → F4 → в строке (Name) введите LoginInput и нажмите Enter. Увеличьте ширину поля правым маркером.':'Сохраните имя LoginInput. По x:Name сгенерированный класс окна получит поле, через которое код прочитает ввод.'
    ]},
    {title:'Добавьте пароль',actions:[
-    mysql?'Перетащите второй Label и задайте Text «Пароль». Под ним добавьте второй TextBox. В (Name) введите PasswordInput. В UseSystemPasswordChar выберите True.':'Добавьте второй TextBlock с текстом «Пароль». Под ним разместите PasswordBox. В поле Name введите PasswordInput.',
+    mysql?'Перетащите второй Label и задайте Text «Пароль». Под ним добавьте второй TextBox. В (Name) введите PasswordInput. В UseSystemPasswordChar выберите True.':'У второго TextBlock найдите подпись «Пароль». PasswordBox с именем PasswordInput скрывает ввод.',
     'Нажмите Ctrl+F5. Впишите несколько символов в оба поля. В логине символы видны, в пароле отображаются точки. Закройте окно.'
    ]}
   ],'В окне «Вход» есть две подписи и два поля. Логин виден, пароль скрывается.',
-  {group:'Окно входа'}),
+  {group:'Окно входа',...(mysql?{}:{codeLabel:'Поля в LoginWindow.xaml',code:`<ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="24">
+        <TextBlock Text="Логин" />
+        <TextBox x:Name="LoginInput" Margin="0,4,0,12" />
+        <TextBlock Text="Пароль" />
+        <PasswordBox x:Name="PasswordInput" Margin="0,4,0,12" />
+    </StackPanel>
+</ScrollViewer>`})}),
  groupedStep('Добавьте кнопку и свяжите её с кодом',
   'Нажатие вызывает метод Click. Пока проверяем только этот переход от формы к коду.',[
    {title:'Поставьте кнопку под полями',actions:[
-    'В Toolbox найдите Button и перетащите под полем пароля. Выделите кнопку и нажмите F4.',
-    mysql?'В (Name) введите SignInButton, в Text — «Войти». Нажмите Enter.':'В Name введите SignInButton, в Content — «Войти». Нажмите Enter.'
+    mysql?'В Toolbox найдите Button и перетащите под полем пароля. Выделите кнопку и нажмите F4.':'Во вкладке XAML добавьте первый фрагмент сразу после PasswordBox, перед </StackPanel>.',
+    mysql?'В (Name) введите SignInButton, в Text — «Войти». Нажмите Enter.':'Свойство x:Name задаёт имя SignInButton, а Content — видимую надпись «Войти». Сохраните XAML и переключитесь на «Конструктор».'
    ]},
    {title:'Вставьте одну строку в обработчик',shot:'m4-click',actions:[
-    'Дважды щёлкните кнопку на макете. Visual Studio откроет файл C# и создаст метод для события Click. Обычно он называется SignInButton_Click.',
-    'Поставьте курсор на пустую строку между фигурными скобками метода. Вставьте строку из блока ниже. Скобки и заголовок метода оставьте.',
-    'Сохраните Ctrl+S, запустите Ctrl+F5 и нажмите «Войти». Если ничего не произошло, вернитесь в конструктор: кнопка → F4 → значок молнии → Click. Там должно стоять имя созданного метода.',
+    mysql?'Дважды щёлкните кнопку на макете. Visual Studio откроет файл C# и создаст метод для события Click. Обычно он называется SignInButton_Click.':'Выделите «Войти» на макете. В окне свойств (F4) нажмите значок молнии. Дважды нажмите пустое поле в строке Click. Visual Studio запишет связь в XAML и откроет новый метод SignInButton_Click в LoginWindow.xaml.cs.',
+    mysql?'Поставьте курсор на пустую строку между фигурными скобками метода. Вставьте строку из блока ниже. Скобки и заголовок метода оставьте.':'Между скобками созданного метода вставьте второй фрагмент. Заголовок и скобки оставьте. MessageBox.Show открывает сообщение, чтобы проверить событие.',
+    'Сохраните все файлы Ctrl+Shift+S, запустите Ctrl+F5 и нажмите «Войти». Если ничего не произошло, вернитесь в конструктор: кнопка → F4 → значок молнии → Click. Там должно стоять имя созданного метода.',
     ...(!mysql?['В WPF та же связь видна в разметке: в LoginWindow.xaml найдите Button с именем SignInButton и сверьте значение Click с именем метода в LoginWindow.xaml.cs.']:[])
    ]}
   ],'Нажатие на «Войти» показывает «Кнопка работает». Дальше код входа добавляется в этот же обработчик.',
-  {group:'Окно входа',codeLabel:'Одна строка внутри Click',code:'MessageBox.Show("Кнопка работает");'}),
- step('Подключите проект к своей базе',
-  'Перед проверкой входа убедитесь, что приложение видит таблицу users из задания 2.', [
-   'Правой кнопкой по MyApp → «Добавить» → «Класс». Введите Database.cs. Раскройте «Подключение к базе · Database.cs». Скопируйте код и замените им содержимое созданного файла. Проверьте namespace MyApp в начале файла.',
-   'Дважды щёлкните «Войти» в конструкторе. Внутри Click замените старую строку кодом ниже. Нажмите Ctrl+S и Ctrl+F5. Сравните число с количеством строк users в редакторе базы.'
-  ], 'По нажатию кнопки выводится число строк таблицы users, включая 0 для пустой таблицы.',
-  {group:'Учётные записи',referenceFile:`examples/starter/${stack}/Database.cs`,referenceLabel:'Подключение к базе · Database.cs',codeLabel:'Временная проверка подключения',code:'MessageBox.Show(Database.Scalar("SELECT COUNT(*) FROM users")?.ToString());'}),
+  {group:'Окно входа',...(mysql?{codeLabel:'Одна строка внутри Click',code:'MessageBox.Show("Кнопка работает");'}:{codeBlocks:[
+   {label:'1. Кнопка внутри StackPanel',code:'<Button x:Name="SignInButton" Content="Войти" MinHeight="30" />'},
+   {label:'2. Одна строка внутри Click',code:'MessageBox.Show("Кнопка работает");'}
+  ]})}),
+ groupedStep('Подключите проект к своей базе',
+  'Проверка числа строк отделяет ошибки подключения от логики входа. Строку подключения приложение получает из профиля запуска.',[
+   {title:'Создайте файл и объявите класс',actions:[
+    'В Обозревателе решений нажмите правой кнопкой по проекту MyApp → «Добавить» → «Класс». Назовите файл Database.cs. Откройте его и замените шаблон содержимым блока 1. using подключают типы ADO.NET и выбранного провайдера, а namespace MyApp совпадает с именем проекта.'
+   ]},
+   {title:'Добавьте подключение и параметры запросов',actions:[
+    'Между фигурными скобками класса Database вставьте блок 2. Open считывает DKIP_CONNECTION и открывает соединение. Command создаёт команду и передаёт значения отдельными параметрами @p0, @p1 и далее. Так ввод пользователя остаётся данными запроса.',
+    'Перед последней скобкой того же класса вставьте блок 3. Execute изменяет строки, Query читает таблицу результатов, Scalar возвращает одно значение. using освобождает соединение и команду после каждого вызова.'
+   ]},
+   {title:'Сверьте результат в окне «Вход»',actions:[
+    mysql?'Дважды щёлкните «Войти» в конструкторе. Между скобками обработчика Click замените проверку кнопки блоком 4. Заголовок метода и его скобки оставьте. Сохраните оба файла.':'В Обозревателе решений раскройте LoginWindow.xaml и откройте LoginWindow.xaml.cs. Внутри SignInButton_Click замените сообщение «Кнопка работает» блоком 4. Заголовок метода и скобки оставьте. Сохраните все файлы.',
+    `Нажмите F5, затем «Войти». Сравните число с количеством строк users в ${editor}. Если появилось сообщение об ошибке подключения, проверьте порт, имя базы и переменную DKIP_CONNECTION в активном профиле запуска.`
+   ]}
+  ],'Нажатие на «Войти» показывает число строк users. В пустой таблице результат равен 0.',
+  {group:'Учётные записи',codeBlocks:[
+   {label:'1. Начало файла Database.cs',code:databaseSource.slice(0,databaseClass)+'}'},
+   {label:'2. Методы Open и Command внутри класса Database',code:databaseSource.slice(databaseClass,databaseOperations).trimEnd()},
+   {label:'3. Методы Execute, Query и Scalar внутри того же класса',code:databaseSource.slice(databaseOperations,-1).trimEnd()},
+   {label:'4. Временная проверка внутри Click',code:`try
+{
+    MessageBox.Show(Database.Scalar("SELECT COUNT(*) FROM users")?.ToString());
+}
+catch (Exception ex)
+{
+    MessageBox.Show("Ошибка подключения: " + ex.Message);
+}`}
+  ]}),
  step('Заполните пустую таблицу двумя учебными записями',
-  'Для проверки нужны обе роли. Две строки можно добавить в редакторе базы и сразу приступить к окнам.', [
-   mysql?'В phpMyAdmin выберите свою учебную базу и откройте вкладку SQL.':'В pgAdmin выберите свою учебную базу, затем «Инструменты» → Query Tool.',
-   'Если users уже содержит подходящие тестовые записи с обеими ролями, используйте их. Для пустой users вставьте SQL из блока и выполните его один раз.',
-   'Проверьте строки в users. Логины для окна «Вход» — admin и student. Для обеих записей учебный пароль Demo2027!.'
+  'Для проверки нужны обе роли. В поле password_hash сохраняется проверочное значение, которое включает соль и хеш. В окне входа вводят пароль.', [
+   mysql?'В своей учебной базе откройте users → «Обзор». Для пустой таблицы перейдите на вкладку «Вставить» и заполните первую форму. Поле id оставьте пустым.':'В своей учебной базе нажмите правой кнопкой по users → View/Edit Data → All Rows. Для пустой таблицы нажмите Add row. В новой строке оставьте [default] в поле id. Для ввода дважды щёлкайте по ячейкам, текст подтверждайте кнопкой OK.',
+   'Для первой строки укажите login = admin, role = admin и вставьте первый хеш в password_hash. Для второй строки укажите login = student, role = user и вставьте второй хеш. Эти значения посчитаны из учебного пароля Demo2027! с разной солью.',
+   mysql?'В обеих строках задайте failed_attempts = 0 и is_locked = 0. Каждую строку сохраните кнопкой «Вперёд». Вернитесь в «Обзор» и проверьте обе записи.':'Введите 0 в failed_attempts и нажмите Enter. Дважды щёлкните is_locked. Нажимайте на флажок, пока в нём не останется ни галочки, ни чёрточки. Щёлкните соседнюю ячейку и проверьте, что видно false. Нажмите Save Data Changes и повторите для второй записи.',
+   'Если в вашей учебной таблице уже есть admin и student, сверяйте роли по существующим строкам. Для следующих проверок используйте пароль, соответствующий их хешам.'
   ], 'В users есть admin с ролью admin и student с ролью user. Счётчики равны нулю, обе записи разблокированы.',
-  {group:'Учётные записи',codeLabel:'SQL для пустой учебной таблицы users',code:`INSERT INTO users (login, password_hash, role, failed_attempts, is_locked)
-VALUES
-    ('admin', 'ZGtpcC1kZW1vLWFkbWluIQ==:razCURk4WRm93+4n6JRjHafFWVGLT9mE/zK6yM6vFq8=', 'admin', 0, FALSE),
-    ('student', 'ZGtpcC1kZW1vLXN0dWQuIQ==:oGrwAbgIg57bmM8lZOkiV+Um0GPIyCSS4+sb9YweW+A=', 'user', 0, FALSE);`}),
+  {group:'Учётные записи',codeBlocks:[
+   {label:'1. Значение password_hash для admin',code:'ZGtpcC1kZW1vLWFkbWluIQ==:razCURk4WRm93+4n6JRjHafFWVGLT9mE/zK6yM6vFq8='},
+   {label:'2. Значение password_hash для student',code:'ZGtpcC1kZW1vLXN0dWQuIQ==:oGrwAbgIg57bmM8lZOkiV+Um0GPIyCSS4+sb9YweW+A='}
+  ]}),
  ...sqlQuerySteps(mysql),
- step('Проверьте логин и пароль',
-  'Отработайте поиск записи и проверку пароля отдельно. Тогда ошибку сборки пазла будет проще отличить от ошибки входа.', [
-   'Правой кнопкой по MyApp → «Добавить» → «Класс» → Accounts.cs. Замените всё содержимое кодом из «Открыть Accounts.cs». В строке namespace Dkip замените Dkip на MyApp.',
-   'Проследите начало SignIn. Пустые поля проверяются до запроса. По логину метод находит строку users, считывает сохранённый хеш, роль и состояние блокировки. Verify проверяет введённый пароль по хешу из этой строки.',
-   `Замените временный вывод числа строк блоком ниже. Временно передайте true вместо результата пазла. На следующем этапе это значение заменится настоящей проверкой.`,
-   'Проверьте пустые поля. Затем для разблокированного student с нулевым счётчиком введите один неверный пароль и обновите users в редакторе БД. В failed_attempts появится 1. Введите верный пароль и снова обновите строку. Счётчик вернётся к 0.'
-  ], 'Вход с пустыми полями останавливается до поиска. Неверный пароль увеличивает счётчик до 1, а правильный вход сбрасывает его до 0.',
-  {group:sqlQueryGroup,referenceFile:'examples/Shared/Accounts.cs',referenceLabel:'Открыть Accounts.cs',codeLabel:'Внутри обработчика Click',code:passwordCheck()}),
- step('Покажите фрагменты пазла',
-  'Четыре исходных PNG уже являются частями одной картинки. Правильный порядок нужен и для образца, и для проверки.', [
-   'В Обозревателе решений нажмите правой кнопкой по MyApp → «Добавить» → «Новая папка», назовите Assets. Правой кнопкой по Assets → «Добавить» → «Существующий элемент». Выберите 1.png–4.png из исходных файлов задания 4.',
-   'Выделите добавленные PNG и нажмите F4. В «Копировать в выходной каталог» выберите «Копировать, если новее». Так программа найдёт PNG рядом с EXE.',
-   mysql?'Правой кнопкой по MyApp → «Добавить» → «Класс» → PuzzleControl.cs. Замените всё содержимое кодом из примера. В namespace замените Dkip на MyApp. Нажмите «Сборка» → «Собрать решение». Перетащите PuzzleControl из Toolbox под паролем, в (Name) введите Puzzle. Опустите кнопку под пазл.': 'Откройте LoginWindow.xaml. Во вкладке XAML найдите тег Button. Вставьте перед ним разметку первого блока, внутри StackPanel. У кнопки укажите Click="SignInButton_Click".',
-   ...(!mysql?['В Обозревателе решений раскройте LoginWindow.xaml и откройте LoginWindow.xaml.cs. Замените всё содержимое вторым блоком. В нём уже есть прежняя проверка пароля и готовые методы пазла.']:[]),
-   'В коде order хранит номера фрагментов, а индекс массива обозначает ячейку. Индексы начинаются с 0. При отрисовке ячейка i получает фрагмент с номером order[i].',
-   'Запустите приложение. Слева сравните образец с файлами. Справа проверьте, что все четыре части видны и расположены в другом порядке.'
-  ], 'Окно показывает исходное изображение и перемешанную сетку 2 × 2.',
-  {group:'Пазл и блокировка',shot:'login',...(mysql?{referenceFile:folder+'/PuzzleControl.cs',referenceLabel:'Открыть код пазла'}:{}),
-   ...(!mysql?{codeBlocks:[{label:'1. Разметка пазла в LoginWindow.xaml',code:[
-    '<Grid Height="204">',
-    '    <Grid.ColumnDefinitions>',
-    '        <ColumnDefinition/>',
-    '        <ColumnDefinition/>',
-    '    </Grid.ColumnDefinitions>',
-    '    <Image x:Name="Original" Width="200" Height="200"/>',
-    '    <UniformGrid x:Name="Puzzle" Grid.Column="1" Rows="2" Columns="2"/>',
-    '</Grid>'
-   ].join('\n')},{label:'2. Полный LoginWindow.xaml.cs на этом шаге',code:wpfPuzzleFile}]}:{} )}),
+ groupedStep('Проверьте логин и пароль',
+  'Сначала отработайте проверку пароля. Затем добавьте результат сборки пазла в тот же вызов.',[
+   {title:'Создайте класс учётных записей',actions:[
+    'Правой кнопкой по MyApp → «Добавить» → «Класс». Назовите файл Accounts.cs. Вставьте блок 1 вместо шаблона. Account хранит id, логин и роль после входа. Класс Accounts содержит правила проверки.'
+   ]},
+   {title:'Добавьте проверку хеша',actions:[
+    'Внутрь класса Accounts вставьте блок 2. Hash создаёт случайную соль и вычисляет PBKDF2, затем записывает их через двоеточие. Verify читает обе части, повторяет вычисление и сравнивает результаты. Строка в неверном формате даёт false.'
+   ]},
+   {title:'Реализуйте поиск и счётчик попыток',actions:[
+    'Перед закрывающей скобкой класса Accounts вставьте блок 3. SignIn убирает пробелы вокруг логина, проверяет пустые поля и ищет одну строку users по параметру. FOR UPDATE защищает счётчик от одновременного изменения.',
+    'После проверки метод сохраняет счётчик и блокировку внутри одной транзакции. Commit выполняется до сообщения об отказе. Успех сбрасывает счётчик. Метод возвращает Account, когда пароль верен, пазл собран и запись доступна.'
+   ]},
+   {title:'Подключите вызов к кнопке',actions:[
+    'Внутри Click кнопки «Войти» замените временный вывод числа строк блоком 4. Пока в третий аргумент передаётся true. Когда создадите пазл, туда попадёт результат его проверки.',
+    'Нажмите F5. Проверьте пустые поля. Затем для разблокированного student введите один неверный пароль и обновите users. После ошибки failed_attempts = 1, после входа с верным паролем = 0.'
+   ]}
+  ],'Пустые поля останавливают вход до запроса. Неверный пароль увеличивает счётчик до 1, а верный сбрасывает его до 0.',
+  {group:sqlQueryGroup,codeBlocks:[
+   {label:'1. Начало файла Accounts.cs',code:accountsSource.slice(0,hashMethods)+'}'},
+   {label:'2. Методы Hash, Verify и DeriveHash внутри класса',code:accountsSource.slice(hashMethods,signInMethod).trimEnd()},
+   {label:'3. Метод SignIn внутри того же класса',code:accountsSource.slice(signInMethod,adminMethods).trimEnd()},
+   {label:'4. Код внутри обработчика Click',code:passwordCheck()}
+  ]}),
+ groupedStep('Покажите фрагменты пазла',
+  'Четыре исходных PNG уже являются частями одной картинки. Сначала соберите образец, затем покажите эти же части в порядке массива order.',[
+   {title:'Добавьте изображения в проект',actions:[
+    'В Обозревателе решений нажмите правой кнопкой по проекту MyApp → «Добавить» → «Новая папка». Назовите её Assets. Правой кнопкой по Assets → «Добавить» → «Существующий элемент». Выберите файлы 1.png–4.png из папки «Исходные данные → Задание 4».',
+    'Выделите четыре добавленных PNG и нажмите F4. Для «Действие при сборке» выберите Content («Содержимое»), для «Копировать в выходной каталог» — «Копировать, если новее». После сборки рядом с EXE появится папка Assets с четырьмя файлами.'
+   ]},
+   {title:mysql?'Напишите элемент PuzzleControl':'Добавьте разметку и методы пазла',actions:mysql?[
+    'Правой кнопкой по проекту MyApp → «Добавить» → «Класс». Назовите файл PuzzleControl.cs. Вставьте блок 1 вместо шаблона. Массив order хранит номер картинки в каждой из четырёх ячеек, а selected = -1 означает, что ни одна ячейка пока не выбрана.',
+    'Перед последней фигурной скобкой класса вставьте блок 2. LoadFragments читает PNG из выходной папки Assets, а конструктор показывает образец и создаёт четыре кнопки. Проверка Designtime позволяет открыть конструктор Visual Studio до сборки ресурсов.',
+    'Перед последней скобкой того же класса вставьте блок 3. SelectTile выбирает или меняет части, RefreshTiles перерисовывает сетку и рамки. Dispose освобождает картинки, когда форма закрывается.'
+   ]:[
+    'Откройте LoginWindow.xaml. Во вкладке XAML вставьте блок 1 перед кнопкой «Войти», внутри StackPanel. Слева Image показывает образец, справа UniformGrid содержит четыре кнопки.',
+    'В LoginWindow.xaml.cs добавьте отсутствующие using для System.IO, System.Windows.Controls, System.Windows.Media и System.Windows.Media.Imaging. Внутрь класса перед его последней скобкой вставьте блок 2. LoadPuzzle читает четыре PNG по пути из System.IO.Path.Combine и создаёт образец. Полное имя Path отличает файловый путь от фигуры Path в шаблоне WPF. SelectTile меняет части по номерам из order.',
+    'Найдите уже созданный конструктор LoginWindow(). Сразу после InitializeComponent() вставьте блок 3. Он запускает LoadPuzzle и показывает причину, если PNG не открылись. Сохраните существующий обработчик кнопки «Войти».'
+   ]},
+   {title:'Запустите и сравните два изображения',shot:'login',actions:[
+    mysql?'Нажмите «Сборка» → «Собрать решение». Откройте конструктор LoginForm и найдите PuzzleControl в Toolbox среди элементов MyApp. Перетащите его под полем пароля и через F4 задайте (Name) = Puzzle. Переместите кнопку «Войти» ниже пазла.':'Сохраните LoginWindow.xaml и LoginWindow.xaml.cs. Нажмите «Сборка» → «Собрать решение». Проверьте, что разметка называет элементы Original и Puzzle.',
+    'Нажмите F5. Слева проверьте образец, справа — четыре части в другом порядке. Если образец и части пустые, откройте выходной каталог и проверьте папку Assets, имена и расширения файлов.'
+   ]}
+  ],'В окне виден образец и перемешанная сетка 2 × 2.',
+  {group:'Пазл и блокировка',codeBlocks:puzzleBlocks}),
  groupedStep('Поменяйте местами две части',
   'Первое нажатие запоминает ячейку. Второе меняет местами две части и обновляет картинки.', [
    {title:'Первый щелчок: запомните ячейку',shot:'puzzle-first-click',actions:[
@@ -490,7 +601,7 @@ order[position] = fragment;
 selected = -1;`}),
  step('Свяжите пазл с входом и проверьте блокировку',
   'В методе SignIn неправильный пароль и неверный пазл учитываются одинаково. Состояние хранится в users.', [
-   'Дважды щёлкните «Войти» в конструкторе. Замените содержимое обработчика блоком ниже. В третьем аргументе теперь проверяется пазл. После неудачного входа он перемешивается.',
+   mysql?'Дважды щёлкните «Войти» в конструкторе. Замените содержимое обработчика блоком ниже. В третьем аргументе теперь проверяется пазл. После неудачного входа он перемешивается.':'Откройте LoginWindow.xaml.cs и замените содержимое метода SignInButton_Click блоком ниже. В третьем аргументе теперь проверяется пазл. После неудачного входа он перемешивается.',
    'В SignIn условие passwordCorrect && puzzleSolved требует успеха обеих проверок. При любом отказе увеличивается один failed_attempts. При достижении 3 выставляется is_locked. Метод сохраняет оба поля до сообщения об ошибке, поэтому перезапуск окна сохраняет блокировку.',
    'На тестовой записи student с нулевым счётчиком дважды введите неверный пароль. В третьей попытке введите правильный пароль и оставьте пазл несобранным. После каждой попытки обновите users и проследите значения (1, FALSE), (2, FALSE), (3, TRUE).',
    'Закройте и снова запустите приложение. Повторите вход с верными данными и собранным пазлом. В users проверьте failed_attempts и is_locked.'
@@ -498,31 +609,75 @@ selected = -1;`}),
   {group:'Пазл и блокировка',codeLabel:'Готовый код внутри Click с проверкой пазла',code:passwordCheck(true)}),
  groupedStep('Соберите рабочее окно',
   'Рабочее окно показывает логин и роль. Таблица и поля управления стоят на отдельной панели администратора.',[
-   {title:'Откройте конструктор рабочего окна',actions:[
-    mysql?'Правой кнопкой по MyApp → «Добавить» → «Форма Windows Forms». Назовите MainForm.cs. Перетащите Label из Toolbox в верхнюю часть окна. В (Name) введите RoleLabel.':'Откройте MainWindow.xaml, созданный вместе с проектом. Из Toolbox добавьте StackPanel, затем поместите в него TextBlock. В Name укажите RoleLabel.',
-    mysql?'Ниже подписи перетащите Panel и назовите её AdminPanel. Расширьте панель маркерами. Все следующие элементы добавляйте внутрь неё.':'Ниже подписи поместите второй StackPanel внутрь первого. В Name введите AdminPanel. Все следующие элементы добавляйте внутрь него.'
+   {title:mysql?'Откройте конструктор рабочего окна':'Подготовьте разметку рабочего окна',actions:[
+    mysql?'Выделите MyApp и нажмите Ctrl+Shift+A. При необходимости нажмите «Показать все шаблоны». Выберите «Форма (Windows Forms)» и назовите её MainForm.cs. Выделите форму и в свойстве Text введите «Рабочее окно». Перетащите Label в верхнюю часть формы, в (Name) введите RoleLabel.':'Откройте MainWindow.xaml, созданный вместе с проектом, и переключитесь на вкладку XAML. В начальном теге Window задайте Title="Рабочее окно", Width="800" и Height="480".',
+    mysql?'Ниже подписи перетащите Panel и назовите её AdminPanel. Расширьте панель маркерами. Все следующие элементы добавляйте внутрь неё.':'Замените пустой Grid блоком 1. RoleLabel закреплён сверху и показывает логин и роль. Внутренний DockPanel с именем AdminPanel объединяет элементы, которые позже будут видны только администратору.'
    ]},
-   {title:'Поставьте таблицу и поля',actions:[
-    'Добавьте в AdminPanel '+(mysql?'DataGridView':'DataGrid')+'. В свойствах укажите имя UsersGrid и включите '+(mysql?'ReadOnly':'IsReadOnly')+'.',
-    'Под таблицей добавьте подписи «Логин», «Новый пароль» и «Роль». Для логина перетащите TextBox с именем UserLogin. Для пароля добавьте '+(mysql?'TextBox с именем NewPassword и UseSystemPasswordChar=True.':'PasswordBox с именем NewPassword.'),
-    'Добавьте ComboBox с именем UserRole. Откройте Items в свойствах. Добавьте сначала «Пользователь», потом «Администратор». Установите SelectedIndex=0.',
-    mysql?'Для UserRole задайте DropDownStyle=DropDownList.':'Если редактор Items недоступен, во вкладке XAML добавьте внутрь ComboBox два тега ComboBoxItem. Укажите Content="Пользователь", затем Content="Администратор".'
+   {title:mysql?'Поставьте таблицу и поля':'Добавьте поля, флажок и кнопки',actions:mysql?[
+    'Перетащите DataGridView внутрь AdminPanel. Если открылось меню «DataGridView Задачи», закройте его щелчком по таблице. В свойствах укажите (Name) = UsersGrid и ReadOnly = True. Чтобы таблица не показывала пустую строку для ввода, задайте AllowUserToAddRows = False.',
+    'Под таблицей добавьте подписи «Логин», «Новый пароль» и «Роль». Для логина перетащите TextBox с именем UserLogin. Для пароля добавьте TextBox с именем NewPassword и UseSystemPasswordChar=True.',
+    'Добавьте ComboBox с именем UserRole. Выделите Items в свойствах и нажмите кнопку «…» справа от значения. Введите «Пользователь» на первой строке и «Администратор» на второй, без кавычек. Нажмите ОК.',
+    'Для UserRole задайте DropDownStyle = DropDownList.'
+   ]:[
+    'Сразу после <DockPanel x:Name="AdminPanel"> вставьте блок 2. Свойство DockPanel.Dock="Bottom" закрепляет поля и кнопки внизу. WrapPanel переносит элементы на следующую строку, если им не хватает места.',
+    'TextBox принимает логин, PasswordBox скрывает новый пароль, ComboBox показывает два варианта роли. В списке «Пользователь» имеет индекс 0, «Администратор» — индекс 1. Код следующей карточки использует этот порядок.'
    ]},
-   {title:'Поставьте флажок и кнопки',actions:[
-    'Из Toolbox перетащите CheckBox. Задайте имя Unlock и подпись «Снять блокировку» в '+(mysql?'Text.':'Content.'),
+   {title:mysql?'Поставьте флажок и кнопки':'Добавьте таблицу пользователей',actions:mysql?[
+    'Из Toolbox перетащите CheckBox. Задайте имя Unlock и подпись «Снять блокировку» в Text.',
     'Добавьте два Button. Для первого задайте имя NewButton и подпись «Новый». Для второго — SaveButton и подпись «Сохранить». Нажмите Ctrl+S.'
+   ]:[
+    'После </StackPanel> из блока 2, перед закрывающим тегом панели AdminPanel, вставьте блок 3. DataGrid займёт оставшееся место, а IsReadOnly запретит редактирование прямо в таблице. Для изменения записи будут использоваться поля под ней.',
+    'Сохраните XAML и откройте «Конструктор». Таблица пока пустая. События таблицы и кнопок подключаются на следующем шаге.'
    ]}
   ],'В конструкторе видны подпись, таблица, три поля, флажок и две кнопки. Их имена совпадают с инструкцией.',
-  {group:'Рабочее окно'}),
+  {group:'Рабочее окно',...(!mysql?{codeBlocks:[
+   {label:'1. Панели внутри Window',code:`<DockPanel Margin="20">
+    <TextBlock x:Name="RoleLabel" Text="Рабочее окно"
+               DockPanel.Dock="Top" Margin="0,0,0,12" />
+    <DockPanel x:Name="AdminPanel">
+    </DockPanel>
+</DockPanel>`},
+   {label:'2. Поля и кнопки внутри AdminPanel',code:`<StackPanel DockPanel.Dock="Bottom" Margin="0,12,0,0">
+    <WrapPanel>
+        <StackPanel Width="155" Margin="0,0,12,0">
+            <TextBlock Text="Логин" />
+            <TextBox x:Name="UserLogin" />
+        </StackPanel>
+        <StackPanel Width="155" Margin="0,0,12,0">
+            <TextBlock Text="Новый пароль" />
+            <PasswordBox x:Name="NewPassword" />
+        </StackPanel>
+        <StackPanel Width="150" Margin="0,0,12,0">
+            <TextBlock Text="Роль" />
+            <ComboBox x:Name="UserRole" SelectedIndex="0">
+                <ComboBoxItem Content="Пользователь" />
+                <ComboBoxItem Content="Администратор" />
+            </ComboBox>
+        </StackPanel>
+        <CheckBox x:Name="Unlock" Content="Снять блокировку" VerticalAlignment="Bottom" />
+    </WrapPanel>
+    <WrapPanel Margin="0,12,0,0">
+        <Button x:Name="NewButton" Content="Новый" MinWidth="110" />
+        <Button x:Name="SaveButton" Content="Сохранить" MinWidth="110" Margin="10,0,0,0" />
+    </WrapPanel>
+</StackPanel>`},
+   {label:'3. Таблица после полей внутри AdminPanel',code:`<DataGrid x:Name="UsersGrid" IsReadOnly="True" CanUserAddRows="False"
+          AutoGenerateColumns="True" ColumnWidth="*" SelectionMode="Single" />`}
+  ]}:{})}),
  groupedStep('Подключите таблицу и кнопки администратора',
   'SelectUser читает выбранную строку, NewUser очищает поля, SaveUser вызывает запись в базу.',[
-   {title:'Вставьте готовый код рабочего окна',actions:[
-    mysql?'Правой кнопкой по MainForm.cs → «Просмотреть код» (F7). Откройте файл из кнопки ниже и замените код MainForm.cs целиком. MainForm.Designer.cs оставьте как создал конструктор.':'Раскройте MainWindow.xaml в Обозревателе решений. Откройте MainWindow.xaml.cs и замените его кодом из кнопки ниже. Разметку MainWindow.xaml оставьте своей.',
-    'Замените namespace Dkip на MyApp. Сохраните. Код использует имена, которые вы задали в свойствах.'
+   {title:'Добавьте операции администратора',actions:[
+    'Откройте созданный Accounts.cs. Перед последней фигурной скобкой класса Accounts вставьте методы из блока «Проверка роли и сохранение записи». RequireAdmin проверяет действующую роль в БД, Save выбирает INSERT или UPDATE по id. Пустой новый пароль при редактировании сохраняет текущий хеш.'
    ]},
-   {title:'Назначьте события в свойствах',actions:[
-    'Выделите UsersGrid. Нажмите F4, затем значок молнии. В строке '+(mysql?'CellClick':'SelectionChanged')+' выберите SelectUser.',
-    'Выделите NewButton. В событии Click выберите NewUser. Для SaveButton в событии Click выберите SaveUser.',
+   {title:'Добавьте состояние и методы в своё окно',actions:[
+    mysql?'Правой кнопкой по MainForm.cs → «Просмотреть код» (F7). Добавьте using System.Data; и using System.Data.Common; в начало файла.':'Раскройте MainWindow.xaml и откройте MainWindow.xaml.cs. Добавьте using System.Data; и using System.Data.Common; в начало файла.',
+    'Вставьте поля из блока «Состояние рабочего окна» внутри класса перед существующим конструктором без параметров. Поле actor хранит вошедшего пользователя, editingId — id выбранной строки.',
+    'После существующего конструктора добавьте блок «Вход в рабочее окно и загрузка списка». Новый конструктор принимает Account, показывает имя и роль и открывает панель администратора только для admin. LoadUsers заполняет таблицу после проверки роли.',
+    'Перед последней скобкой класса вставьте блок «Обработчики таблицы и кнопок». Они читают выбранную строку, очищают форму для новой записи и сохраняют изменения.'
+   ]},
+   {title:mysql?'Назначьте события в свойствах':'Свяжите события в XAML',actions:[
+    mysql?'Выделите UsersGrid. Нажмите F4, затем значок молнии. В строке CellClick выберите SelectUser.':'В MainWindow.xaml добавьте свойство из блока «Выбор строки» к тегу DataGrid с именем UsersGrid перед />. При выборе записи WPF вызовет SelectUser.',
+    mysql?'Выделите NewButton. В событии Click выберите NewUser. Для SaveButton в событии Click выберите SaveUser.':'Добавьте свойства из блоков «Кнопка Новый» и «Кнопка Сохранить» к соответствующим тегам Button перед />. Значение Click должно совпадать с именем метода в MainWindow.xaml.cs.',
     'Нажмите «Сборка» → «Собрать решение». Если имя не найдено, сверьте Name элемента и название обработчика.'
    ]},
    {title:'Проследите выбор между INSERT и UPDATE',actions:[
@@ -532,18 +687,28 @@ selected = -1;`}),
     'Панель показывается для роли admin. Перед записью Accounts.Save дополнительно вызывает RequireAdmin, чтобы право на изменение проверялось в коде, который обращается к базе.'
    ]}
   ],'Решение собирается. Список и обе кнопки связаны со своими обработчиками.',
-  {group:'Рабочее окно',referenceFile:workFile,referenceLabel:'Открыть полный код рабочего окна'}),
+  {group:'Рабочее окно',codeBlocks:[
+   {label:'Проверка роли и сохранение записи внутри Accounts',code:accountsSource.slice(adminMethods,-1).trimEnd()},
+   {label:'Состояние рабочего окна',code:workFields},
+   {label:'Вход в рабочее окно и загрузка списка',code:workStart},
+   {label:'Обработчики таблицы и кнопок',code:workEvents},
+   ...(!mysql?[
+    {label:'Выбор строки',code:'SelectionChanged="SelectUser"'},
+    {label:'Кнопка Новый',code:'Click="NewUser"'},
+    {label:'Кнопка Сохранить',code:'Click="SaveUser"'}
+   ]:[])
+  ]}),
  step('Откройте рабочее окно после входа',
   'Обработчик Click считывает поля, вызывает Accounts.SignIn и открывает окно при успехе.',[
-   'Откройте конструктор окна «Вход». Дважды щёлкните «Войти» и выделите весь код между фигурными скобками метода Click.',
+   mysql?'Откройте конструктор окна «Вход». Дважды щёлкните «Войти» и выделите весь код между фигурными скобками метода Click.':'В LoginWindow.xaml.cs выделите весь код между фигурными скобками метода SignInButton_Click.',
    'Вставьте код из блока ниже. Название метода и скобки оставьте. В начало файла добавьте строку using System.Data.Common; если её ещё нет.',
-   'Нажмите Ctrl+S и Ctrl+F5. Войдите под admin и соберите пазл. После сообщения об успехе проверьте рабочее окно.'
+   'Нажмите Ctrl+S и F5. Соберите пазл и войдите под admin. После сообщения об успехе проверьте рабочее окно.'
   ],'Под admin открывается таблица пользователей. Для обычной записи видно только имя и роль.',
-  {group:'Рабочее окно',referenceFile:loginFile,referenceLabel:'Открыть полный код окна входа',shot:'m4-admin',codeLabel:'Готовый код внутри Click кнопки «Войти»',code:signInBody}),
+  {group:'Рабочее окно',shot:'m4-admin',codeLabel:'Открытие рабочего окна внутри Click кнопки «Войти»',code:signInBody}),
  step('Проверьте добавление, изменение и разблокировку',
   'Одна кнопка сохраняет оба вида изменений. Если запись не выбрана, добавляем новую. Если выбрана, меняем запись по id.', [
    'Под admin нажмите «Новый». Введите test_student, учебный пароль и роль «Пользователь». Нажмите «Сохранить» и найдите строку.',
-   'Снова нажмите «Новый» и повторите логин. Проверьте сообщение о дубликате.',
+   'Снова нажмите «Новый» и повторите логин. Попробуйте сохранить с пустым паролем. Появится запрос пароля для новой записи. Введите учебный пароль и ещё раз нажмите «Сохранить». Теперь появится сообщение о дубликате. В таблице должна остаться одна строка test_student.',
    'Выберите уже созданного test_student, запишите его id и измените логин на test_student_edit. Сохраните с пустым полем нового пароля. Сверьте прежний id и убедитесь, что в списке по-прежнему одна запись для этого пользователя.',
    'Выберите строку student, включите «Снять блокировку» и сохраните. Оставьте новый пароль пустым, чтобы сохранить старый. Закройте рабочее окно и войдите под student.'
   ], 'Добавление создало новый id. Редактирование сохранило этот id. Дубликат отклонён, а student после разблокировки входит со старым паролем.',
@@ -552,9 +717,9 @@ selected = -1;`}),
   'Сценарий проверяет все развилки задания и помогает воспроизвести их по памяти.', [
    'Войдите как student с правильным паролем и пазлом. Убедитесь, что в рабочем окне нет управления пользователями.',
    'Проверьте три ошибки подряд на тестовой записи, затем войдите администратором и снимите блокировку. Попробуйте создать дубликат логина.',
-   'Запустите тестовый профиль с неверным портом БД. Проверьте сообщение об ошибке и верните исходную настройку.'
+   'Закройте приложение и запишите строку DKIP_CONNECTION из своего профиля. В свойствах отладки временно замените порт локальной БД на 1. Нажмите F5, попробуйте войти и проверьте сообщение об ошибке. Закройте приложение, верните исходную строку и повторите вход.'
   ], 'Приложение выполняет сценарии входа, блокировки, прав и сохранения. При недоступной базе остаётся открытым.',
-  {group:'Рабочее окно',referenceFile:folder+(mysql?'/LoginForm.cs':'/LoginWindow.xaml.cs'),referenceLabel:'Открыть обработку ошибок входа',shot:'m4-student'})
+  {group:'Рабочее окно',shot:'m4-student'})
  ]},
  {id:'M5',title:'API и проверки',module:'Задание 5 · 60 мин',goal:tasks[4].text,output:'HTTP-сервис и коллекция Postman с тестами.',steps:[
  step('Проверьте таблицу заметок из задания 2','notes хранит исходные данные. Связь с users даёт логин автора без копирования его в каждую заметку.', [
@@ -589,10 +754,10 @@ JOIN users u ON u.id = n.id_user
 ORDER BY n.id;`}
  ]}),
  step('Преобразуйте поля ответа','SQL возвращает пять исходных значений, а контракт требует четыре поля JSON. Класс Note задаёт имена, а Notes.Read преобразует каждую строку.', [
-  'В проекте Api создайте Database.cs. Вставьте код подключения из блока «Подключение к базе · Database.cs» и замените namespace MyApp на Api. Создайте Notes.cs. В первый блок входят using, namespace и record Note. Атрибуты JsonPropertyName задают имена полей в ответе.',
+  'В проекте Api создайте класс Database.cs. Откройте свой Database.cs из задания 4, перенесите его код в новый файл и в строке namespace замените MyApp на Api. В проекте Api создайте класс Notes.cs и замените шаблон блока кодом объявления Note. Атрибуты JsonPropertyName задают имена полей в JSON.',
   'В том же файле ниже добавьте второй блок. SQL берёт те же поля, которые вы проверили в редакторе. Цикл читает их слева направо с индекса 0. В новом Note id и content сохраняются, title и login склеиваются через « - », а дата форматируется как dd.MM.yyyy.',
   'Соберите решение. По контрольной строке заранее составьте ожидаемый JSON. Для «Заметка 1» получатся title_user «Заметка 1 - student» и formatted_date «15.03.2027». Подставьте id из своей БД.'
- ],'Проект компилируется, а четыре ожидаемых поля контрольной заметки можно вывести из SQL-строки.',{shot:'notes-code',referenceFile:`examples/starter/${stack}/Database.cs`,referenceLabel:'Подключение к базе · Database.cs',codeBlocks:[
+ ],'Проект компилируется, а четыре ожидаемых поля контрольной заметки можно вывести из SQL-строки.',{shot:'notes-code',codeBlocks:[
   {label:'1. Объявление ответа в Notes.cs',code:notesSource.slice(0,notesClassStart).trimEnd()},
   {label:'2. Класс чтения и преобразования строк',code:notesSource.slice(notesClassStart).trimEnd()},
   {label:'Ожидаемый элемент JSON для контрольной строки',code:JSON.stringify(sampleNote,null,2)}
@@ -620,12 +785,13 @@ app.Run();`}),
   'Перезапустите API и запросите id автора без заметок. Цикл чтения не добавит элементов, поэтому Results.Ok вернёт 200 с [].',
   'В случае исключения при чтении catch запишет подробности в журнал. Клиент получит HTTP 500 и JSON с полем error. Проверьте этот путь позже на отдельном тестовом профиле.'
  ],'Для допустимого фильтра без записей получается 200 и []. Сбой чтения обрабатывается отдельно.',{codeLabel:'Блок чтения и обработки ошибки внутри ReadNotes',code:notesHandler.slice(notesTry,notesHandler.lastIndexOf('}')).trimEnd().split('\n').map(line=>line.slice(4)).join('\n')}),
- step('Запустите сервер API','API работает отдельным приложением. Пока оно остановлено, браузер и Postman не получат данные.', ['Откройте свой Api.csproj через Файл → Открыть → Проект или решение.','Выделите Api → Отладка → Свойства отладки Api.','В профиле http задайте DKIP_CONNECTION и DKIP_STACK='+stack+' в Переменных среды.',`В App URL укажите ${base}; сохраните профиль.`,'Выберите этот профиль рядом с зелёной кнопкой запуска → Отладка → Запуск без отладки (Ctrl+F5).',`В браузере откройте ${base}/notes. Оставьте приложение работающим.`],'Браузер показывает JSON; последующие запросы выполняются к этому адресу.',{shot:'postman'}),
+ step('Запустите сервер API','API работает отдельным приложением. Пока оно остановлено, браузер и Postman не получат данные.', ['Рядом с зелёной кнопкой запуска выберите настроенный ранее профиль http. Нажмите Ctrl+F5.',`В браузере откройте ${base}/notes. Проверьте контрольную заметку и оставьте приложение работающим для Postman.`],'Браузер показывает JSON по адресу рабочего профиля.',{shot:'postman'}),
  step('Создайте коллекцию Postman','Каждый запрос проверяет один сценарий. Переменные коллекции отделяют адрес основного API от адреса тестового профиля.', [
-  'В Postman создайте коллекцию для своего API. В Variables добавьте base_url с адресом рабочего профиля и error_url с адресом тестового профиля.',
-  `Задайте base_url = ${base}. Сохраните GET {{base_url}}/notes, запрос с ?user_id=abc и запрос с id автора без заметок, например ?user_id=2147483647.`,
-  'Для проверки сбоя сохраните GET {{error_url}}/notes. При необходимости сравните свои запросы с коллекцией выбранного стека.'
- ],'У каждого запроса есть адрес и ожидаемый сценарий.',{shot:'postman-import',links:[['Скачать коллекцию для сверки',postmanPath]]}),
+  'Если рабочая область Postman недоступна, возьмите блоки тестов из следующих карточек. Пройдите шаги запуска второго экземпляра API и откройте карточку «Соберите и запустите коллекцию без рабочей области».',
+  'В Postman откройте Collections, нажмите «+» → Blank collection и задайте имя «API заметок». Выберите коллекцию и откройте Variables.',
+  `Добавьте переменную base_url со значением ${base} и error_url со значением http://127.0.0.1:${mysql?5281:5282}. В меню ⋯ коллекции выберите Add request для каждого из четырёх запросов.`,
+  'Оставьте метод GET. Укажите название и адрес: «Список заметок» — {{base_url}}/notes, «Неверный параметр» — {{base_url}}/notes?user_id=abc, «Нет заметок автора» — {{base_url}}/notes?user_id=2147483647, «Ошибка подключения» — {{error_url}}/notes. Нажмите Save в каждом запросе.'
+ ],'В собственной коллекции четыре сохранённых GET-запроса. При наведении на переменную в адресе Postman показывает её значение.',{shot:'postman'}),
  step('Выполните проверки 200 и JSON','Проверка статуса и формы массива показывает, что ответ обработан. Сравнение одной заметки по id проверяет, что преобразованы данные нужной строки.', [
   'В Variables коллекции создайте expected_note. Вставьте JSON-объект из первого блока и подставьте значения, которые рассчитали по контрольной строке БД. Если id отличается от 1, укажите присвоенный id.',
   'У GET {{base_url}}/notes откройте Scripts → Post-response. Вставьте второй блок и отправьте запрос. Сначала проверяются статус и массив. Затем тест находит запись по id и сравнивает все четыре значения, включая логин в title_user.',
@@ -639,10 +805,24 @@ pm.test("Ответ — массив", () => {
 
 ${noteTest}`}
  ]}),
+ step('Проверьте неверный параметр и пустой список','HTTP 400 означает ошибку в параметре запроса. Допустимый id без заметок даёт HTTP 200 и пустой массив.',[
+  'Выберите «Неверный параметр», откройте Scripts → Post-response и вставьте первый блок. Сохраните запрос, нажмите Send и откройте Test Results.',
+  'В «Нет заметок автора» вставьте второй блок в Scripts → Post-response. Сохраните запрос и нажмите Send. Проверьте две проверки и ответ [] во вкладке Body.'
+ ],'В обоих запросах по две пройденные проверки.',{codeBlocks:[
+  {label:'1. Тесты запроса «Неверный параметр»',code:`pm.test("HTTP 400", () => pm.response.to.have.status(400));
+pm.test("В ответе есть error", () => {
+    pm.expect(pm.response.json()).to.have.property("error");
+});`},
+  {label:'2. Тесты запроса «Нет заметок автора»',code:`pm.test("HTTP 200", () => pm.response.to.have.status(200));
+pm.test("Ответ — пустой массив", () => {
+    pm.expect(pm.response.json()).to.eql([]);
+});`}
+ ]}),
  step('Воспроизведите 500 на отдельном сервере','Тестовый профиль запускает API с другим портом HTTP и заведомо недоступным адресом БД. Так HTTP-сервер может принять запрос и вернуть 500.', [
-  'Остановите тестовую копию Api, если она запущена. В её свойствах отладки создайте отдельный профиль DkipError с запуском проекта.',
+  'Оставьте рабочий сервер запущенным. В Проводнике скопируйте всю папку решения Api в свою рабочую папку под именем Api-Error. Если Проводник сообщает о занятых файлах, скопируйте только исходники, файл решения, NuGet.Config и nuget-packages. Папки .vs, bin и obj создаются при открытии и сборке копии.',
+  'Откройте второй экземпляр Visual Studio. Выберите «Открыть проект или решение» и укажите файл .sln или .slnx внутри Api-Error. В свойствах отладки добавьте профиль с запуском проекта, назовите его DkipError. У копии отдельная папка сборки, поэтому можно запустить её одновременно с рабочим сервером.',
   `Скопируйте DKIP_CONNECTION рабочего профиля в DkipError. В копии задайте порт БД 1 и ${mysql?'Connection Timeout=2':'Timeout=2'}. В App URL задайте http://127.0.0.1:${mysql?5281:5282}. Сохраните профиль.`,
-  'Выберите DkipError рядом с кнопкой запуска и нажмите Ctrl+F5. В Postman укажите этот HTTP-адрес в error_url. В запросе «Ошибка подключения» откройте Scripts → Post-response и вставьте блок ниже.',
+  'Во втором окне Visual Studio выберите DkipError и нажмите Ctrl+F5. Для проверки в рабочей области Postman откройте запрос «Ошибка подключения», сверьте error_url и вставьте блок ниже в Scripts → Post-response.',
   'Нажмите Send. Проверьте Test Results и сохраните статус и Body для задания 6. Оставьте оба экземпляра API запущенными до завершения прогона коллекции.'
  ],'Работающий API возвращает 500 и JSON с полем error. Обе проверки Postman проходят.',{codeLabel:'Проверка статуса и JSON в Post-response',code:errorTest}),
  groupedStep('Сохраните результаты тестирования',
@@ -653,22 +833,92 @@ ${noteTest}`}
    ]},
    {title:'Прочитайте результаты прогона',actions:[
     'Откройте результаты запросов. У обычного списка ожидается HTTP 200 с заметками, у пустого — HTTP 200 и []. У неверного параметра ожидается 400, у «Ошибки подключения» — 500. Проверки этих статусов должны пройти.',
-    'В готовой коллекции один прогон даёт 5 запросов и 12 успешных проверок. В собственной коллекции их число может отличаться: проверьте, что отработали все ваши сценарии.',
+    'Для четырёх запросов из этого разбора должно пройти девять проверок: три для списка и по две для каждого из остальных запросов.',
     'Убедитесь, что нет упавших тестов и ошибок отправки. Если Postman сообщает ECONNREFUSED, проверьте, запущен ли профиль для нужного адреса, затем повторите прогон.'
    ]},
    {title:'Выгрузите отчёт и коллекцию отдельно',actions:[
     'В результатах прогона откройте ⋯ → Export run results и сохраните файл «Результаты-тестов-API.json». Эта выгрузка доступна в настольном Postman.',
     'Вернитесь к меню ⋯ самой коллекции, выберите Export → Collection v2.1 и сохраните отдельный JSON. После выгрузки остановите DkipError; обычный профиль оставьте запущенным для задания 6.'
    ]}
-  ],'Сохранены два JSON: отчёт успешного прогона и коллекция, которую можно импортировать и запустить повторно.',{linkId:'postman-run',explainFirst:true,file:`docs/postman-${stack}.json`})]},
+  ],'Сохранены два JSON: отчёт успешного прогона и собственная коллекция запросов.',{linkId:'postman-run',explainFirst:true}),
+ groupedStep('Соберите и запустите коллекцию без рабочей области',
+  'Postman CLI запускает локальную коллекцию с теми же сценариями. Этот путь нужен, если рабочая область Postman недоступна без сети.',[
+   {title:'Создайте файлы тестов',actions:[
+    'В своей рабочей папке создайте папку Postman. В ней создайте expected-note.json и вставьте ожидаемый объект из карточки ответа 200. Подставьте свой id, логин, заголовок, содержимое и дату из результата SQL.',
+    'Создайте list.js, invalid.js, empty.js и error.js. В каждый файл вставьте соответствующий блок Post-response из предыдущих карточек: список, неверный параметр, пустой массив и ошибка подключения. Сохраните все файлы в UTF-8.'
+   ]},
+   {title:'Сформируйте коллекцию из четырёх запросов',actions:[
+    'Откройте папку Postman в Проводнике. Щёлкните правой кнопкой по пустому месту и выберите «Открыть в Терминале». Выберите PowerShell. Если этого пункта нет, откройте PowerShell через «Пуск» и перейдите в папку командой cd с путём в кавычках. Вставьте первый блок целиком и нажмите Enter. Если у вас другие HTTP-порты, замените адреса в первых двух строках.',
+    'Проверьте, что в папке появился notes.postman_collection.json. У каждого элемента массива item есть GET, URL и event для исполнения своего теста после ответа.'
+   ]},
+   {title:'Запустите локальный файл в Postman CLI',actions:[
+    'Убедитесь, что оба экземпляра API запущены. Скопируйте папку postman-cli из распакованного ZIP этапа 0 в вашу папку Postman. Внутри неё должен быть postman-cli.exe рядом с папкой lib.',
+    'В том же PowerShell выполните второй блок. Первый вызов показывает версию CLI. Второй запускает коллекцию по пути к локальному файлу и сохраняет отчёт. В таблице прогона проверьте четыре запроса, девять проверок и ноль ошибок.'
+   ]}
+  ],'В рабочей папке есть notes.postman_collection.json и «Результаты-тестов-API.json». В отчёте прошли все девять проверок.',{codeBlocks:[
+   {label:'1. Создание файла коллекции из своих тестов',code:`$WorkingUrl = ${JSON.stringify(base)}
+$ErrorUrl = "http://127.0.0.1:${mysql ? 5281 : 5282}"
+
+$ErrorActionPreference = 'Stop'
+
+function New-NotesRequest {
+    param([string]$Name, [string]$Url, [string]$ScriptFile)
+
+    [ordered]@{
+        name = $Name
+        request = [ordered]@{ method = 'GET'; url = $Url }
+        event = @(
+            [ordered]@{
+                listen = 'test'
+                script = [ordered]@{
+                    type = 'text/javascript'
+                    exec = @(Get-Content -LiteralPath $ScriptFile -Encoding UTF8)
+                }
+            }
+        )
+    }
+}
+
+$expectedNote = Get-Content -LiteralPath './expected-note.json' -Raw -Encoding UTF8
+$null = ConvertFrom-Json -InputObject $expectedNote
+
+$collection = [ordered]@{
+    info = [ordered]@{
+        name = 'API заметок'
+        schema = 'https://schema.getpostman.com/json/collection/v2.1.0/collection.json'
+    }
+    variable = @(
+        @{ key = 'base_url'; value = $WorkingUrl }
+        @{ key = 'error_url'; value = $ErrorUrl }
+        @{ key = 'expected_note'; value = $expectedNote }
+    )
+    item = @(
+        New-NotesRequest 'Список заметок' '{{base_url}}/notes' './list.js'
+        New-NotesRequest 'Неверный параметр' '{{base_url}}/notes?user_id=abc' './invalid.js'
+        New-NotesRequest 'Нет заметок автора' '{{base_url}}/notes?user_id=2147483647' './empty.js'
+        New-NotesRequest 'Ошибка подключения' '{{error_url}}/notes' './error.js'
+    )
+}
+
+$collectionPath = Join-Path (Get-Location).Path 'notes.postman_collection.json'
+$json = $collection | ConvertTo-Json -Depth 12
+[IO.File]::WriteAllText($collectionPath, $json, [Text.UTF8Encoding]::new($false))
+Write-Output $collectionPath`},
+   {label:'2. Версия Postman CLI и локальный прогон с отчётом',code:`& './postman-cli/postman-cli.exe' --version
+& './postman-cli/postman-cli.exe' collection run './notes.postman_collection.json' --no-report-events --reporters cli,json --reporter-json-export './Результаты-тестов-API.json'`}
+  ]})]},
  {id:'M6',title:'Документация API',module:'Задание 6 · 20 мин',goal:tasks[5].text,output:'Заполненный DOCX по шаблону КИМ с фактическими примерами ответов.',steps:module6(stack,base,sampleNote)}
  ];
- const foundations=foundationsFor(stack);
  for(const stage of stages){stage.foundation=foundations[stage.id];stage.steps=expandMicrosteps(stage,stage.foundation);}
  return stages;
 }
 
-function module6(stack,base,sampleNote){return [
+function module6(stack,base,sampleNote){
+ const spec=JSON.parse(readFileSync(new URL('../docs/openapi.json',import.meta.url),'utf8'));
+ const initialSpec={openapi:spec.openapi,info:{title:'API заметок',version:'1.0.0'},servers:[{url:base}],paths:{},components:{schemas:{}}};
+ const getNotes=spec.paths['/notes'].get;
+ const notePath={get:{summary:getNotes.summary,parameters:getNotes.parameters,responses:getNotes.responses}};
+ return [
  step('Откройте исходный шаблон Word',
   'Задание 6 описывает ASP.NET Core Minimal API, который вы уже написали в задании 5.', [
    'Скачайте Приложение 3 к заданию 6. Сделайте копию DOCX и откройте её в Word.',
@@ -679,20 +929,27 @@ function module6(stack,base,sampleNote){return [
   'Строка MapGet связывает путь и обработчик. По ней можно определить, что написать в колонке «Название метода».', [
    'Откройте Program.cs в своём проекте Api. Найдите строки app.MapGet для заметок.',
    'Для каждой строки выпишите GET и путь. Если один обработчик привязан к /notes и /api/notes, укажите оба пути.'
-  ], 'Список методов в черновике совпадает с маршрутами MapGet в вашем проекте.',
-  {referenceFile:'examples/Api/Program.cs',referenceLabel:'Открыть пример Program.cs'}),
+  ], 'Список методов в черновике совпадает с маршрутами MapGet в вашем проекте.'),
  step('Получите успешный ответ в Postman',
   'Документация должна показывать ответ работающего сервиса с вашими данными.', [
    `Запустите свой Api из профиля http в Visual Studio. Проверьте, что выбран адрес ${base}.`,
-   'В Postman откройте коллекцию из задания 5. Выберите запрос списка заметок и нажмите Send.',
-   'Запишите адрес, статус и JSON из Body. Для примера можно привести одну заметку с подписью «Один элемент ответа».'
+   'В Postman выберите запрос списка заметок и нажмите Send. Если вы прошли задание 5 через Postman CLI, откройте PowerShell в своей папке Postman и выполните блок ниже. Он выводит статус и JSON из сохранённого ответа каждого запроса.',
+   'Запишите адрес, статус и JSON из Body или из вывода блока. Для примера можно привести одну заметку с подписью «Один элемент ответа».'
   ], 'Postman показывает статус 200 OK. В JSON видны id, title_user, content и formatted_date.',
-  {shot:'postman-tests'}),
+  {shot:'postman-tests',codeLabel:'Статусы и тела из отчёта Postman CLI',code:`$report = Get-Content -LiteralPath './Результаты-тестов-API.json' -Raw -Encoding UTF8 |
+    ConvertFrom-Json
+
+foreach ($entry in $report.run.executions) {
+    $response = $entry.response
+    $body = [Text.Encoding]::UTF8.GetString([byte[]]$response.stream.data)
+    Write-Output "$($entry.requestExecuted.name) — HTTP $($response.code)"
+    Write-Output $body
+}`}),
  step('Уточните параметр и пустой результат',
   'Параметр user_id фильтрует заметки по автору. LEFT JOIN сохраняет в таблице авторов и тех, у кого нет заметок. COUNT(n.id) считает только существующие заметки, поэтому для такого автора получится 0.', [
    'Выполните запрос ниже в своей базе. Найдите id и login автора, у которого notes_count больше нуля, и id автора с notes_count = 0. Если у всех есть заметки, возьмите свободный положительный id, которого нет в колонке id.',
    `В Postman отправьте GET ${base}/notes?user_id=<id>: подставьте id автора с заметками. Например, при notes_count = 2 в ответе HTTP 200 должно быть два объекта. В обоих title_user логин после « - » совпадает с колонкой login.`,
-   'Подставьте второй id и повторите запрос. Ожидайте HTTP 200 и тело []. Сохраните оба фактических запроса и ответа. В DOCX укажите, что user_id — необязательное положительное целое.'
+   'Подставьте второй id и повторите запрос. Ожидайте HTTP 200 и тело []. Если работаете без рабочей области Postman, откройте оба адреса в браузере, а статус проверьте на вкладке Network инструментов разработчика. Сохраните оба фактических запроса и ответа. В DOCX укажите, что user_id — необязательное положительное целое.'
   ], 'В документации есть пример фильтра с найденными заметками и пример пустого ответа 200 с [].',
   {linkId:'notes-user-id',explainFirst:true,codeLabel:'Найдите авторов с заметками и без них',code:`SELECT u.id, u.login, COUNT(n.id) AS notes_count
 FROM users u
@@ -701,9 +958,9 @@ GROUP BY u.id, u.login
 ORDER BY u.id;`}),
  step('Возьмите примеры ответов 400 и 500',
   'Статус 400 относится к неверному запросу. Статус 500 относится к сбою работающего сервиса.', [
-   'Откройте в коллекции запрос с неверным значением user_id и нажмите Send. Сохраните статус и объект error.',
-   'Возьмите результат 500, сохранённый в задании 5. Для повторения запустите профиль DkipError и отправьте запрос «Ошибка подключения» по его адресу.',
-   'Сохраните точный запрос, условие воспроизведения, статус и JSON ответа.'
+   `В Postman отправьте GET ${base}/notes?user_id=abc и сохраните статус и тело с полем error.`,
+   `Возьмите результат 500 из прогона задания 5. Для повторения запустите DkipError в отдельной копии Api и отправьте GET http://127.0.0.1:${stack==='mysql'?5281:5282}/notes.`,
+   'Если работаете через Postman CLI, возьмите оба ответа из вывода блока «Статусы и тела из отчёта Postman CLI». Сохраните точный запрос, условие воспроизведения, статус и JSON ответа.'
   ], 'В Postman получены ответы 400 и 500 с полем error. Адрес и условие теста записаны.'),
  groupedStep('Перенесите методы, параметры и ответы в DOCX',
   'Заполним одну строку шаблона для GET /notes. По ней читатель сможет повторить запрос и узнать ожидаемый ответ.', [
@@ -716,22 +973,31 @@ ORDER BY u.id;`}),
    ]},
    {title:'Перенесите формат и фактический ответ',actions:[
     'В «Формат ответа» впишите JSON-массив. Укажите id, title_user, content и formatted_date с их смыслом. Из Body успешного запроса скопируйте реальный JSON. Если приводите одну запись, подпишите её «Один элемент ответа».',
-    'В таблице кодов укажите 200 для массива с заметками и массива [], 400 для неверного параметра и 500 для сбоя. Для каждого сценария добавьте свой запрос и фактический ответ из Postman. Для второго пути добавьте строку, если он зарегистрирован в вашем Program.cs.'
+    'В таблице кодов заполните три пустые строки: 200 для массива с заметками и массива [], 400 для неверного параметра, 500 для сбоя. Под таблицей вставьте примеры с адресом запроса, статусом и JSON из Body. Если зарегистрировали второй путь, добавьте строку в первую таблицу.'
    ]}
   ], 'В строке GET /notes заполнены четыре колонки. Адрес, параметр, статус и JSON совпадают с вашим запросом в Postman.',
-  {shot:'doc-filled',links:[['Скачать заполненный шаблон для сверки',`docs/api-${stack}.docx`]],
+  {shot:'doc-filled',
    codeLabel:'HTTP 200 · один элемент ответа для сверки',
    code:JSON.stringify([sampleNote],null,2)}),
- groupedStep('Сверьте и сохраните документацию',
+ groupedStep('Создайте openapi.json для своего API',
   'DOCX объясняет вызов читателю. Статический OpenAPI JSON описывает тот же контракт в структурированном виде.', [
-   {title:'Сверьте метод с OpenAPI',actions:[
-    'Откройте пример openapi.json. Сопоставьте запись paths → /notes → get с GET /notes. В parameters у user_id должны совпасть in = query, type = integer, minimum = 1 и required = false. В responses проверьте 200, 400 и 500.',
-    'У 200 сверьте массив и схему Note с четырьмя полями из Postman. Если ваш сервис реализует один путь, в paths оставьте только его. Сохраните свой openapi.json в папку wwwroot проекта Api.'
+   {title:'Создайте папку и файл',actions:[
+    'В Обозревателе решений выберите Api. В верхнем меню нажмите «Проект» → «Создать папку» и назовите её wwwroot. Если папка уже есть, используйте её. Выделите wwwroot и нажмите Ctrl+Shift+A. Если открылся список шаблонов, нажмите «Показать компактное представление». Замените FileName.cs целиком на openapi.json и нажмите «Добавить».',
+    'Вставьте блок 1 целиком. Свойство openapi задаёт версию формата, info описывает API, servers хранит базовый HTTP-адрес. Если вы изменили порт, обновите servers.'
    ]},
-   {title:'Проверьте документ и файл на работающем сервере',actions:[
-    `Если в Program.cs ещё нет UseStaticFiles, добавьте строку из блока после builder.Build(). Перезапустите API и откройте ${base}/openapi.json. Сервер должен вернуть JSON.`,
-    'Возьмите адрес GET из DOCX и повторите запрос в Postman. Сравните метод, статус и поля ответа. Сохраните заполненный DOCX в «Результаты», затем откройте его и проверьте читаемость таблиц.'
+   {title:'Добавьте маршрут и типы данных',actions:[
+    'Замените пустые фигурные скобки после "paths": блоком 2. У get проверьте user_id в parameters и три статуса в responses. Замените пример под 200 данными своей заметки. Если реализован только /api/notes, исправьте путь. Если реализованы оба, добавьте второй путь с тем же описанием.',
+    'Внутри components замените пустые скобки после "schemas": блоком 3. Note описывает четыре поля записи, Error — JSON с сообщением. Ссылки $ref в ответах указывают на эти имена. Сохраните файл Ctrl+S.'
    ]}
-  ], 'Запрос из DOCX воспроизводится, а открытый /openapi.json совпадает с работающими путями, параметрами и ответами.',
-  {links:[['Открыть пример OpenAPI JSON','docs/openapi.json']],codeLabel:'Отдача файлов из wwwroot в Program.cs',code:'app.UseStaticFiles();'})
-];}
+  ], 'В своём openapi.json указаны базовый адрес, реализованные маршруты и схемы Note и Error.',{codeBlocks:[
+   {label:'1. Основа openapi.json',code:JSON.stringify(initialSpec,null,2)},
+   {label:'2. Значение paths',code:JSON.stringify({'/notes':notePath},null,2)},
+   {label:'3. Значение components → schemas',code:JSON.stringify(spec.components.schemas,null,2)}
+  ]}),
+ step('Проверьте и сохраните документацию','OpenAPI и DOCX описывают один сервис. Сверяйте их с фактическим ответом по адресу из документа.',[
+  'Откройте Program.cs. Сразу после var app = builder.Build(); добавьте строку из блока ниже. Она подключает выдачу статических файлов из wwwroot.',
+  `Перезапустите http из этого проекта и откройте ${base}/openapi.json. Проверьте, что в браузере открывается JSON с вашим адресом и путём.`,
+  'Возьмите адрес запроса из DOCX и повторите его в Postman. Сверьте статус и поля ответа. Сохраните заполненный DOCX в «Результаты», затем откройте его и проверьте читаемость таблиц.'
+ ],'Запрос из DOCX воспроизводится. /openapi.json отдаётся работающим сервером и описывает видимые ответы.',{codeLabel:'Отдача файлов из wwwroot в Program.cs',code:'app.UseStaticFiles();'})
+ ];
+}

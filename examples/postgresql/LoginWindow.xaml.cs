@@ -38,7 +38,7 @@ public partial class LoginWindow : Window
                 var image = new BitmapImage();
                 image.BeginInit();
                 image.CacheOption = BitmapCacheOption.OnLoad;
-                image.UriSource = new Uri(Path.Combine(AppContext.BaseDirectory, "Assets", (i + 1) + ".png"));
+                image.UriSource = new Uri(System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", (i + 1) + ".png"));
                 image.EndInit();
                 image.Freeze();
                 pieces[i] = image;

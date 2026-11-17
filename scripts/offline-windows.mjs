@@ -33,12 +33,19 @@ export async function offlinePackages() {
     if (!source) throw new Error(`Не найден оригинальный файл пакета ${file}`);
     files[`nuget-packages/${file}`] = fs.readFileSync(source);
   }
-  for (const name of ['microsoft.extensions.logging.abstractions', 'microsoft.extensions.dependencyinjection.abstractions']) {
-    const file = `${name}.9.0.0.nupkg`;
-    const url = `https://api.nuget.org/v3-flatcontainer/${name}/9.0.0/${file}`;
-    const response = await fetch(url, {signal: AbortSignal.timeout(60_000)});
-    if (!response.ok) throw new Error(`${file}: HTTP ${response.status}`);
-    files[`nuget-packages/${file}`] = Buffer.from(await response.arrayBuffer());
+  const abstractions = [
+    'microsoft.extensions.logging.abstractions',
+    'microsoft.extensions.dependencyinjection.abstractions'
+  ];
+  // Include MySqlConnector's minimum versions for projects that install just that provider.
+  for (const version of ['8.0.2', '9.0.0']) {
+    for (const name of abstractions) {
+      const file = `${name}.${version}.nupkg`;
+      const url = `https://api.nuget.org/v3-flatcontainer/${name}/${version}/${file}`;
+      const response = await fetch(url, {signal: AbortSignal.timeout(60_000)});
+      if (!response.ok) throw new Error(`${file}: HTTP ${response.status}`);
+      files[`nuget-packages/${file}`] = Buffer.from(await response.arrayBuffer());
+    }
   }
   return files;
 }

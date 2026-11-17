@@ -12,6 +12,14 @@
       "file": "materials/screenshots/drawio/03-table.jpg",
       "caption": "Фигура Table из библиотеки «Отношения сущностей» на холсте. Под заголовком видна строка PK."
     },
+    "drawio-add-row": {
+      "file": "materials/screenshots/drawio/04-insert-counterparty-rows.png",
+      "caption": "В counterparty две новые строки Row добавлены над Row 3 с помощью фигуры Table Row 1."
+    },
+    "drawio-price-link": {
+      "file": "materials/screenshots/drawio/05-attach-price-to-item.png",
+      "caption": "Оба конца выделенного соединителя привязаны к строкам item.id и price.item_id."
+    },
     "kim": {
       "file": "materials/screenshots/common/kim.png",
       "caption": "КИМ 09.02.07-5-2027, страница 30: начало заданий ГИА БУ. Изображение оригинальной страницы PDF."
@@ -100,6 +108,10 @@
       "file": "materials/screenshots/mysql/db-keys.png",
       "caption": "Вкладка «Структура» таблицы notes в phpMyAdmin. Здесь видны первичный индекс и индекс поля id_user. Целевое поле ключа проверяется на вкладке «Связи»."
     },
+    "m2-relation-live": {
+      "file": "materials/screenshots/mysql/m2-relation-live.png",
+      "caption": "В окне «Связи» phpMyAdmin настроена ссылка price.item_id на item.id. Указаны база, таблица и оба столбца."
+    },
     "m2-counterparty-create": {
       "file": "materials/screenshots/mysql/m2-counterparty-create.png",
       "caption": "phpMyAdmin, вкладка «Структура» учебной базы. Перед нажатием «Создать» указаны counterparty и шесть столбцов."
@@ -120,6 +132,10 @@
       "file": "materials/screenshots/mysql/db-import.png",
       "caption": "Импортированные исходные контрагенты и две явно обозначенные записи из документов. Маршрут: Windows Forms / XAMPP MySQL."
     },
+    "m2-excel-customers": {
+      "file": "materials/screenshots/common/m2-excel-customers.jpg",
+      "caption": "Power Query загрузил на лист Excel шесть строк. В первой строке сохранены код 000000001, пустой ИНН и знак + в телефоне. В строке формул виден новый заголовок party_type."
+    },
     "m2-csv-file": {
       "file": "materials/screenshots/mysql/m2-csv-file.jpg",
       "caption": "Импорт в counterparty: выбран файл CSV, кодировка utf-8 и пропуск первой строки."
@@ -139,6 +155,10 @@
     "db-restore": {
       "file": "materials/screenshots/mysql/db-restore.png",
       "caption": "Запрос к отдельной восстановленной базе dkip2027_restore. Маршрут: Windows Forms / XAMPP MySQL."
+    },
+    "m2-price-key-live": {
+      "file": "materials/screenshots/mysql/m2-price-key-live.png",
+      "caption": "В контрольной копии остались две цены на 1 апреля 2026 года. У материалов разные item_id, а повтор пары с item_id = 1 отклонён."
     },
     "cost-lines": {
       "file": "materials/screenshots/mysql/cost-lines.png",
@@ -298,6 +318,14 @@
       "file": "materials/screenshots/drawio/03-table.jpg",
       "caption": "Фигура Table из библиотеки «Отношения сущностей» на холсте. Под заголовком видна строка PK."
     },
+    "drawio-add-row": {
+      "file": "materials/screenshots/drawio/04-insert-counterparty-rows.png",
+      "caption": "В counterparty две новые строки Row добавлены над Row 3 с помощью фигуры Table Row 1."
+    },
+    "drawio-price-link": {
+      "file": "materials/screenshots/drawio/05-attach-price-to-item.png",
+      "caption": "Оба конца выделенного соединителя привязаны к строкам item.id и price.item_id."
+    },
     "kim": {
       "file": "materials/screenshots/common/kim.png",
       "caption": "КИМ 09.02.07-5-2027, страница 30: начало заданий ГИА БУ. Изображение оригинальной страницы PDF."
@@ -406,6 +434,10 @@
       "file": "materials/screenshots/postgresql/db-import.png",
       "caption": "Импортированные исходные контрагенты и две явно обозначенные записи из документов. Маршрут: WPF / PostgreSQL."
     },
+    "m2-excel-customers": {
+      "file": "materials/screenshots/common/m2-excel-customers.jpg",
+      "caption": "Power Query загрузил на лист Excel шесть строк. В первой строке сохранены код 000000001, пустой ИНН и знак + в телефоне. В строке формул виден новый заголовок party_type."
+    },
     "m2-csv-file": {
       "file": "materials/screenshots/postgresql/m2-csv-file.png",
       "caption": "pgAdmin, вкладка General. Для импорта в counterparty выбран учебный файл CSV в кодировке UTF8."
@@ -421,6 +453,10 @@
     "m2-csv-rows": {
       "file": "materials/screenshots/postgresql/m2-csv-rows.png",
       "caption": "В counterparty загружены шесть строк. Видны ведущие нули, кавычки в названиях, пустой ИНН и знак + в телефонах."
+    },
+    "m2-price-key-live": {
+      "file": "materials/screenshots/postgresql/m2-price-key-live.png",
+      "caption": "При повторном открытии price в восстановленной базе видны две цены на одну дату. У материалов разные item_id."
     },
     "db-export": {
       "file": "materials/screenshots/postgresql/m2-backup.png",
@@ -457,6 +493,10 @@
     "cost-result": {
       "file": "materials/screenshots/postgresql/cost-result.png",
       "caption": "Результат расчёта в СУБД: 14 374,28. Маршрут: WPF / PostgreSQL."
+    },
+    "cost-missing-price": {
+      "file": "materials/screenshots/postgresql/cost-missing-price.png",
+      "caption": "В контрольной копии после удаления цены евровинта total_cost показывает [null], а cost_status сообщает, что не хватает норм или цен на дату заказа."
     },
     "login": {
       "file": "materials/screenshots/postgresql/login.png",

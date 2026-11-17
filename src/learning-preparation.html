@@ -8,21 +8,46 @@
   section { margin-block: 2rem; }
   pre { white-space: pre-wrap; }
   code { overflow-wrap: anywhere; }
-  summary { cursor: pointer; font-weight: 600; }
+  figure { margin: 1rem 0; }
+  figure img { display: block; width: 100%; height: auto; }
 </style>
 <main>
+  <p><a href="index.html?mode=learn&amp;module=documents&amp;view=steps">← К первому шагу обучения</a></p>
   <h1>0. Установка и настройка программ</h1>
-  <ol>
-    <li>Скачайте <a href="https://aka.ms/vs/stable/vs_community.exe">установщик Visual Studio Community</a>. Выберите «Разработка классических приложений .NET» и «ASP.NET и разработка веб-приложений». Для Windows Forms, WPF и API из ZIP нужны Visual Studio 2026 и <a href="https://aka.ms/dotnet/10.0/dotnet-sdk-win-x64.exe">.NET 10 SDK для Windows x64</a>. Проверьте <code>dotnet --list-sdks</code> в PowerShell.</li>
-    <li>Для маршрута Windows Forms скачайте <a href="https://sourceforge.net/projects/xampp/files/XAMPP%20Windows/8.2.12/xampp-windows-x64-8.2.12-0-VS16-installer.exe/download">XAMPP</a>. Оставьте MySQL, Apache и phpMyAdmin. В XAMPP Control Panel запустите MySQL и Apache. Проверьте вход в <code>http://localhost/phpmyadmin</code>.</li>
-    <li>Для WPF скачайте <a href="https://www.postgresql.org/download/windows/">PostgreSQL с pgAdmin для Windows</a>. Выберите сервер, pgAdmin 4 и Command Line Tools. Запишите пароль <code>postgres</code> и порт, обычно 5432. Откройте в pgAdmin ветку Databases.</li>
-    <li>Установите <a href="https://github.com/jgraph/drawio-desktop/releases/latest">diagrams.net Desktop</a> (Windows installer), проверьте экспорт ER в PDF. Для API скачайте <a href="https://dl.pstmn.io/download/latest/win64">Postman для Windows x64</a> и проверьте импорт локальной коллекции. Если Postman требует вход в аккаунт, для домашней офлайн-проверки используйте <code>Invoke-RestMethod</code>.</li>
-    <li>Проверьте, что открываются DOCX, XLSX, PDF и RAR. Если не хватает программ, скачайте <a href="https://www.libreoffice.org/download/?lang=en-US">LibreOffice</a> или <a href="https://www.7-zip.org/download.html">7-Zip</a> для Windows x64.</li>
-  </ol>
+  <section id="visual-studio">
+    <h2>Visual Studio 2026 и .NET SDK</h2>
+    <ol>
+      <li>На <a href="https://visualstudio.microsoft.com/downloads/">странице Visual Studio</a> выберите Community → «Бесплатная загрузка» и запустите скачанный установщик. В Visual Studio Installer отметьте «Разработка классических приложений .NET» и «ASP.NET и разработка веб-приложений».</li>
+      <li>На <a href="https://dotnet.microsoft.com/en-us/download/dotnet/10.0">странице .NET 10</a> найдите SDK → Windows → x64 и установите SDK, если он ещё отсутствует. В новом окне PowerShell выполните <code>dotnet --list-sdks</code>. Для основного маршрута в списке должна быть версия 10.0.x.</li>
+      <li>Откройте Visual Studio 2026 и проверьте наличие шаблонов Windows Forms App, WPF Application и ASP.NET Core Empty для C#.</li>
+    </ol>
+    <figure><a href="materials/screenshots/setup/vs-community.png"><img src="materials/screenshots/setup/vs-community.png" alt="Раздел Community на официальной странице загрузки Visual Studio"></a></figure>
+    <figure><a href="materials/screenshots/setup/sdk10.png"><img src="materials/screenshots/setup/sdk10.png" alt="Список загрузок SDK .NET 10 для Windows"></a></figure>
+  </section>
+  <section id="xampp">
+    <h2>Windows Forms и XAMPP</h2>
+    <p>На <a href="https://www.apachefriends.org/download.html">странице XAMPP</a> выберите установщик XAMPP для Windows x64. Оставьте MySQL, Apache и phpMyAdmin. В XAMPP Control Panel запустите Apache и MySQL. Откройте <a href="http://localhost/phpmyadmin/">phpMyAdmin</a>. Если в учебной конфигурации Apache слушает другой порт, допишите его после <code>localhost</code>.</p>
+    <figure><a href="materials/screenshots/setup/xampp.png"><img src="materials/screenshots/setup/xampp.png" alt="Официальная загрузка XAMPP для Windows"></a></figure>
+  </section>
+  <section id="postgresql">
+    <h2>WPF и PostgreSQL</h2>
+    <p>На <a href="https://www.postgresql.org/download/windows/">странице PostgreSQL для Windows</a> нажмите Download the installer. Выберите Windows x86-64. В установщике отметьте PostgreSQL Server, pgAdmin 4 и Command Line Tools. Запишите пароль <code>postgres</code> и выбранный порт, обычно 5432. В pgAdmin откройте зарегистрированный локальный сервер и раскройте Databases.</p>
+    <figure><a href="materials/screenshots/setup/postgres.png"><img src="materials/screenshots/setup/postgres.png" alt="Выбор установщика PostgreSQL для Windows x86-64"></a></figure>
+    <p>Если при импорте, выгрузке или восстановлении pgAdmin показывает <strong>Utility file not found</strong>, откройте <strong>Preferences → Paths → Binary paths</strong>. В блоке <strong>PostgreSQL Binary Path</strong> в строке своей версии укажите папку <code>bin</code> установленного PostgreSQL, например <code>C:\Program Files\PostgreSQL\18\bin</code>. Нажмите <strong>Validate</strong> и проверьте, что в окне появились версии <code>pg_dump</code>, <code>pg_restore</code> и <code>psql</code>. Нажмите <strong>OK</strong>, затем <strong>Save</strong> и повторите действие.</p>
+  </section>
+  <section id="tools">
+    <h2>Диаграмма, документы и проверка API</h2>
+    <p>На <a href="https://github.com/jgraph/drawio-desktop/releases/latest">странице diagrams.net Desktop</a> откройте Assets. Скачайте установщик <code>draw.io-…-windows-installer.exe</code> или переносимый архив <code>draw.io-…-windows.zip</code>. Извлеките весь ZIP в отдельную папку и откройте <code>draw.io.exe</code>. Создайте пустую диаграмму и проверьте меню File → Export as → PDF.</p>
+    <figure><a href="materials/screenshots/setup/drawio.png"><img src="materials/screenshots/setup/drawio.png" alt="Файлы выпуска diagrams.net Desktop в разделе Assets"></a></figure>
+    <p>На <a href="https://www.postman.com/downloads/">странице Postman</a> нажмите Windows x64 и установите приложение. До отключения интернета откройте рабочую область, разрешённую для тренировки, и проверьте кнопку Import. На экзамене используйте подготовленный площадкой стенд и выданную учётную запись, если вход обязателен.</p>
+    <p>Для прогона коллекции без рабочей области заранее скачайте <a href="https://dl-cli.pstmn.io/download/latest/win64">Postman CLI для Windows x64 (ZIP)</a>. Распакуйте ZIP в папку <code>postman-cli</code>. Сохраните вместе <code>postman-cli.exe</code> и папку <code>lib</code>. Команды запуска своего локального файла приведены в задании 5.</p>
+    <figure><a href="materials/screenshots/setup/postman.png"><img src="materials/screenshots/setup/postman.png" alt="Официальная загрузка Postman для Windows"></a></figure>
+    <p>Проверьте, что открываются DOCX, XLSX, PDF и RAR. Если нужно, скачайте <a href="https://www.libreoffice.org/download/?lang=en-US">LibreOffice</a> и <a href="https://www.7-zip.org/download.html">7-Zip</a> для Windows x64.</p>
+  </section>
   <section id="development">
     <h2>Библиотеки и разработка без интернета</h2>
     <h3>Подключите пакеты в новом проекте</h3>
-    <p>Заранее скачайте набор NuGet-пакетов <a href="downloads/nuget-mysql.zip" download>для MySQL</a> или <a href="downloads/nuget-postgresql.zip" download>для PostgreSQL</a>. Поместите <code>nuget-packages</code> и <code>NuGet.Config</code> в папку своего решения. Отдельные драйверы можно скачать по ссылкам <a href="https://www.nuget.org/api/v2/package/MySqlConnector/2.6.1">MySqlConnector 2.6.1</a> и <a href="https://www.nuget.org/api/v2/package/Npgsql/10.0.1">Npgsql 10.0.1</a>. Оставьте файлы <code>.nupkg</code> целыми и используйте зависимости из набора.</p>
+    <p>Заранее скачайте набор NuGet-пакетов <a href="downloads/nuget-mysql.zip" download>для MySQL</a> или <a href="downloads/nuget-postgresql.zip" download>для PostgreSQL</a>. Распакуйте папку <code>nuget-packages</code> и файл <code>NuGet.Config</code> рядом с файлом решения. Оставьте <code>.nupkg</code> целыми. В набор входят драйвер и его зависимости. Отдельные пакеты драйверов доступны на NuGet: <a href="https://www.nuget.org/packages/MySqlConnector/2.6.1">MySqlConnector 2.6.1</a> и <a href="https://www.nuget.org/packages/Npgsql/10.0.1">Npgsql 10.0.1</a>.</p>
     <p>В Visual Studio выберите проект с кодом БД → «Управление пакетами NuGet» → «Обзор» → источник «Пакеты из архива». Установите драйвер выбранной СУБД и соберите решение без сети. При <code>NU1101</code> или <code>NU1102</code> сверьте имя и версию отсутствующего пакета с содержимым папки.</p>
     <p>В PowerShell из папки своего решения выполните команды ниже. Первая использует только локальный NuGet-источник, вторая собирает проект с уже восстановленными пакетами.</p>
     <button type="button" data-copy-command>Копировать команды</button>
@@ -30,16 +55,20 @@
 dotnet build --no-restore</code></pre>
     <p>В обозревателе решений Visual Studio назначьте стартовым свой оконный проект или Api. Для API заполните переменные подключения в профиле отладки, как показано в карточке. Запустите F5 и проверьте созданную базу.</p>
     <h3>Если на стенде .NET 9</h3>
-    <p>.NET 10 — LTS. .NET 9 завершил поддержку 10 ноября 2026 года. Для стенда с .NET 9 используйте <a href="https://dotnet.microsoft.com/en-us/download/dotnet/9.0">.NET 9 SDK</a> и Visual Studio 2022 17.12 или новее. Для <code>.slnx</code> используйте VS 2022 17.14 и SDK 9.0.2xx или новее.</p>
-    <p>В отдельной копии в <code>.csproj</code> настольного проекта замените <code>net10.0-windows</code> на <code>net9.0-windows</code>. В проектах <code>Shared</code>, <code>Api</code>, <code>Tools</code> и импортёре замените <code>net10.0</code> на <code>net9.0</code>. Версии драйверов сохраняются. Для Npgsql под .NET 9 нужны <code>Microsoft.Extensions.Logging.Abstractions</code> и <code>Microsoft.Extensions.DependencyInjection.Abstractions</code> версии 9.0.0. Оба пакета входят в набор для PostgreSQL. Повторите <code>dotnet restore</code> и <code>dotnet build</code>, затем выполните F5 с прежними настройками СУБД.</p>
-    <p><a href="https://learn.microsoft.com/en-us/dotnet/core/porting/versioning-sdk-msbuild-vs">Совместимость Visual Studio и .NET</a></p>
+    <p>.NET 10 — долгосрочный выпуск (LTS). Поддержка .NET 9 завершилась 10 ноября 2026 года. Для стенда с .NET 9 заранее скачайте и установите <a href="https://dotnet.microsoft.com/en-us/download/dotnet/9.0">.NET 9 SDK для Windows x64</a>. Оба выпуска можно использовать в Visual Studio 2026.</p>
+    <p>В папке отдельной копии учебного решения создайте файл <code>global.json</code>. Впишите установленную версию 9.0.x из <code>dotnet --list-sdks</code>. <code>latestPatch</code> разрешает выбрать более новый патч той же полосы SDK. Команда <code>dotnet --version</code> из этой папки должна показать 9.0.x.</p>
+    <button type="button" data-copy-command>Копировать код</button>
+    <pre tabindex="0"><code>{
+  "sdk": {
+    "version": "9.0.321",
+    "rollForward": "latestPatch"
+  }
+}</code></pre>
+    <p>В новом проекте выберите .NET 9 в мастере Visual Studio. Если проект уже создан, замените <code>net10.0-windows</code> на <code>net9.0-windows</code> в настольном <code>.csproj</code>, а <code>net10.0</code> на <code>net9.0</code> в библиотеке, API и импортёре. Для Npgsql под .NET 9 понадобятся <code>Microsoft.Extensions.Logging.Abstractions</code> и <code>Microsoft.Extensions.DependencyInjection.Abstractions</code> версии 9.0.0 из локального набора. Откройте решение в Visual Studio 2026 после сохранения <code>global.json</code>. Восстановите локальные пакеты, соберите проект и запустите F5.</p>
+    <p><a href="https://learn.microsoft.com/en-us/dotnet/core/porting/versioning-sdk-msbuild-vs">Совместимость Visual Studio и .NET</a> · <a href="https://learn.microsoft.com/en-us/dotnet/core/tools/global-json">Выбор SDK через global.json</a></p>
   </section>
   <section id="faq">
-    <h2>ЧаВО об экзамене</h2>
-    <details><summary>Какие задания на базовом уровне?</summary><p>КИМ 09.02.07-5-2027 отводит 210 минут на шесть заданий. В курсе разбираются ER, база и импорт, расчёт стоимости, формы и роли, API и его документация.</p></details>
-    <details><summary>Будет ли доступ к сайтам и пакетам?</summary><p>На с. 22 КИМ указана локальная сеть без доступа в интернет. Для домашней репетиции заранее установите ПО и подготовьте пакеты, затем проверьте всё без внешней сети. Список разрешённых программ, файлов и локальной справки уточните на инструктаже.</p></details>
-    <details><summary>Что уточнить перед началом?</summary><p>Сверьте версии .NET, доступную СУБД, путь к исходным файлам, папку сдачи и допустимый способ проверки API. Если комплект или рабочее место не открываются, сообщите эксперту номер места и текст ошибки.</p></details>
-    <details><summary>Что проверить перед сдачей?</summary><p>Откройте PDF, проверьте SQL и данные в отдельной базе, запустите приложение под обеими ролями. Проверьте ответы API и сохраните проект с документацией в папке сдачи.</p></details>
+    <p><a href="index.html?mode=faq">ЧаВО об экзамене</a></p>
   </section>
 </main>
 <script>
